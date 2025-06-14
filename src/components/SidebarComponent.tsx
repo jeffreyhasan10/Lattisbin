@@ -1,6 +1,6 @@
+
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -97,7 +97,6 @@ const SidebarComponent: React.FC<SidebarProps> = ({
         { tab: "customers", label: "Customers", icon: Users, badge: "New" },
         { tab: "bins", label: "Bins", icon: Package2 },
         { tab: "lorries", label: "Lorries", icon: Truck },
-        // { tab: "drivers", label: "Drivers", icon: UserCheck },
       ],
     },
     {
@@ -134,16 +133,10 @@ const SidebarComponent: React.FC<SidebarProps> = ({
     <Sidebar
       collapsible="offcanvas"
       variant="sidebar"
-      collapsed={collapsed}
       className="bg-white dark:bg-gray-900 border-r border-gray-200/30 dark:border-gray-800/30 shadow-lg transition-all duration-300"
     >
       <SidebarHeader className="p-4 border-b border-gray-200/20 dark:border-gray-800/20 bg-gradient-to-r from-blue-500/10 to-indigo-500/10">
-        <motion.div
-          className="flex items-center gap-3"
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5 }}
-        >
+        <div className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-md">
             <span className="font-bold text-white text-lg">L</span>
           </div>
@@ -152,7 +145,7 @@ const SidebarComponent: React.FC<SidebarProps> = ({
               Lattis<span className="text-blue-500">EWM</span>
             </h1>
           )}
-        </motion.div>
+        </div>
       </SidebarHeader>
 
       <SidebarContent className="px-2 py-4 overflow-y-auto custom-scrollbar">
@@ -161,7 +154,7 @@ const SidebarComponent: React.FC<SidebarProps> = ({
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <div>
                   <Button
                     variant="ghost"
                     className={`w-full justify-start gap-3 rounded-lg py-3 transition-all duration-300 ${
@@ -175,7 +168,7 @@ const SidebarComponent: React.FC<SidebarProps> = ({
                     <Home className="h-5 w-5" />
                     {!collapsed && <span className="font-medium text-sm">Dashboard</span>}
                   </Button>
-                </motion.div>
+                </div>
               </TooltipTrigger>
               {collapsed && <TooltipContent>Dashboard</TooltipContent>}
             </Tooltip>
@@ -191,68 +184,58 @@ const SidebarComponent: React.FC<SidebarProps> = ({
             >
               <span>{group.label}</span>
               {!collapsed && (
-                <motion.div
-                  animate={{ rotate: expandedGroups[group.group] ? 180 : 0 }}
-                  transition={{ duration: 0.3 }}
-                >
+                <div>
                   <ChevronDown className="h-4 w-4" />
-                </motion.div>
+                </div>
               )}
             </SidebarGroupLabel>
-            <AnimatePresence>
-              {expandedGroups[group.group] && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <SidebarGroupContent>
-                    <SidebarMenu>
-                      {group.items.map((item) => (
-                        <SidebarMenuItem key={item.tab}>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                                  <SidebarMenuButton
-                                    isActive={activeTab === item.tab}
-                                    onClick={() => handleTabChange(item.tab)}
-                                    className={`rounded-lg py-2 transition-all duration-300 hover:bg-blue-500/5 ${
-                                      activeTab === item.tab
-                                        ? "bg-blue-500/10 text-blue-600 dark:text-blue-400"
-                                        : "text-gray-700 dark:text-gray-300"
-                                    }`}
-                                    aria-label={item.label}
-                                  >
-                                    <item.icon className="h-5 w-5" />
-                                    {!collapsed && <span className="font-medium text-sm">{item.label}</span>}
-                                    {!collapsed && item.badge && (
-                                      <Badge
-                                        className={`ml-auto text-xs px-1.5 py-0.5 ${
-                                          item.tab === "waste"
-                                            ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
-                                            : item.tab === "bookings"
-                                            ? "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300"
-                                            : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300"
-                                        }`}
-                                      >
-                                        {item.badge}
-                                      </Badge>
-                                    )}
-                                  </SidebarMenuButton>
-                                </motion.div>
-                              </TooltipTrigger>
-                              {collapsed && <TooltipContent>{item.label}</TooltipContent>}
-                            </Tooltip>
-                          </TooltipProvider>
-                        </SidebarMenuItem>
-                      ))}
-                    </SidebarMenu>
-                  </SidebarGroupContent>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {expandedGroups[group.group] && (
+              <div>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {group.items.map((item) => (
+                      <SidebarMenuItem key={item.tab}>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div>
+                                <SidebarMenuButton
+                                  isActive={activeTab === item.tab}
+                                  onClick={() => handleTabChange(item.tab)}
+                                  className={`rounded-lg py-2 transition-all duration-300 hover:bg-blue-500/5 ${
+                                    activeTab === item.tab
+                                      ? "bg-blue-500/10 text-blue-600 dark:text-blue-400"
+                                      : "text-gray-700 dark:text-gray-300"
+                                  }`}
+                                  aria-label={item.label}
+                                >
+                                  <item.icon className="h-5 w-5" />
+                                  {!collapsed && <span className="font-medium text-sm">{item.label}</span>}
+                                  {!collapsed && item.badge && (
+                                    <Badge
+                                      className={`ml-auto text-xs px-1.5 py-0.5 ${
+                                        item.tab === "waste"
+                                          ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
+                                          : item.tab === "bookings"
+                                          ? "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300"
+                                          : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300"
+                                      }`}
+                                    >
+                                      {item.badge}
+                                    </Badge>
+                                  )}
+                                </SidebarMenuButton>
+                              </div>
+                            </TooltipTrigger>
+                            {collapsed && <TooltipContent>{item.label}</TooltipContent>}
+                          </Tooltip>
+                        </TooltipProvider>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </div>
+            )}
           </SidebarGroup>
         ))}
       </SidebarContent>
@@ -270,7 +253,7 @@ const SidebarComponent: React.FC<SidebarProps> = ({
                 <p className="text-xs text-gray-500 dark:text-gray-400">Administrator</p>
               </div>
             )}
-            <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+            <div>
               <Button
                 variant="ghost"
                 size="icon"
@@ -280,12 +263,12 @@ const SidebarComponent: React.FC<SidebarProps> = ({
               >
                 <Settings className="h-4 w-4" />
               </Button>
-            </motion.div>
+            </div>
           </div>
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <div>
                   <Button
                     variant="ghost"
                     className={`w-full flex items-center gap-2 rounded-lg py-3 transition-all duration-300 hover:bg-blue-500/5 hover:text-blue-500 dark:hover:text-blue-400 ${
@@ -297,7 +280,7 @@ const SidebarComponent: React.FC<SidebarProps> = ({
                     <HelpCircle className="h-5 w-5" />
                     {!collapsed && <span className="font-medium text-sm">Help & Support</span>}
                   </Button>
-                </motion.div>
+                </div>
               </TooltipTrigger>
               {collapsed && <TooltipContent>Help & Support</TooltipContent>}
             </Tooltip>

@@ -8,6 +8,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import AppLayout from "./components/layout/AppLayout";
+import DriverLayout from "./components/layout/DriverLayout";
 
 // Driver Components
 import DriverLogin from "./components/driver/DriverLogin";
@@ -61,12 +62,14 @@ const App = () => (
           
           {/* Driver Routes */}
           <Route path="/driver/login" element={<DriverLogin />} />
-          <Route path="/driver/dashboard" element={<DriverDashboard />} />
-          <Route path="/driver/orders" element={<DriverOrders />} />
-          <Route path="/driver/payments" element={<DriverPayments />} />
-          <Route path="/driver/expenses" element={<DriverExpenses />} />
-          <Route path="/driver/lorries" element={<DriverLorries />} />
-          <Route path="/driver/profile" element={<DriverProfile />} />
+          <Route element={<DriverLayout />}>
+            <Route path="/driver/dashboard" element={<DriverDashboard />} />
+            <Route path="/driver/orders" element={<DriverOrders />} />
+            <Route path="/driver/payments" element={<DriverPayments />} />
+            <Route path="/driver/expenses" element={<DriverExpenses />} />
+            <Route path="/driver/lorries" element={<DriverLorries />} />
+            <Route path="/driver/profile" element={<DriverProfile />} />
+          </Route>
           
           {/* Admin Dashboard Routes */}
           <Route element={<AppLayout />}>
