@@ -1,416 +1,190 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { 
-  ArrowLeft, 
-  MapPin, 
-  Phone, 
-  Navigation, 
-  Camera, 
-  DollarSign,
-  Clock,
-  CheckCircle,
-  AlertCircle,
-  Truck,
-  Package,
-  Calendar,
-  User,
-  FileText
-} from "lucide-react";
-import { toast } from "sonner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Breadcrumb,
   BreadcrumbList,
   BreadcrumbItem,
-  BreadcrumbLink,
   BreadcrumbPage,
-  BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  MapPin,
+  Clock,
+  DollarSign,
+  Package,
+  Search,
+  Filter,
+  Eye,
+  Navigation,
+  Phone,
+  Calendar,
+  Truck,
+  CheckCircle,
+  AlertCircle,
+  XCircle,
+  FileText,
+} from "lucide-react";
+import { toast } from "sonner";
 
 const DriverOrders = () => {
   const navigate = useNavigate();
-  const [selectedOrder, setSelectedOrder] = useState<string | null>(null);
-  const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [activeTab, setActiveTab] = useState("all");
 
-  // Dummy orders data
-  const [orders, setOrders] = useState([
+  // Mock data for orders
+  const orders = [
     {
       id: "JOB001",
-      customerName: "ABC Construction Sdn Bhd",
-      customerCompany: "ABC Construction",
-      customerPhone: "03-9876 5432",
-      pickupAddress: "Jalan Ampang, 50450 Kuala Lumpur",
-      deliveryAddress: "No. 123, Jalan Tun Razak, 50400 KL",
-      binType: "ASR100",
-      binSerial: "ASR100-001",
-      binSize: "4x12x6ft",
-      status: "pending",
+      customer: "ABC Construction Sdn Bhd",
+      customerPhone: "+60123456789",
+      location: "Jalan Ampang, Kuala Lumpur",
+      pickupLocation: "Taman Tun Dr Ismail",
+      time: "09:30 AM",
+      date: "2024-01-15",
+      status: "completed",
       amount: 350.00,
-      paymentMethod: "Cash",
-      assignedTime: "08:00 AM",
       priority: "high",
-      specialInstructions: "Please call before delivery. Gate access required.",
-      pickupLat: 3.1390,
-      pickupLng: 101.6869,
-      deliveryLat: 3.1478,
-      deliveryLng: 101.6953
+      wasteType: "Construction Debris",
+      lorryType: "Large Truck",
+      distance: "12.5 km",
+      estimatedDuration: "45 min",
+      notes: "Handle with care - fragile materials included"
     },
     {
-      id: "JOB002", 
-      customerName: "Lim Wei Chong",
-      customerCompany: "Green Valley Resort",
-      customerPhone: "012-345 6789",
-      pickupAddress: "Warehouse B, Port Klang",
-      deliveryAddress: "Green Valley Resort, Genting Highlands",
-      binType: "LASR100",
-      binSerial: "LASR100-045",
-      binSize: "6x12x8ft",
+      id: "JOB002",
+      customer: "Green Valley Resort",
+      customerPhone: "+60187654321",
+      location: "Genting Highlands, Pahang",
+      pickupLocation: "Resort Main Building",
+      time: "11:00 AM",
+      date: "2024-01-15",
       status: "in-progress",
       amount: 450.00,
-      paymentMethod: "Online Transfer",
-      assignedTime: "10:30 AM",
       priority: "medium",
-      specialInstructions: "Heavy machinery access route only.",
-      pickupLat: 3.0319,
-      pickupLng: 101.3932,
-      deliveryLat: 3.4221,
-      deliveryLng: 101.7933
+      wasteType: "General Waste",
+      lorryType: "Medium Truck",
+      distance: "25.0 km",
+      estimatedDuration: "1h 20min",
+      notes: "Multiple pickup points within the resort"
     },
     {
       id: "JOB003",
-      customerName: "Sarah Ahmad",
-      customerCompany: "Sunshine Apartments",
-      customerPhone: "016-789 0123",
-      pickupAddress: "Customer Site - Collected",
-      deliveryAddress: "Sunshine Apartments, 47800 Petaling Jaya",
-      binType: "PWD100",
-      binSerial: "PWD100-023",
-      binSize: "3x10x5ft",
-      status: "completed",
+      customer: "Sunshine Apartments",
+      customerPhone: "+60198765432",
+      location: "Petaling Jaya, Selangor",
+      pickupLocation: "Block A Parking Area",
+      time: "02:30 PM",
+      date: "2024-01-15",
+      status: "pending",
       amount: 280.00,
-      paymentMethod: "Cheque",
-      assignedTime: "07:00 AM",
       priority: "low",
-      specialInstructions: "Payment collected on delivery.",
-      pickupLat: 3.1073,
-      pickupLng: 101.5951,
-      deliveryLat: 3.1073,
-      deliveryLng: 101.5951
+      wasteType: "Household Waste",
+      lorryType: "Small Truck",
+      distance: "8.2 km",
+      estimatedDuration: "30 min",
+      notes: "Weekly scheduled pickup"
+    },
+    {
+      id: "JOB004",
+      customer: "Tech Park Industries",
+      customerPhone: "+60134567890",
+      location: "Cyberjaya, Selangor",
+      pickupLocation: "Loading Bay 3",
+      time: "04:00 PM",
+      date: "2024-01-15",
+      status: "cancelled",
+      amount: 520.00,
+      priority: "high",
+      wasteType: "Electronic Waste",
+      lorryType: "Specialized Truck",
+      distance: "18.7 km",
+      estimatedDuration: "55 min",
+      notes: "Cancelled due to weather conditions"
     }
-  ]);
-
-  const updateOrderStatus = (orderId: string, newStatus: string) => {
-    setOrders(prev => prev.map(order => 
-      order.id === orderId 
-        ? { ...order, status: newStatus }
-        : order
-    ));
-    toast.success(`Order ${orderId} updated to ${newStatus}`);
-  };
+  ];
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "pending": return "bg-yellow-100 text-yellow-800 border-yellow-200";
-      case "en-route-pickup": return "bg-blue-100 text-blue-800 border-blue-200";
-      case "bin-collected": return "bg-purple-100 text-purple-800 border-purple-200";
-      case "in-transit": return "bg-indigo-100 text-indigo-800 border-indigo-200";
-      case "delivered": return "bg-green-100 text-green-800 border-green-200";
-      case "completed": return "bg-green-100 text-green-800 border-green-200";
-      default: return "bg-gray-100 text-gray-800 border-gray-200";
+      case "completed": return "bg-green-100 text-green-800 border-green-300";
+      case "in-progress": return "bg-blue-100 text-blue-800 border-blue-300";
+      case "pending": return "bg-yellow-100 text-yellow-800 border-yellow-300";
+      case "cancelled": return "bg-red-100 text-red-800 border-red-300";
+      default: return "bg-gray-100 text-gray-800 border-gray-300";
     }
   };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case "pending": return "Pending";
-      case "en-route-pickup": return "En Route to Pickup";
-      case "bin-collected": return "Bin Collected";
-      case "in-transit": return "In Transit";
-      case "delivered": return "Delivered";  
-      case "completed": return "Completed";
-      default: return status;
-    }
-  };
-
-  const getNextStatus = (currentStatus: string) => {
-    switch (currentStatus) {
-      case "pending": return "en-route-pickup";
-      case "en-route-pickup": return "bin-collected";
-      case "bin-collected": return "in-transit";
-      case "in-transit": return "delivered";
-      case "delivered": return "completed";
-      default: return currentStatus;
-    }
-  };
-
-  const openNavigation = (lat: number, lng: number, address: string) => {
-    const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
-    window.open(url, '_blank');
-    toast.success(`Opening navigation to ${address}`);
-  };
-
-  const selectedOrderData = orders.find(order => order.id === selectedOrder);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case "pending": return <CheckCircle className="h-5 w-5" />;
-      case "en-route-pickup": return <Navigation className="h-5 w-5" />;
-      case "bin-collected": return <Truck className="h-5 w-5" />;
-      case "in-transit": return <Clock className="h-5 w-5" />;
-      case "delivered": return <CheckCircle className="h-5 w-5" />;
-      case "completed": return <CheckCircle className="h-5 w-5" />;
-      default: return <CheckCircle className="h-5 w-5" />;
+      case "completed": return <CheckCircle className="h-4 w-4" />;
+      case "in-progress": return <AlertCircle className="h-4 w-4" />;
+      case "pending": return <Clock className="h-4 w-4" />;
+      case "cancelled": return <XCircle className="h-4 w-4" />;
+      default: return <FileText className="h-4 w-4" />;
     }
   };
 
-  const filteredOrders = filterStatus === "all" ? orders : orders.filter(order => {
-    if (filterStatus === "pending") return order.status === "pending";
-    if (filterStatus === "active") return ["in-progress", "en-route-pickup", "bin-collected", "in-transit"].includes(order.status);
-    if (filterStatus === "completed") return order.status === "completed";
-    return true;
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case "high": return "bg-red-50 border-red-200 text-red-700";
+      case "medium": return "bg-yellow-50 border-yellow-200 text-yellow-700";
+      case "low": return "bg-green-50 border-green-200 text-green-700";
+      default: return "bg-gray-50 border-gray-200 text-gray-700";
+    }
+  };
+
+  const filteredOrders = orders.filter(order => {
+    const matchesSearch = order.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         order.location.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = activeTab === "all" || order.status === activeTab;
+    
+    return matchesSearch && matchesStatus;
   });
 
-  if (selectedOrderData) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        {/* Header */}
-        <div className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-10">
-          <div className="px-4 py-4">
-            <div className="flex items-center gap-3">
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={() => setSelectedOrder(null)}
-                className="hover:bg-gray-100 rounded-lg"
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-              <div>
-                <h1 className="font-bold text-xl text-slate-900">Order Details</h1>
-                <p className="text-sm text-slate-600 font-medium">{selectedOrderData.id}</p>
-              </div>
-            </div>
-          </div>
-        </div>
+  const orderCounts = {
+    all: orders.length,
+    pending: orders.filter(o => o.status === "pending").length,
+    "in-progress": orders.filter(o => o.status === "in-progress").length,
+    completed: orders.filter(o => o.status === "completed").length,
+    cancelled: orders.filter(o => o.status === "cancelled").length,
+  };
 
-        <ScrollArea className="h-[calc(100vh-80px)]">
-          <div className="p-4 space-y-6">
-            {/* Status Card */}
-            <Card className="bg-white border border-gray-200 shadow-sm">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <Badge className={`px-4 py-2 rounded-lg font-semibold border ${getStatusColor(selectedOrderData.status)}`}>
-                    {getStatusText(selectedOrderData.status)}
-                  </Badge>
-                  <div className="flex items-center gap-2 text-slate-600">
-                    <Clock className="h-4 w-4" />
-                    <span className="text-sm font-medium">{selectedOrderData.assignedTime}</span>
-                  </div>
-                </div>
-                
-                {selectedOrderData.status !== "completed" && (
-                  <Button 
-                    className="w-full bg-slate-900 hover:bg-slate-800 text-white shadow-sm h-12 font-semibold"
-                    onClick={() => updateOrderStatus(selectedOrderData.id, getNextStatus(selectedOrderData.status))}
-                  >
-                    Update to: {getStatusText(getNextStatus(selectedOrderData.status))}
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
+  const handleViewOrder = (orderId: string) => {
+    toast.success(`Viewing order ${orderId}`);
+  };
 
-            {/* Customer Information */}
-            <Card className="bg-white border border-gray-200 shadow-sm">
-              <CardHeader className="bg-gray-50 border-b border-gray-100">
-                <CardTitle className="text-lg flex items-center gap-3 font-bold text-slate-900">
-                  <User className="h-5 w-5 text-slate-600" />
-                  Customer Information
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6 space-y-4">
-                <div>
-                  <p className="font-bold text-lg text-slate-900">{selectedOrderData.customerName}</p>
-                  <p className="text-sm text-slate-600 font-medium">{selectedOrderData.customerCompany}</p>
-                </div>
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start h-12 border-gray-300 hover:bg-gray-50 rounded-lg"
-                  onClick={() => window.open(`tel:${selectedOrderData.customerPhone}`)}
-                >
-                  <Phone className="h-5 w-5 mr-3 text-green-600" />
-                  <span className="font-semibold">{selectedOrderData.customerPhone}</span>
-                </Button>
-              </CardContent>
-            </Card>
+  const handleNavigate = (location: string) => {
+    toast.success(`Opening navigation to ${location}`);
+  };
 
-            {/* Bin Information */}
-            <Card className="bg-white border border-gray-200 shadow-sm">
-              <CardHeader className="bg-gray-50 border-b border-gray-100">
-                <CardTitle className="text-lg flex items-center gap-2 font-bold text-slate-900">
-                  <Package className="h-5 w-5 text-slate-600" />
-                  Bin Information
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6 space-y-2">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-slate-600">Type</p>
-                    <p className="font-medium text-slate-900">{selectedOrderData.binType}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-600">Serial</p>
-                    <p className="font-medium text-slate-900">{selectedOrderData.binSerial}</p>
-                  </div>
-                </div>
-                <div>
-                  <p className="text-sm text-slate-600">Size</p>
-                  <p className="font-medium text-slate-900">{selectedOrderData.binSize}</p>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Locations */}
-            <Card className="bg-white border border-gray-200 shadow-sm">
-              <CardHeader className="bg-gray-50 border-b border-gray-100">
-                <CardTitle className="text-lg flex items-center gap-2 font-bold text-slate-900">
-                  <MapPin className="h-5 w-5 text-slate-600" />
-                  Locations
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6 space-y-4">
-                <div>
-                  <p className="text-sm text-slate-600 mb-1">Pickup Address</p>
-                  <p className="text-sm mb-2 text-slate-900">{selectedOrderData.pickupAddress}</p>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    className="border-gray-300 hover:bg-gray-50"
-                    onClick={() => openNavigation(
-                      selectedOrderData.pickupLat, 
-                      selectedOrderData.pickupLng, 
-                      "pickup location"
-                    )}
-                  >
-                    <Navigation className="h-4 w-4 mr-1" />
-                    Navigate to Pickup
-                  </Button>
-                </div>
-                
-                <div>
-                  <p className="text-sm text-slate-600 mb-1">Delivery Address</p>
-                  <p className="text-sm mb-2 text-slate-900">{selectedOrderData.deliveryAddress}</p>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    className="border-gray-300 hover:bg-gray-50"
-                    onClick={() => openNavigation(
-                      selectedOrderData.deliveryLat, 
-                      selectedOrderData.deliveryLng, 
-                      "delivery location"
-                    )}
-                  >
-                    <Navigation className="h-4 w-4 mr-1" />
-                    Navigate to Delivery
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Payment Information */}
-            <Card className="bg-white border border-gray-200 shadow-sm">
-              <CardHeader className="bg-gray-50 border-b border-gray-100">
-                <CardTitle className="text-lg flex items-center gap-2 font-bold text-slate-900">
-                  <DollarSign className="h-5 w-5 text-slate-600" />
-                  Payment Information
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6 space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-slate-600">Amount:</span>
-                  <span className="font-bold text-green-600">RM{selectedOrderData.amount.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-600">Method:</span>
-                  <Badge variant="outline" className="border-gray-300">{selectedOrderData.paymentMethod}</Badge>
-                </div>
-                <Button 
-                  className="w-full mt-3 bg-slate-900 hover:bg-slate-800"
-                  onClick={() => navigate("/driver/payments", { state: { orderId: selectedOrderData.id } })}
-                >
-                  Collect Payment
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Special Instructions */}
-            {selectedOrderData.specialInstructions && (
-              <Card className="bg-white border border-gray-200 shadow-sm">
-                <CardHeader className="bg-gray-50 border-b border-gray-100">
-                  <CardTitle className="text-lg flex items-center gap-2 font-bold text-slate-900">
-                    <AlertCircle className="h-5 w-5 text-yellow-600" />
-                    Special Instructions
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <p className="text-sm text-slate-700">{selectedOrderData.specialInstructions}</p>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Photo Documentation */}
-            <Card className="bg-white border border-gray-200 shadow-sm">
-              <CardHeader className="bg-gray-50 border-b border-gray-100">
-                <CardTitle className="text-lg flex items-center gap-2 font-bold text-slate-900">
-                  <Camera className="h-5 w-5 text-slate-600" />
-                  Photo Documentation
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="grid grid-cols-3 gap-2">
-                  <Button variant="outline" className="h-20 flex-col border-gray-300 hover:bg-gray-50">
-                    <Camera className="h-6 w-6 mb-1 text-slate-600" />
-                    <span className="text-xs text-slate-700">Before</span>
-                  </Button>
-                  <Button variant="outline" className="h-20 flex-col border-gray-300 hover:bg-gray-50">
-                    <Camera className="h-6 w-6 mb-1 text-slate-600" />
-                    <span className="text-xs text-slate-700">During</span>
-                  </Button>
-                  <Button variant="outline" className="h-20 flex-col border-gray-300 hover:bg-gray-50">
-                    <Camera className="h-6 w-6 mb-1 text-slate-600" />
-                    <span className="text-xs text-slate-700">After</span>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </ScrollArea>
-      </div>
-    );
-  }
+  const handleCallCustomer = (phone: string) => {
+    toast.success(`Calling ${phone}`);
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-slate-50">
       {/* Breadcrumbs */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="px-4 py-4">
+      <div className="bg-white border-b border-gray-200 rounded-lg mb-6 shadow-sm">
+        <div className="px-6 py-4">
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink 
-                  href="/driver/dashboard" 
-                  className="flex items-center gap-2 text-slate-600 hover:text-slate-900 font-medium transition-colors"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                  Dashboard
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator className="text-slate-400" />
-              <BreadcrumbItem>
-                <BreadcrumbPage className="text-slate-700 font-semibold">
+                <BreadcrumbPage className="text-blue-700 font-semibold">
                   My Orders
                 </BreadcrumbPage>
               </BreadcrumbItem>
@@ -420,126 +194,228 @@ const DriverOrders = () => {
       </div>
 
       {/* Header */}
-      <div className="bg-white p-6 shadow-sm">
+      <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 shadow-lg rounded-lg mb-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl lg:text-3xl font-bold text-slate-900 mb-2 flex items-center gap-3">
-              <FileText className="h-7 w-7 text-slate-600" />
+            <h1 className="text-2xl lg:text-3xl font-bold text-white mb-2 flex items-center gap-3">
+              <FileText className="h-7 w-7 text-blue-200" />
               My Orders
             </h1>
-            <p className="text-slate-600 font-medium">{orders.length} total orders • {filteredOrders.length} showing</p>
+            <p className="text-blue-100 font-medium">Manage and track your delivery orders</p>
           </div>
-          <div className="bg-gray-50 rounded-xl p-4 text-center border border-gray-200">
-            <p className="text-lg font-bold text-slate-900 mb-1">
-              {new Date().toLocaleDateString('en-US', { 
-                month: 'short',
-                day: 'numeric'
-              })}
-            </p>
-            <p className="text-xs text-slate-500 flex items-center justify-center gap-1">
-              <Calendar className="h-3 w-3" />
-              Today
-            </p>
+          <div className="text-right">
+            <div className="bg-white/10 rounded-xl p-4 border border-white/20 backdrop-blur-sm">
+              <p className="text-lg font-bold text-white">{orders.length}</p>
+              <p className="text-xs text-blue-200">Total Orders</p>
+            </div>
           </div>
         </div>
       </div>
 
-      <ScrollArea className="h-[calc(100vh-180px)]">
-        <div className="p-4 space-y-6">
-          {/* Filter Tabs */}
-          <Card className="bg-white border border-gray-200 shadow-sm">
-            <CardContent className="p-4">
-              <div className="flex gap-2 overflow-x-auto pb-2">
-                {[
-                  { key: "all", label: "All Orders", count: orders.length },
-                  { key: "pending", label: "Pending", count: orders.filter(o => o.status === 'pending').length },
-                  { key: "active", label: "Active", count: orders.filter(o => ['in-progress', 'en-route-pickup', 'bin-collected', 'in-transit'].includes(o.status)).length },
-                  { key: "completed", label: "Completed", count: orders.filter(o => o.status === 'completed').length }
-                ].map(({ key, label, count }) => (
-                  <Button
-                    key={key}
-                    variant={filterStatus === key ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setFilterStatus(key)}
-                    className={`whitespace-nowrap rounded-lg transition-all duration-300 ${
-                      filterStatus === key
-                        ? "bg-slate-900 text-white shadow-sm"
-                        : "border-gray-300 text-slate-700 hover:bg-gray-50"
-                    }`}
-                  >
-                    {label} ({count})
-                  </Button>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Orders List */}
-          <div className="space-y-4">
-            {filteredOrders.map((order) => (
-              <Card 
-                key={order.id} 
-                className="cursor-pointer hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 bg-white border border-gray-200 shadow-sm"
-                onClick={() => setSelectedOrder(order.id)}
-              >
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-4 flex-1">
-                      <div className="p-3 rounded-lg bg-gray-50 border border-gray-200">
-                        {getStatusIcon(order.status)}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="font-bold text-slate-900 text-lg truncate">{order.customerName}</p>
-                        <p className="text-sm text-slate-600 mb-2 font-medium">{order.customerCompany}</p>
-                        <p className="text-xs text-slate-500 flex items-center gap-2">
-                          <Clock className="h-3 w-3" />
-                          {order.id} • {order.assignedTime}
-                        </p>
-                      </div>
-                    </div>
-                    <Badge className={`text-xs px-3 py-1 rounded-lg font-semibold border ${getStatusColor(order.status)}`}>
-                      {getStatusText(order.status)}
-                    </Badge>
-                  </div>
-                  
-                  <div className="space-y-3 text-sm">
-                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                      <Package className="h-5 w-5 text-slate-600" />
-                      <div>
-                        <p className="font-semibold text-slate-900">{order.binType}</p>
-                        <p className="text-xs text-slate-500">Serial: {order.binSerial}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                      <MapPin className="h-5 w-5 text-red-500" />
-                      <span className="truncate font-medium text-slate-700">{order.deliveryAddress}</span>
-                    </div>
-                    <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
-                      <div className="flex items-center gap-2">
-                        <DollarSign className="h-5 w-5 text-green-600" />
-                        <span className="font-bold text-green-600 text-lg">RM{order.amount.toFixed(2)}</span>
-                      </div>
-                      <Badge variant="outline" className="text-xs border-green-200 text-green-700 bg-green-50">
-                        {order.paymentMethod}
-                      </Badge>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-            
-            {filteredOrders.length === 0 && (
-              <Card className="bg-white border border-gray-200 shadow-sm">
-                <CardContent className="p-12 text-center">
-                  <FileText className="h-12 w-12 text-slate-400 mx-auto mb-4" />
-                  <p className="text-lg font-semibold text-slate-600 mb-2">No orders found</p>
-                  <p className="text-sm text-slate-500">No orders match the selected filter.</p>
-                </CardContent>
-              </Card>
-            )}
+      {/* Search and Filters */}
+      <Card className="bg-white border border-blue-200 shadow-lg mb-6">
+        <CardContent className="p-6">
+          <div className="flex flex-col sm:flex-row gap-4 items-center">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-400 h-4 w-4" />
+              <Input
+                placeholder="Search orders by customer, ID, or location..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 border-blue-200 focus:border-blue-400 focus:ring-blue-400"
+              />
+            </div>
+            <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <SelectTrigger className="w-48 border-blue-200 focus:border-blue-400">
+                <Filter className="h-4 w-4 mr-2 text-blue-500" />
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="in-progress">In Progress</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
+                <SelectItem value="cancelled">Cancelled</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-        </div>
-      </ScrollArea>
+        </CardContent>
+      </Card>
+
+      {/* Orders Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <Card className="bg-white border border-blue-200 shadow-lg">
+          <CardContent className="p-6 pb-0">
+            <TabsList className="grid w-full grid-cols-5 bg-blue-50 border border-blue-200">
+              <TabsTrigger value="all" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+                All ({orderCounts.all})
+              </TabsTrigger>
+              <TabsTrigger value="pending" className="data-[state=active]:bg-yellow-600 data-[state=active]:text-white">
+                Pending ({orderCounts.pending})
+              </TabsTrigger>
+              <TabsTrigger value="in-progress" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+                Active ({orderCounts["in-progress"]})
+              </TabsTrigger>
+              <TabsTrigger value="completed" className="data-[state=active]:bg-green-600 data-[state=active]:text-white">
+                Completed ({orderCounts.completed})
+              </TabsTrigger>
+              <TabsTrigger value="cancelled" className="data-[state=active]:bg-red-600 data-[state=active]:text-white">
+                Cancelled ({orderCounts.cancelled})
+              </TabsTrigger>
+            </TabsList>
+          </CardContent>
+        </Card>
+
+        <TabsContent value={activeTab} className="mt-6">
+          <ScrollArea className="h-[calc(100vh-400px)]">
+            <div className="space-y-4">
+              {filteredOrders.length === 0 ? (
+                <Card className="bg-white border border-blue-200 shadow-lg">
+                  <CardContent className="p-12 text-center">
+                    <FileText className="h-12 w-12 text-blue-300 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-slate-700 mb-2">No orders found</h3>
+                    <p className="text-slate-500">
+                      {searchTerm ? "Try adjusting your search terms" : "No orders match the current filter"}
+                    </p>
+                  </CardContent>
+                </Card>
+              ) : (
+                filteredOrders.map((order) => (
+                  <Card key={order.id} className="bg-white border border-blue-200 shadow-lg hover:shadow-xl transition-all duration-300 hover:border-blue-300">
+                    <CardContent className="p-6">
+                      <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+                        {/* Order Header */}
+                        <div className="flex-1">
+                          <div className="flex items-start justify-between mb-4">
+                            <div className="flex items-center gap-3">
+                              <div className="p-3 bg-blue-50 rounded-xl border border-blue-200">
+                                <Package className="h-6 w-6 text-blue-600" />
+                              </div>
+                              <div>
+                                <h3 className="text-lg font-bold text-slate-900">{order.customer}</h3>
+                                <p className="text-sm text-blue-600 font-medium">Order ID: {order.id}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Badge className={`border ${getPriorityColor(order.priority)} font-medium`}>
+                                {order.priority.toUpperCase()}
+                              </Badge>
+                              <Badge className={`border ${getStatusColor(order.status)} font-medium flex items-center gap-1`}>
+                                {getStatusIcon(order.status)}
+                                {order.status.replace('-', ' ').toUpperCase()}
+                              </Badge>
+                            </div>
+                          </div>
+
+                          {/* Order Details Grid */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                            <div className="flex items-center gap-2 text-sm">
+                              <MapPin className="h-4 w-4 text-blue-500" />
+                              <div>
+                                <p className="font-medium text-slate-700">Pickup Location</p>
+                                <p className="text-slate-600">{order.pickupLocation}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm">
+                              <MapPin className="h-4 w-4 text-green-500" />
+                              <div>
+                                <p className="font-medium text-slate-700">Delivery Location</p>
+                                <p className="text-slate-600">{order.location}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm">
+                              <Calendar className="h-4 w-4 text-purple-500" />
+                              <div>
+                                <p className="font-medium text-slate-700">Schedule</p>
+                                <p className="text-slate-600">{order.date} at {order.time}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm">
+                              <Truck className="h-4 w-4 text-orange-500" />
+                              <div>
+                                <p className="font-medium text-slate-700">Vehicle Type</p>
+                                <p className="text-slate-600">{order.lorryType}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm">
+                              <Package className="h-4 w-4 text-indigo-500" />
+                              <div>
+                                <p className="font-medium text-slate-700">Waste Type</p>
+                                <p className="text-slate-600">{order.wasteType}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm">
+                              <DollarSign className="h-4 w-4 text-green-500" />
+                              <div>
+                                <p className="font-medium text-slate-700">Payment</p>
+                                <p className="text-green-600 font-bold">RM {order.amount.toFixed(2)}</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Distance and Duration */}
+                          <div className="flex items-center gap-4 text-sm text-slate-600 mb-4">
+                            <span className="flex items-center gap-1">
+                              <Navigation className="h-4 w-4 text-blue-500" />
+                              {order.distance}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Clock className="h-4 w-4 text-orange-500" />
+                              {order.estimatedDuration}
+                            </span>
+                          </div>
+
+                          {/* Notes */}
+                          {order.notes && (
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                              <p className="text-sm text-slate-700">
+                                <span className="font-medium text-blue-700">Notes:</span> {order.notes}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex flex-col gap-2 min-w-48">
+                          <Button
+                            onClick={() => handleViewOrder(order.id)}
+                            className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium shadow-md"
+                          >
+                            <Eye className="h-4 w-4 mr-2" />
+                            View Details
+                          </Button>
+                          
+                          {order.status !== "cancelled" && (
+                            <>
+                              <Button
+                                variant="outline"
+                                onClick={() => handleNavigate(order.location)}
+                                className="w-full border-blue-300 text-blue-600 hover:bg-blue-50 hover:border-blue-400"
+                              >
+                                <Navigation className="h-4 w-4 mr-2" />
+                                Navigate
+                              </Button>
+                              
+                              <Button
+                                variant="outline"
+                                onClick={() => handleCallCustomer(order.customerPhone)}
+                                className="w-full border-green-300 text-green-600 hover:bg-green-50 hover:border-green-400"
+                              >
+                                <Phone className="h-4 w-4 mr-2" />
+                                Call Customer
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
+          </ScrollArea>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
