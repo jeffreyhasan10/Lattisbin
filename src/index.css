@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -99,5 +100,47 @@
 
   body {
     @apply bg-background text-foreground;
+    font-family: 'Montserrat', sans-serif;
+  }
+}
+
+/* Custom Animation Delays */
+.animation-delay-500 {
+  animation-delay: 0.5s;
+}
+
+.animation-delay-1000 {
+  animation-delay: 1s;
+}
+
+/* Smooth Scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom Gradient Backgrounds */
+.waste-gradient {
+  background: linear-gradient(135deg, #1A3C34 0%, #2E5A50 50%, #4CAF50 100%);
+}
+
+/* Hover Effects */
+.hover-lift {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+/* Testimonial Animations */
+.testimonial-enter {
+  animation: fade-in 0.5s ease-out;
+}
+
+/* Mobile Responsive Animations */
+@media (max-width: 768px) {
+  .animate-fade-in {
+    animation-duration: 0.4s;
   }
 }
