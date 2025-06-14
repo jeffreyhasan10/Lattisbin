@@ -123,7 +123,7 @@ const DriverProfile = () => {
 
   if (!driverSession) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600"></div>
       </div>
     );
@@ -133,9 +133,9 @@ const DriverProfile = () => {
   const onTimeRate = ((performanceData.onTimeDeliveries / performanceData.completedJobs) * 100).toFixed(1);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-4 lg:p-6">
+    <div className="min-h-screen bg-white p-4 lg:p-6">
       {/* Enhanced Breadcrumbs */}
-      <div className="bg-white/80 backdrop-blur-sm border border-gray-200/50 rounded-2xl mb-6 shadow-lg">
+      <div className="bg-white border border-gray-200 rounded-2xl mb-6 shadow-sm">
         <div className="px-6 py-4">
           <Breadcrumb>
             <BreadcrumbList>
@@ -150,7 +150,7 @@ const DriverProfile = () => {
       </div>
 
       {/* Enhanced Header Card */}
-      <Card className="bg-gradient-to-br from-indigo-600 via-purple-600 to-blue-700 border-0 shadow-2xl mb-8 overflow-hidden">
+      <Card className="bg-gradient-to-br from-indigo-600 via-purple-600 to-blue-700 border-0 shadow-xl mb-8 overflow-hidden">
         <div className="absolute inset-0 bg-black/10"></div>
         <CardContent className="relative p-8">
           <div className="flex items-center justify-between text-white">
@@ -181,7 +181,7 @@ const DriverProfile = () => {
               <Button
                 variant={isEditing ? "default" : "outline"}
                 onClick={() => setIsEditing(!isEditing)}
-                className={isEditing ? "bg-white text-indigo-600 hover:bg-gray-100 shadow-lg" : "border-white/40 text-white hover:bg-white/10 backdrop-blur-sm"}
+                className={isEditing ? "bg-white text-indigo-600 hover:bg-gray-100 shadow-lg" : "bg-white text-indigo-600 hover:bg-gray-100 border-white shadow-lg"}
               >
                 <Edit className="h-4 w-4 mr-2" />
                 {isEditing ? "Cancel Edit" : "Edit Profile"}
@@ -189,7 +189,7 @@ const DriverProfile = () => {
               <Button
                 variant="outline"
                 onClick={handleLogout}
-                className="border-red-300/50 text-red-100 hover:bg-red-500/20 backdrop-blur-sm"
+                className="bg-white text-red-600 hover:bg-red-50 border-white shadow-lg"
               >
                 <LogOut className="h-4 w-4 mr-2" />
                 Logout
@@ -203,7 +203,7 @@ const DriverProfile = () => {
         {/* Left Column - Enhanced Personal Info */}
         <div className="xl:col-span-2 space-y-8">
           {/* Enhanced Basic Information */}
-          <Card className="shadow-xl border-0 bg-white/90 backdrop-blur-sm">
+          <Card className="shadow-lg border-0 bg-white">
             <CardHeader className="pb-6 bg-gradient-to-r from-indigo-50 to-blue-50 rounded-t-lg">
               <CardTitle className="text-xl flex items-center gap-3 text-indigo-700">
                 <div className="p-2 bg-indigo-100 rounded-lg">
@@ -215,7 +215,7 @@ const DriverProfile = () => {
             <CardContent className="space-y-6 p-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div className="space-y-6">
-                  <div className="group p-4 bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl border border-gray-200/50 hover:shadow-md transition-all duration-300">
+                  <div className="group p-4 bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl border border-gray-200 hover:shadow-md transition-all duration-300">
                     <div className="flex items-center gap-4">
                       <div className="p-2 bg-indigo-100 rounded-lg group-hover:bg-indigo-200 transition-colors">
                         <CreditCard className="h-5 w-5 text-indigo-600" />
@@ -227,7 +227,7 @@ const DriverProfile = () => {
                     </div>
                   </div>
 
-                  <div className="group p-4 bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl border border-gray-200/50 hover:shadow-md transition-all duration-300">
+                  <div className="group p-4 bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl border border-gray-200 hover:shadow-md transition-all duration-300">
                     <div className="flex items-center gap-4">
                       <div className="p-2 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
                         <Phone className="h-5 w-5 text-green-600" />
@@ -247,7 +247,7 @@ const DriverProfile = () => {
                     </div>
                   </div>
 
-                  <div className="group p-4 bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl border border-gray-200/50 hover:shadow-md transition-all duration-300">
+                  <div className="group p-4 bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl border border-gray-200 hover:shadow-md transition-all duration-300">
                     <div className="flex items-center gap-4">
                       <div className="p-2 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
                         <Mail className="h-5 w-5 text-blue-600" />
@@ -269,7 +269,7 @@ const DriverProfile = () => {
                 </div>
 
                 <div className="space-y-6">
-                  <div className="group p-4 bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl border border-gray-200/50 hover:shadow-md transition-all duration-300">
+                  <div className="group p-4 bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl border border-gray-200 hover:shadow-md transition-all duration-300">
                     <div className="flex items-start gap-4">
                       <div className="p-2 bg-purple-100 rounded-lg group-hover:bg-purple-200 transition-colors">
                         <MapPin className="h-5 w-5 text-purple-600" />
@@ -289,7 +289,7 @@ const DriverProfile = () => {
                     </div>
                   </div>
 
-                  <div className="group p-4 bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl border border-gray-200/50 hover:shadow-md transition-all duration-300">
+                  <div className="group p-4 bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl border border-gray-200 hover:shadow-md transition-all duration-300">
                     <div className="flex items-center gap-4">
                       <div className="p-2 bg-orange-100 rounded-lg group-hover:bg-orange-200 transition-colors">
                         <Calendar className="h-5 w-5 text-orange-600" />
@@ -331,7 +331,7 @@ const DriverProfile = () => {
           </Card>
 
           {/* Enhanced Emergency Contact */}
-          <Card className="shadow-xl border-0 bg-white/90 backdrop-blur-sm">
+          <Card className="shadow-lg border-0 bg-white">
             <CardHeader className="pb-6 bg-gradient-to-r from-red-50 to-pink-50 rounded-t-lg">
               <CardTitle className="text-xl flex items-center gap-3 text-red-700">
                 <div className="p-2 bg-red-100 rounded-lg">
@@ -374,7 +374,7 @@ const DriverProfile = () => {
         {/* Right Column - Enhanced Performance & History */}
         <div className="space-y-8">
           {/* Enhanced Performance Statistics */}
-          <Card className="shadow-xl border-0 bg-white/90 backdrop-blur-sm">
+          <Card className="shadow-lg border-0 bg-white">
             <CardHeader className="pb-6 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-t-lg">
               <CardTitle className="text-xl flex items-center gap-3 text-yellow-700">
                 <div className="p-2 bg-yellow-100 rounded-lg">
@@ -419,7 +419,7 @@ const DriverProfile = () => {
           </Card>
 
           {/* Enhanced Recent Job History */}
-          <Card className="shadow-xl border-0 bg-white/90 backdrop-blur-sm">
+          <Card className="shadow-lg border-0 bg-white">
             <CardHeader className="pb-6 bg-gradient-to-r from-slate-50 to-gray-50 rounded-t-lg">
               <CardTitle className="text-xl flex items-center gap-3 text-gray-700">
                 <div className="p-2 bg-gray-100 rounded-lg">
