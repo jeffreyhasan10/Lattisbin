@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,69 +10,80 @@ import {
   Plus, 
   Eye, 
   Edit, 
-  Trash2, 
-  MapPin, 
-  User, 
+  Trash2,
   Calendar,
+  MapPin,
+  Fuel,
+  Settings,
   Filter,
   Download
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import DataTable from "@/components/dashboard/DataTable";
 
 interface Lorry {
   id: number;
-  registrationNumber: string;
-  driverId: string;
-  availabilityStatus: string;
-  taskDescription?: string;
-  currentLocation?: string;
-  lastUpdated: string;
-  maxBins?: number;
+  plateNumber: string;
+  model: string;
+  capacity: string;
+  status: string;
+  location: string;
+  nextMaintenance: string;
+  driverAssigned: string;
+  fuelLevel: number;
+  dailyRate: number;
 }
 
-const DUMMY_LORRIES: Lorry[] = [
+const LORRY_DATA: Lorry[] = [
   {
     id: 1,
-    registrationNumber: "WKL1234A",
-    driverId: "DRV001",
-    availabilityStatus: "available",
-    taskDescription: "Ready for bin delivery",
-    currentLocation: "Depot A",
-    lastUpdated: "2025-01-14",
-    maxBins: 5
+    plateNumber: "WAA 1234",
+    model: "Isuzu NPR",
+    capacity: "3 Ton",
+    status: "available",
+    location: "Depot A - Kuala Lumpur",
+    nextMaintenance: "2024-02-15",
+    driverAssigned: "Ahmad Rahman",
+    fuelLevel: 85,
+    dailyRate: 250.00
   },
   {
     id: 2,
-    registrationNumber: "WKL5678B",
-    driverId: "DRV002", 
-    availabilityStatus: "assigned",
-    taskDescription: "Delivering bins to Kuala Lumpur",
-    currentLocation: "En route",
-    lastUpdated: "2025-01-14",
-    maxBins: 8
+    plateNumber: "WBB 5678",
+    model: "Mercedes Actros",
+    capacity: "5 Ton",
+    status: "rented",
+    location: "Petaling Jaya",
+    nextMaintenance: "2024-01-20",
+    driverAssigned: "Lim Wei Ming",
+    fuelLevel: 60,
+    dailyRate: 400.00
   },
   {
     id: 3,
-    registrationNumber: "WKL9012C",
-    driverId: "DRV003",
-    availabilityStatus: "under_maintenance",
-    taskDescription: "Scheduled maintenance",
-    currentLocation: "Service Center",
-    lastUpdated: "2025-01-13",
-    maxBins: 6
+    plateNumber: "WCC 9012",
+    model: "Hino 300",
+    capacity: "2 Ton", 
+    status: "maintenance",
+    location: "Workshop - Subang",
+    nextMaintenance: "2024-01-25",
+    driverAssigned: "Ali Hassan",
+    fuelLevel: 30,
+    dailyRate: 200.00
   }
 ];
 
 const RentableLorries = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [lorries] = useState(DUMMY_LORRIES);
+  const [lorries] = useState(LORRY_DATA);
 
   const filteredLorries = useMemo(() => {
     return lorries.filter(lorry => {
-      const matchesSearch = lorry.registrationNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           lorry.driverId.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesStatus = statusFilter === "all" || lorry.availabilityStatus === statusFilter;
+      const matchesSearch = lorry.plateNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           lorry.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           lorry.driverAssigned.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesStatus = statusFilter === "all" || lorry.status === statusFilter;
       return matchesSearch && matchesStatus;
     });
   }, [lorries, searchTerm, statusFilter]);
@@ -79,8 +91,8 @@ const RentableLorries = () => {
   const getStatusBadge = (status: string) => {
     const statusConfig = {
       available: { label: "Available", variant: "default" as const, className: "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300" },
-      assigned: { label: "Assigned", variant: "secondary" as const, className: "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300" },
-      under_maintenance: { label: "Maintenance", variant: "destructive" as const, className: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300" }
+      rented: { label: "Rented", variant: "secondary" as const, className: "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300" },
+      maintenance: { label: "Maintenance", variant: "destructive" as const, className: "bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-300" }
     };
     
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.available;
@@ -91,16 +103,131 @@ const RentableLorries = () => {
     );
   };
 
+  const getFuelBadge = (level: number) => {
+    if (level >= 70) {
+      return <Badge className="bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300">Full</Badge>;
+    } else if (level >= 30) {
+      return <Badge className="bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-300">Medium</Badge>;
+    } else {
+      return <Badge className="bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300">Low</Badge>;
+    }
+  };
+
+  const columns = [
+    {
+      key: "lorry",
+      header: "Lorry Details",
+      render: (lorry: Lorry) => (
+        <div className="flex items-center gap-3">
+          <div className="h-12 w-12 rounded-lg bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
+            <Truck className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+          </div>
+          <div>
+            <p className="font-medium text-gray-900 dark:text-gray-100">{lorry.plateNumber}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{lorry.model}</p>
+          </div>
+        </div>
+      )
+    },
+    {
+      key: "capacity",
+      header: "Capacity",
+      render: (lorry: Lorry) => (
+        <div className="text-center">
+          <p className="font-medium text-gray-900 dark:text-gray-100">{lorry.capacity}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Load Capacity</p>
+        </div>
+      )
+    },
+    {
+      key: "status",
+      header: "Status",
+      render: (lorry: Lorry) => getStatusBadge(lorry.status)
+    },
+    {
+      key: "location",
+      header: "Location",
+      render: (lorry: Lorry) => (
+        <div className="flex items-center gap-2">
+          <MapPin className="h-4 w-4 text-gray-400" />
+          <span className="text-sm text-gray-600 dark:text-gray-300">{lorry.location}</span>
+        </div>
+      )
+    },
+    {
+      key: "driver",
+      header: "Driver",
+      render: (lorry: Lorry) => (
+        <div>
+          <p className="font-medium text-gray-900 dark:text-gray-100">{lorry.driverAssigned}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Assigned Driver</p>
+        </div>
+      )
+    },
+    {
+      key: "fuel",
+      header: "Fuel Level",
+      render: (lorry: Lorry) => (
+        <div className="flex items-center gap-2">
+          <Fuel className="h-4 w-4 text-gray-400" />
+          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{lorry.fuelLevel}%</span>
+          {getFuelBadge(lorry.fuelLevel)}
+        </div>
+      )
+    },
+    {
+      key: "maintenance",
+      header: "Next Maintenance",
+      render: (lorry: Lorry) => (
+        <div className="flex items-center gap-2">
+          <Calendar className="h-4 w-4 text-gray-400" />
+          <span className="text-sm text-gray-600 dark:text-gray-300">
+            {new Date(lorry.nextMaintenance).toLocaleDateString()}
+          </span>
+        </div>
+      )
+    },
+    {
+      key: "rate",
+      header: "Daily Rate",
+      render: (lorry: Lorry) => (
+        <div className="text-right">
+          <p className="font-medium text-gray-900 dark:text-gray-100">RM{lorry.dailyRate.toFixed(2)}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">per day</p>
+        </div>
+      )
+    },
+    {
+      key: "actions",
+      header: "Actions",
+      render: (lorry: Lorry) => (
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm">
+            <Eye className="h-4 w-4 mr-1" />
+            View
+          </Button>
+          <Button variant="outline" size="sm">
+            <Edit className="h-4 w-4 mr-1" />
+            Edit
+          </Button>
+          <Button variant="outline" size="sm">
+            <Settings className="h-4 w-4" />
+          </Button>
+        </div>
+      )
+    }
+  ];
+
   return (
     <div className="p-6 space-y-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Rentable Lorries</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">Manage your fleet rental operations</p>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">Manage your lorry fleet and rentals</p>
         </div>
         <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white">
           <Plus className="h-4 w-4 mr-2" />
-          Add Rentable Lorry
+          Add Lorry
         </Button>
       </div>
 
@@ -111,7 +238,7 @@ const RentableLorries = () => {
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <Input
-                placeholder="Search by registration number or driver ID..."
+                placeholder="Search lorries by plate number, model, or driver..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
@@ -125,8 +252,8 @@ const RentableLorries = () => {
                 <SelectContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
                   <SelectItem value="all">All Status</SelectItem>
                   <SelectItem value="available">Available</SelectItem>
-                  <SelectItem value="assigned">Assigned</SelectItem>
-                  <SelectItem value="under_maintenance">Maintenance</SelectItem>
+                  <SelectItem value="rented">Rented</SelectItem>
+                  <SelectItem value="maintenance">Maintenance</SelectItem>
                 </SelectContent>
               </Select>
               <Button variant="outline" size="sm" className="border-gray-200 dark:border-gray-700">
@@ -138,120 +265,68 @@ const RentableLorries = () => {
         </CardContent>
       </Card>
 
-      {/* Lorries Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredLorries.map((lorry) => (
-          <Card key={lorry.id} className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
-                    <Truck className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                      {lorry.registrationNumber}
-                    </CardTitle>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">ID: {lorry.id}</p>
-                  </div>
-                </div>
-                {getStatusBadge(lorry.availabilityStatus)}
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 text-sm">
-                  <User className="h-4 w-4 text-gray-400" />
-                  <span className="text-gray-600 dark:text-gray-300">Driver: {lorry.driverId}</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Calendar className="h-4 w-4 text-gray-400" />
-                  <span className="text-gray-600 dark:text-gray-300">Last Updated: {lorry.lastUpdated}</span>
-                </div>
-                {lorry.currentLocation && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <MapPin className="h-4 w-4 text-gray-400" />
-                    <span className="text-gray-600 dark:text-gray-300">{lorry.currentLocation}</span>
-                  </div>
-                )}
-                {lorry.taskDescription && (
-                  <div className="mt-2 p-2 bg-gray-50 dark:bg-gray-700 rounded text-sm">
-                    <span className="font-medium text-gray-700 dark:text-gray-300">Task: </span> 
-                    <span className="text-gray-600 dark:text-gray-400">{lorry.taskDescription}</span>
-                  </div>
-                )}
-              </div>
-              
-              <div className="flex gap-2 pt-2">
-                <Button variant="outline" size="sm" className="flex-1 border-gray-200 dark:border-gray-700">
-                  <Eye className="h-4 w-4 mr-1" />
-                  View
-                </Button>
-                <Button variant="outline" size="sm" className="flex-1 border-gray-200 dark:border-gray-700">
-                  <Edit className="h-4 w-4 mr-1" />
-                  Edit
-                </Button>
-                <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700 border-gray-200 dark:border-gray-700">
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      {/* Lorries Table */}
+      <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Truck className="h-5 w-5" />
+            Lorry Fleet ({filteredLorries.length})
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <DataTable 
+            data={filteredLorries} 
+            columns={columns}
+            emptyMessage="No lorries found"
+          />
+        </CardContent>
+      </Card>
 
-      {filteredLorries.length === 0 && (
+      {/* Summary Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-          <CardContent className="p-12 text-center">
-            <Truck className="h-16 w-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No lorries found</h3>
-            <p className="text-gray-500 dark:text-gray-400 mb-4">
-              {searchTerm || statusFilter !== "all" 
-                ? "Try adjusting your search or filter criteria" 
-                : "Get started by adding your first rentable lorry"}
-            </p>
-            <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Rentable Lorry
-            </Button>
+          <CardContent className="p-6 text-center">
+            <Truck className="h-8 w-8 text-blue-500 mx-auto mb-2" />
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{lorries.length}</h3>
+            <p className="text-gray-600 dark:text-gray-400">Total Lorries</p>
           </CardContent>
         </Card>
-      )}
+        <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+          <CardContent className="p-6 text-center">
+            <div className="h-8 w-8 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mx-auto mb-2">
+              <span className="text-green-600 dark:text-green-400 text-sm font-bold">A</span>
+            </div>
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+              {lorries.filter(l => l.status === 'available').length}
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400">Available</p>
+          </CardContent>
+        </Card>
+        <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+          <CardContent className="p-6 text-center">
+            <div className="h-8 w-8 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center mx-auto mb-2">
+              <span className="text-blue-600 dark:text-blue-400 text-sm font-bold">R</span>
+            </div>
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+              {lorries.filter(l => l.status === 'rented').length}
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400">Rented</p>
+          </CardContent>
+        </Card>
+        <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+          <CardContent className="p-6 text-center">
+            <div className="h-8 w-8 bg-orange-100 dark:bg-orange-900/20 rounded-full flex items-center justify-center mx-auto mb-2">
+              <span className="text-orange-600 dark:text-orange-400 text-sm font-bold">RM</span>
+            </div>
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+              RM{lorries.reduce((sum, l) => sum + l.dailyRate, 0).toFixed(0)}
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400">Total Daily Revenue</p>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
-
-const DUMMY_LORRIES = [
-  {
-    id: 1,
-    registrationNumber: "WKL1234A",
-    driverId: "DRV001",
-    availabilityStatus: "available",
-    taskDescription: "Ready for bin delivery",
-    currentLocation: "Depot A",
-    lastUpdated: "2025-01-14",
-    maxBins: 5
-  },
-  {
-    id: 2,
-    registrationNumber: "WKL5678B",
-    driverId: "DRV002", 
-    availabilityStatus: "assigned",
-    taskDescription: "Delivering bins to Kuala Lumpur",
-    currentLocation: "En route",
-    lastUpdated: "2025-01-14",
-    maxBins: 8
-  },
-  {
-    id: 3,
-    registrationNumber: "WKL9012C",
-    driverId: "DRV003",
-    availabilityStatus: "under_maintenance",
-    taskDescription: "Scheduled maintenance",
-    currentLocation: "Service Center",
-    lastUpdated: "2025-01-13",
-    maxBins: 6
-  }
-];
 
 export default RentableLorries;

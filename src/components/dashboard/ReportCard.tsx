@@ -1,63 +1,44 @@
 
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Download, Eye } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { TrendingUp, TrendingDown } from "lucide-react";
 
 interface ReportCardProps {
   title: string;
-  description: string;
-  lastGenerated: string;
-  onView: () => void;
-  onDownload: () => void;
+  amount: string | number;
+  change: string;
+  trend: "up" | "down";
+  icon: React.ComponentType<{ className?: string }>;
 }
 
-const ReportCard: React.FC<ReportCardProps> = ({
-  title,
-  description,
-  lastGenerated,
-  onView,
-  onDownload,
-}) => {
-  const cardVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { 
-      opacity: 1, 
-      y: 0,
-      transition: { 
-        duration: 0.5,
-        ease: [0.4, 0, 0.2, 1]
-      }
-    }
-  };
-
+const ReportCard: React.FC<ReportCardProps> = ({ title, amount, change, trend, icon: Icon }) => {
   return (
-    <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow duration-300">
+    <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
       <CardHeader className="pb-3">
-        <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">{title}</CardTitle>
+        <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400 flex items-center gap-2">
+          <Icon className="h-4 w-4" />
+          {title}
+        </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <p className="text-sm text-gray-600 dark:text-gray-400">{description}</p>
-        <p className="text-xs text-gray-500 dark:text-gray-500">Last generated: {lastGenerated}</p>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onView}
-            className="flex-1"
+      <CardContent className="pt-0">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{amount}</p>
+          </div>
+          <Badge 
+            variant="outline" 
+            className={`flex items-center gap-1 ${
+              trend === "up" ? "text-green-600 border-green-200" : "text-red-600 border-red-200"
+            }`}
           >
-            <Eye className="h-4 w-4 mr-2" />
-            View
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onDownload}
-            className="flex-1"
-          >
-            <Download className="h-4 w-4 mr-2" />
-            Download
-          </Button>
+            {trend === "up" ? (
+              <TrendingUp className="h-3 w-3" />
+            ) : (
+              <TrendingDown className="h-3 w-3" />
+            )}
+            {change}
+          </Badge>
         </div>
       </CardContent>
     </Card>
