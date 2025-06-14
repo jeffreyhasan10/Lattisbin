@@ -1,21 +1,16 @@
+
+/* App-specific styles that aren't covered by Tailwind */
+
 #root {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 2rem;
   text-align: center;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
 }
 
 @keyframes logo-spin {
@@ -27,16 +22,152 @@
   }
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
+/* Add custom scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f5f5f5;
+  border-radius: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c4c4c4;
+  border-radius: 8px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9b87f5;
+}
+
+/* Enhance table hover styling */
+.table-row-highlight:hover {
+  background-color: rgba(155, 135, 245, 0.08);
+}
+
+/* Fix for dropdown z-index issues */
+.dropdown-content {
+  z-index: 50;
+}
+
+/* Transition effects */
+.fade-in {
+  animation: fadeIn 0.4s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-.card {
-  padding: 2em;
+/* Dashboard specific styles */
+.dashboard-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
 }
 
-.read-the-docs {
-  color: #888;
+@media (min-width: 1024px) {
+  .dashboard-layout {
+    grid-template-columns: 3fr 1fr;
+  }
+}
+
+/* Chart container styling */
+.chart-container {
+  position: relative;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  background-color: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.chart-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(to right, #9b87f5, #6a5ae0);
+}
+
+/* Card hover effects */
+.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}
+
+/* Statistics card design */
+.stat-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card .stat-icon {
+  position: absolute;
+  right: -10px;
+  bottom: -10px;
+  opacity: 0.2;
+  transform: scale(2.5);
+}
+
+/* Sidebar active item styling */
+.sidebar-item-active {
+  color: #9b87f5;
+  background-color: rgba(155, 135, 245, 0.1);
+  border-left: 3px solid #9b87f5;
+}
+
+/* Background patterns */
+.bg-dot-pattern {
+  background-image: radial-gradient(#9b87f5 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.bg-grid-pattern {
+  background-image: linear-gradient(to right, rgba(155, 135, 245, 0.1) 1px, transparent 1px),
+                    linear-gradient(to bottom, rgba(155, 135, 245, 0.1) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* Card gradient effects */
+.card-gradient {
+  background: linear-gradient(145deg, #ffffff, #f5f5f5);
+}
+
+.card-gradient-purple {
+  background: linear-gradient(145deg, #ffffff, #f8f7fe);
+}
+
+/* Add tilt effect to cards */
+.tilt-on-hover {
+  transition: transform 0.3s ease;
+}
+
+.tilt-on-hover:hover {
+  transform: perspective(1000px) rotateX(2deg) rotateY(2deg);
+}
+
+@supports (scrollbar-width: thin) {
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #d1d5db #f3f4f6; /* thumb: gray-300, track: gray-100 */
+  }
+  .dark .custom-scrollbar {
+    scrollbar-color: #4b5563 #1f2937; /* thumb: gray-600, track: gray-800 */
+  }
 }
