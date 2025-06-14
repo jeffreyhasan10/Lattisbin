@@ -42,6 +42,27 @@ const Index = () => {
         <FeaturesSection />
         <TestimonialsSection />
         <ContactSection />
+        
+        {/* Driver Portal Access Section */}
+        <section className="py-16 bg-green-50">
+          <div className="container mx-auto px-4 text-center">
+            <h2 className="text-3xl font-bold text-green-800 mb-4">Driver Portal</h2>
+            <p className="text-lg text-green-700 mb-8">
+              Access your mobile dashboard for job management and delivery tracking
+            </p>
+            <div className="flex justify-center gap-4">
+              <button
+                onClick={() => window.location.href = '/driver/login'}
+                className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors"
+              >
+                Driver Login Portal
+              </button>
+            </div>
+            <div className="mt-4 text-sm text-green-600">
+              <p>Demo: Ahmad Rahman / 920815-14-5678 / 012-3456789</p>
+            </div>
+          </div>
+        </section>
       </main>
       <FooterSection />
     </div>

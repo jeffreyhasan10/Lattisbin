@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -7,6 +8,17 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import AppLayout from "./components/layout/AppLayout";
+
+// Driver Components
+import DriverLogin from "./components/driver/DriverLogin";
+import DriverDashboard from "./components/driver/DriverDashboard";
+import DriverOrders from "./components/driver/DriverOrders";
+import DriverPayments from "./components/driver/DriverPayments";
+import DriverExpenses from "./components/driver/DriverExpenses";
+import DriverLorries from "./components/driver/DriverLorries";
+import DriverProfile from "./components/driver/DriverProfile";
+
+// Admin Dashboard Components
 import DashboardOverview from "./components/dashboard/DashboardOverview";
 import CompanyDetails from "./components/dashboard/CompanyDetails";
 import CustomerManagement from "./components/dashboard/CustomerManagement";
@@ -46,6 +58,17 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          
+          {/* Driver Routes */}
+          <Route path="/driver/login" element={<DriverLogin />} />
+          <Route path="/driver/dashboard" element={<DriverDashboard />} />
+          <Route path="/driver/orders" element={<DriverOrders />} />
+          <Route path="/driver/payments" element={<DriverPayments />} />
+          <Route path="/driver/expenses" element={<DriverExpenses />} />
+          <Route path="/driver/lorries" element={<DriverLorries />} />
+          <Route path="/driver/profile" element={<DriverProfile />} />
+          
+          {/* Admin Dashboard Routes */}
           <Route element={<AppLayout />}>
             <Route path="/dashboard" element={<DashboardOverview />} />
             <Route path="/dashboard/overview" element={<DashboardOverview />} />
@@ -53,7 +76,6 @@ const App = () => (
             <Route path="/dashboard/customers" element={<CustomerManagement />} />
             <Route path="/dashboard/bins" element={<BinInventory />} />
             <Route path="/dashboard/lorries" element={<RentableLorries />} />
-            {/* <Route path="/dashboard/drivers" element={<DriverManagement />} /> */}
             <Route path="/dashboard/waste" element={<WasteCollection />} />
             <Route path="/dashboard/bookings" element={<BookingOrders />} />
             <Route path="/dashboard/invoices" element={<InvoiceSection />} />
