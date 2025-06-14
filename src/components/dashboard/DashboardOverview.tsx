@@ -28,8 +28,40 @@ import {
   MapPin,
   Clock,
   AlertCircle,
+  UserCheck,
+  Route,
 } from "lucide-react";
 import ReportCard from "./ReportCard";
+
+const driverMetrics = [
+  {
+    id: "DRV001",
+    name: "Ahmad Rahman",
+    status: "Active",
+    totalOrders: 45,
+    completedOrders: 43,
+    earnings: 2850,
+    rating: 4.8
+  },
+  {
+    id: "DRV002", 
+    name: "Lim Wei Ming",
+    status: "Active",
+    totalOrders: 52,
+    completedOrders: 50,
+    earnings: 3200,
+    rating: 4.9
+  },
+  {
+    id: "DRV003",
+    name: "Raj Kumar",
+    status: "Inactive",
+    totalOrders: 28,
+    completedOrders: 26,
+    earnings: 1650,
+    rating: 4.6
+  }
+];
 
 const data = [
   { name: "Jan", value: 4000 },
@@ -62,6 +94,8 @@ const latestOrders = [
     date: "2024-01-20",
     location: "Johor Bahru",
     status: "Pending",
+    driverId: "DRV001",
+    driverName: "Ahmad Rahman"
   },
   {
     id: "2",
@@ -69,6 +103,8 @@ const latestOrders = [
     date: "2024-01-19",
     location: "Kuala Lumpur",
     status: "Completed",
+    driverId: "DRV002",
+    driverName: "Lim Wei Ming"
   },
   {
     id: "3",
@@ -76,6 +112,8 @@ const latestOrders = [
     date: "2024-01-18",
     location: "Penang",
     status: "In Transit",
+    driverId: "DRV001",
+    driverName: "Ahmad Rahman"
   },
 ];
 
@@ -86,6 +124,7 @@ const latestActivities = [
     location: "Site A, Johor",
     activity: "Bin Deployment",
     status: "Completed",
+    driverId: "DRV001"
   },
   {
     id: "2",
@@ -93,6 +132,7 @@ const latestActivities = [
     location: "Site B, KL",
     activity: "Waste Collection",
     status: "In Transit",
+    driverId: "DRV002"
   },
   {
     id: "3",
@@ -100,10 +140,14 @@ const latestActivities = [
     location: "Site C, Penang",
     activity: "Maintenance Check",
     status: "Pending",
+    driverId: "DRV003"
   },
 ];
 
 const DashboardOverview = () => {
+  const activeDrivers = driverMetrics.filter(d => d.status === "Active").length;
+  const totalDrivers = driverMetrics.length;
+
   return (
     <div className="space-y-6 p-6">
       {/* Header */}
@@ -124,7 +168,7 @@ const DashboardOverview = () => {
       </div>
 
       {/* Key Metrics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         <ReportCard
           title="Total Revenue"
           amount={125000}
@@ -138,6 +182,13 @@ const DashboardOverview = () => {
           change="+8.2%"
           trend="up"
           icon={Users}
+        />
+        <ReportCard
+          title="Active Drivers"
+          amount={activeDrivers}
+          change={`${activeDrivers}/${totalDrivers}`}
+          trend="up"
+          icon={UserCheck}
         />
         <ReportCard
           title="Bins Deployed"
@@ -155,7 +206,7 @@ const DashboardOverview = () => {
         />
       </div>
 
-      {/* Charts and Analytics */}
+      {/* Driver Performance and Analytics */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Revenue Chart */}
         <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
@@ -175,38 +226,43 @@ const DashboardOverview = () => {
           </CardContent>
         </Card>
 
-        {/* Waste Type Distribution */}
+        {/* Driver Performance Overview */}
         <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
           <CardHeader>
-            <CardTitle className="text-lg font-semibold">Waste Type Distribution</CardTitle>
+            <CardTitle className="text-lg font-semibold">Driver Performance</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  dataKey="value"
-                  isAnimationActive={false}
-                  data={pieData}
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={80}
-                  fill="#8884d8"
-                  label
-                >
-                  {pieData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
+            <div className="space-y-4">
+              {driverMetrics.map((driver) => (
+                <div key={driver.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-medium">
+                      {driver.name.split(' ').map(n => n[0]).join('')}
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900 dark:text-gray-100">{driver.name}</p>
+                      <div className="flex items-center gap-2 text-sm text-gray-500">
+                        <span>{driver.id}</span>
+                        <Badge variant={driver.status === "Active" ? "default" : "secondary"}>
+                          {driver.status}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-medium text-gray-900 dark:text-gray-100">RM {driver.earnings}</p>
+                    <p className="text-sm text-gray-500">{driver.completedOrders}/{driver.totalOrders} orders</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Latest Orders and Activities */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Latest Orders */}
+        {/* Latest Orders with Driver Assignment */}
         <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
           <CardHeader>
             <CardTitle className="text-lg font-semibold">Latest Orders</CardTitle>
@@ -217,7 +273,7 @@ const DashboardOverview = () => {
                 <thead>
                   <tr className="text-left">
                     <th className="px-4 py-2">Customer</th>
-                    <th className="px-4 py-2">Date</th>
+                    <th className="px-4 py-2">Driver</th>
                     <th className="px-4 py-2">Location</th>
                     <th className="px-4 py-2">Status</th>
                   </tr>
@@ -225,10 +281,24 @@ const DashboardOverview = () => {
                 <tbody>
                   {latestOrders.map((order) => (
                     <tr key={order.id}>
-                      <td className="border-t px-4 py-2">{order.customer}</td>
-                      <td className="border-t px-4 py-2">{order.date}</td>
+                      <td className="border-t px-4 py-2">
+                        <div>
+                          <p className="font-medium">{order.customer}</p>
+                          <p className="text-xs text-gray-500">{order.date}</p>
+                        </div>
+                      </td>
+                      <td className="border-t px-4 py-2">
+                        <div>
+                          <p className="font-medium">{order.driverName}</p>
+                          <p className="text-xs text-gray-500">{order.driverId}</p>
+                        </div>
+                      </td>
                       <td className="border-t px-4 py-2">{order.location}</td>
-                      <td className="border-t px-4 py-2">{order.status}</td>
+                      <td className="border-t px-4 py-2">
+                        <Badge variant={order.status === "Completed" ? "default" : "secondary"}>
+                          {order.status}
+                        </Badge>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -237,7 +307,7 @@ const DashboardOverview = () => {
           </CardContent>
         </Card>
 
-        {/* Latest Activities */}
+        {/* Latest Activities with Driver Info */}
         <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
           <CardHeader>
             <CardTitle className="text-lg font-semibold">Latest Activities</CardTitle>
@@ -249,7 +319,12 @@ const DashboardOverview = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{activity.activity}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">{activity.location} - {activity.time}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        {activity.location} - {activity.time}
+                      </p>
+                      <p className="text-xs text-blue-600 dark:text-blue-400">
+                        Driver: {activity.driverId}
+                      </p>
                     </div>
                     <Badge variant="secondary">{activity.status}</Badge>
                   </div>

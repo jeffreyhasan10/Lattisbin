@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +25,8 @@ import {
   Sun,
   Moon,
   Smartphone,
+  Users,
+  Truck,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import NotificationsPanel from "@/components/dashboard/NotificationsPanel";
@@ -39,14 +42,21 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ title, onSidebarToggl
   const [theme, setTheme] = useState<"light" | "dark">("light");
 
   const handleLogout = () => {
-    // Implement logout logic here
     console.log("Logout clicked");
+    navigate("/");
   };
 
   const toggleTheme = () => {
     const newTheme = theme === "light" ? "dark" : "light";
     setTheme(newTheme);
     document.documentElement.classList.toggle("dark");
+  };
+
+  // Mock data for quick stats
+  const quickStats = {
+    activeDrivers: 3,
+    totalDrivers: 5,
+    onlineDrivers: 2
   };
 
   return (
@@ -66,12 +76,27 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ title, onSidebarToggl
               {title}
             </h1>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Welcome back, John Doe
+              Welcome back, Admin
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
+          {/* Quick Driver Stats */}
+          <div className="hidden md:flex items-center gap-3 px-3 py-1 bg-gray-50 dark:bg-gray-800 rounded-lg">
+            <div className="flex items-center gap-1">
+              <Users className="h-4 w-4 text-blue-600" />
+              <span className="text-sm font-medium">{quickStats.activeDrivers}/{quickStats.totalDrivers}</span>
+              <span className="text-xs text-gray-500">Drivers</span>
+            </div>
+            <div className="w-px h-4 bg-gray-300 dark:bg-gray-600"></div>
+            <div className="flex items-center gap-1">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              <span className="text-sm font-medium">{quickStats.onlineDrivers}</span>
+              <span className="text-xs text-gray-500">Online</span>
+            </div>
+          </div>
+
           {/* Theme Toggle */}
           <Button
             variant="ghost"
@@ -108,6 +133,30 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ title, onSidebarToggl
             </PopoverContent>
           </Popover>
 
+          {/* Quick Actions */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="hidden md:flex">
+                <Truck className="h-4 w-4 mr-2" />
+                Quick Actions
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => navigate("/dashboard/driver-register")}>
+                <User className="mr-2 h-4 w-4" />
+                Add New Driver
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/dashboard/drivers")}>
+                <Users className="mr-2 h-4 w-4" />
+                Manage Drivers
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/dashboard/bookings")}>
+                <Truck className="mr-2 h-4 w-4" />
+                Assign Orders
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           {/* Profile Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -116,17 +165,17 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ title, onSidebarToggl
                 className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 p-2 rounded-lg"
               >
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src="/placeholder-avatar.jpg" alt="User" />
+                  <AvatarImage src="/placeholder-avatar.jpg" alt="Admin" />
                   <AvatarFallback className="bg-blue-500 text-white text-sm">
-                    JD
+                    AD
                   </AvatarFallback>
                 </Avatar>
                 <div className="hidden sm:block text-left">
                   <p className="text-sm font-medium text-gray-900 dark:text-white">
-                    John Doe
+                    Admin User
                   </p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Administrator
+                    System Administrator
                   </p>
                 </div>
               </Button>
@@ -138,10 +187,10 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ title, onSidebarToggl
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium text-gray-900 dark:text-white">
-                    John Doe
+                    Admin User
                   </p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    john.doe@example.com
+                    admin@lattis.com
                   </p>
                 </div>
               </DropdownMenuLabel>
@@ -150,7 +199,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ title, onSidebarToggl
                 <User className="mr-2 h-4 w-4" />
                 Profile
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/dashboard/settings")}>
                 <Settings className="mr-2 h-4 w-4" />
                 Settings
               </DropdownMenuItem>
