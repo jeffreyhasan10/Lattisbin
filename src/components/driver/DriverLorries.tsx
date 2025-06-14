@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -225,7 +224,7 @@ const DriverLorries = () => {
             <Card 
               key={lorry.id} 
               className={`cursor-pointer transition-all duration-200 shadow-sm border-gray-200 ${
-                selectedLor || lorry.id ? "ring-2 ring-blue-500 shadow-md border-blue-300" : ""
+                selectedLorry === lorry.id ? "ring-2 ring-blue-500 shadow-md border-blue-300" : ""
               } ${lorry.status !== "available" ? "opacity-60" : "hover:shadow-md hover:border-blue-300"}`}
               onClick={() => lorry.status === "available" && handleSelectLorry(lorry.id)}
             >
