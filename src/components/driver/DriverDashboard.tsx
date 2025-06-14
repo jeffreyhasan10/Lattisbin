@@ -35,6 +35,7 @@ import {
   Building,
 } from "lucide-react";
 import { toast } from "sonner";
+import DriverCalendar from "./DriverCalendar";
 
 const DriverDashboard = () => {
   const navigate = useNavigate();
@@ -340,6 +341,9 @@ const DriverDashboard = () => {
               </CardContent>
             </Card>
           </div>
+
+          {/* Calendar Component */}
+          <DriverCalendar />
 
           {/* Today's Orders Section */}
           <Card className="bg-white border-2 border-blue-200 shadow-xl">

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Menu, Bell, User, LogOut, Settings, Wifi, WifiOff } from "lucide-react";
+import { Menu, Bell, User, LogOut, Settings, Wifi, WifiOff, UserCheck, UserX } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,6 +26,7 @@ interface DriverHeaderProps {
 const DriverHeader: React.FC<DriverHeaderProps> = ({ onSidebarToggle, title }) => {
   const [driverSession, setDriverSession] = useState<any>(null);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [isAvailable, setIsAvailable] = useState(true); // Driver availability status
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
@@ -58,6 +59,10 @@ const DriverHeader: React.FC<DriverHeaderProps> = ({ onSidebarToggle, title }) =
     window.location.href = "/";
   };
 
+  const toggleAvailability = () => {
+    setIsAvailable(!isAvailable);
+  };
+
   const notifications = [
     { id: 1, title: "New job assigned", message: "ABC Construction delivery", time: "5 min ago", type: "info" },
     { id: 2, title: "Payment received", message: "RM 350 from Green Valley", time: "1 hour ago", type: "success" },
@@ -86,6 +91,30 @@ const DriverHeader: React.FC<DriverHeaderProps> = ({ onSidebarToggle, title }) =
               </p>
             </div>
             
+            {/* Driver Availability Status - Prominent Display */}
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={toggleAvailability}
+                className={`px-4 py-2 rounded-full font-semibold text-sm transition-all duration-200 ${
+                  isAvailable 
+                    ? 'bg-green-500 hover:bg-green-600 text-white border-2 border-green-400' 
+                    : 'bg-red-500 hover:bg-red-600 text-white border-2 border-red-400'
+                }`}
+              >
+                {isAvailable ? (
+                  <>
+                    <UserCheck className="h-4 w-4 mr-2" />
+                    Available
+                  </>
+                ) : (
+                  <>
+                    <UserX className="h-4 w-4 mr-2" />
+                    Offline
+                  </>
+                )}
+              </Button>
+            </div>
+
             {/* Connection Status */}
             <div className="flex items-center gap-2 px-2.5 py-1 bg-white/10 rounded-full border border-white/20 backdrop-blur-sm">
               {isOnline ? (
@@ -198,6 +227,12 @@ const DriverHeader: React.FC<DriverHeaderProps> = ({ onSidebarToggle, title }) =
                   <p className="text-xs text-slate-500">
                     {driverSession?.phone || 'No phone'}
                   </p>
+                  <div className="flex items-center gap-2 mt-2">
+                    <div className={`w-2 h-2 rounded-full ${isAvailable ? 'bg-green-500' : 'bg-red-500'}`} />
+                    <span className="text-xs font-medium">
+                      {isAvailable ? 'Available for jobs' : 'Currently offline'}
+                    </span>
+                  </div>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator className="bg-gray-100" />
@@ -208,6 +243,22 @@ const DriverHeader: React.FC<DriverHeaderProps> = ({ onSidebarToggle, title }) =
               <DropdownMenuItem className="hover:bg-blue-50 rounded-lg mx-2 my-1">
                 <Settings className="mr-2 h-4 w-4 text-blue-600" />
                 Settings
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={toggleAvailability}
+                className="hover:bg-blue-50 rounded-lg mx-2 my-1"
+              >
+                {isAvailable ? (
+                  <>
+                    <UserX className="mr-2 h-4 w-4 text-orange-600" />
+                    Go Offline
+                  </>
+                ) : (
+                  <>
+                    <UserCheck className="mr-2 h-4 w-4 text-green-600" />
+                    Go Available
+                  </>
+                )}
               </DropdownMenuItem>
               <DropdownMenuSeparator className="bg-gray-100" />
               <DropdownMenuItem
