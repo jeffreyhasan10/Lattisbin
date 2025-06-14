@@ -1,377 +1,238 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { 
-  BellRing, 
-  Info, 
-  AlertTriangle, 
-  CheckCircle, 
-  Clock, 
-  Truck, 
-  FileText, 
-  Package2,
-  User,
-  Trash2
-} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { motion, AnimatePresence } from "framer-motion"; // Import Framer Motion
+import { Separator } from "@/components/ui/separator";
+import {
+  Bell,
+  Check,
+  CheckCheck,
+  X,
+  Trash2,
+  AlertTriangle,
+  Info,
+  CheckCircle,
+  Clock,
+  Star,
+  Settings,
+  Filter,
+  MoreHorizontal,
+} from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-// Notification types
-type NotificationType = "info" | "warning" | "success" | "alert";
-
-interface Notification {
-  id: number;
-  type: NotificationType;
-  title: string;
-  message: string;
-  time: string;
-  read: boolean;
-  action?: string;
-  category: "system" | "order" | "customer";
-}
-
-// Sample notification data
-const NOTIFICATIONS: Notification[] = [
+const DUMMY_NOTIFICATIONS = [
   {
-    id: 1,
-    type: "alert",
-    title: "Lorry JHE 8823 Maintenance Due",
-    message: "The road tax for lorry JHE 8823 will expire in 7 days. Please renew it before 22 April 2024.",
-    time: "10 minutes ago",
-    read: false,
-    category: "system"
-  },
-  {
-    id: 2,
-    type: "info",
-    title: "New Customer Registration",
-    message: "A new customer 'MegaTech Solutions' has been registered in the system.",
-    time: "1 hour ago",
-    read: false,
-    category: "customer"
-  },
-  {
-    id: 3,
+    id: "1",
     type: "success",
-    title: "Invoice Payment Received",
-    message: "Payment for invoice INV-2024-0003 has been received from Johor Construction Co.",
-    time: "3 hours ago",
-    read: true,
-    category: "order"
+    title: "Collection Job Completed",
+    description: "Bin #12345 has been successfully collected from ABC Construction.",
+    time: "5 minutes ago",
+    read: false,
   },
   {
-    id: 4,
+    id: "2",
+    type: "info",
+    title: "New Booking Assigned",
+    description: "You have a new booking for Sunshine Apartments on Jan 20, 2024.",
+    time: "30 minutes ago",
+    read: false,
+  },
+  {
+    id: "3",
     type: "warning",
-    title: "Bin Rental Expiring Soon",
-    message: "The bin rental for customer 'Eastern Metal Works' will expire in 2 days.",
+    title: "Lorry Maintenance Required",
+    description: "Lorry #WMD1234 is due for maintenance. Schedule a service soon.",
+    time: "1 hour ago",
+    read: true,
+  },
+  {
+    id: "4",
+    type: "error",
+    title: "Payment Overdue",
+    description: "Payment for Invoice #INV0003 is overdue. Please collect payment.",
+    time: "2 hours ago",
+    read: true,
+  },
+  {
+    id: "5",
+    type: "success",
+    title: "Collection Job Completed",
+    description: "Bin #54321 has been successfully collected from XYZ Corporation.",
     time: "5 hours ago",
     read: true,
-    category: "order"
   },
   {
-    id: 5,
+    id: "6",
     type: "info",
-    title: "System Update Available",
-    message: "A new system update is available. Click here to view the changelog.",
+    title: "New Customer Registered",
+    description: "A new customer, John Doe, has registered with LattisEWM.",
     time: "1 day ago",
     read: true,
-    action: "View Details",
-    category: "system"
   },
   {
-    id: 6,
-    type: "success",
-    title: "Collection Completed",
-    message: "Waste collection at 'Greentech Recyclers' has been successfully completed.",
-    time: "1 day ago",
-    read: true,
-    category: "order"
-  },
-  {
-    id: 7,
-    type: "info",
-    title: "Driver Assigned",
-    message: "Ahmad Zulkifli has been assigned to delivery order DO-2024-0005.",
-    time: "2 days ago",
-    read: true,
-    category: "system"
-  },
-  {
-    id: 8,
+    id: "7",
     type: "warning",
-    title: "Low Inventory Alert",
-    message: "Only 2 bins of size '10 Yard' are available in inventory.",
+    title: "Low Bin Inventory",
+    description: "The inventory for ASR100 bins is running low. Reorder soon.",
     time: "2 days ago",
     read: true,
-    category: "system"
-  }
+  },
+  {
+    id: "8",
+    type: "error",
+    title: "Driver Expense Report",
+    description: "Driver Ahmad has submitted an expense report for review.",
+    time: "3 days ago",
+    read: true,
+  },
 ];
 
 const NotificationsPanel = () => {
-  const [activeTab, setActiveTab] = useState<string>("all");
-  const [notifications, setNotifications] = useState<Notification[]>(NOTIFICATIONS);
-  
-  // Filter notifications based on active tab
-  const filteredNotifications = notifications.filter(notification => {
-    if (activeTab === "all") return true;
-    return notification.category === activeTab;
-  });
-  
-  // Mark all notifications as read
-  const markAllAsRead = () => {
-    setNotifications(notifications.map(notification => ({
-      ...notification,
-      read: true
-    })));
+  const [notifications, setNotifications] = useState(DUMMY_NOTIFICATIONS);
+  const [activeTab, setActiveTab] = useState("all");
+
+  const markAsRead = (id: string) => {
+    setNotifications((prev) =>
+      prev.map((notification) =>
+        notification.id === id ? { ...notification, read: true } : notification
+      )
+    );
   };
-  
-  // Clear all notifications
+
+  const markAllAsRead = () => {
+    setNotifications((prev) => prev.map((notification) => ({ ...notification, read: true })));
+  };
+
   const clearAllNotifications = () => {
     setNotifications([]);
   };
-  
-  // Mark a single notification as read
-  const markAsRead = (id: number) => {
-    setNotifications(notifications.map(notification => 
-      notification.id === id ? { ...notification, read: true } : notification
-    ));
-  };
-  
-  // Delete a single notification
-  const deleteNotification = (id: number) => {
-    setNotifications(notifications.filter(notification => notification.id !== id));
-  };
-  
-  // Count unread notifications
-  const unreadCount = notifications.filter(notification => !notification.read).length;
-  
-  // Get icon based on notification type
-  const getNotificationIcon = (type: NotificationType) => {
+
+  const filteredNotifications = React.useMemo(() => {
+    if (activeTab === "all") {
+      return notifications;
+    } else {
+      return notifications.filter((notification) => notification.type === activeTab);
+    }
+  }, [notifications, activeTab]);
+
+  const getNotificationIcon = (type: string) => {
     switch (type) {
-      case "info":
-        return <Info className="h-5 w-5 text-blue-500" />;
-      case "warning":
-        return <AlertTriangle className="h-5 w-5 text-amber-500" />;
       case "success":
-        return <CheckCircle className="h-5 w-5 text-green-500" />;
-      case "alert":
-        return <AlertTriangle className="h-5 w-5 text-red-500" />;
+        return <CheckCircle className="h-4 w-4 text-green-500" />;
+      case "info":
+        return <Info className="h-4 w-4 text-blue-500" />;
+      case "warning":
+        return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
+      case "error":
+        return <AlertTriangle className="h-4 w-4 text-red-500" />;
       default:
-        return <BellRing className="h-5 w-5 text-gray-500" />;
+        return <Bell className="h-4 w-4 text-gray-500" />;
     }
   };
-  
-  // Animation variants
-  const panelVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } }
-  };
 
-  const notificationVariants = {
-    hidden: { opacity: 0, x: -20 },
-    visible: { opacity: 1, x: 0, transition: { duration: 0.3 } },
-    exit: { opacity: 0, x: 20, transition: { duration: 0.2 } }
-  };
-
-  const badgeVariants = {
-    initial: { scale: 1 },
-    pulse: { scale: [1, 1.1, 1], transition: { duration: 0.6, repeat: 1 } }
-  };
-
-  return (
-    <motion.div
-      variants={panelVariants}
-      initial="hidden"
-      animate="visible"
-      className="w-full max-w-md bg-white shadow-xl rounded-2xl border border-gray-100 overflow-hidden"
-    >
-      <div className="p-4 bg-gradient-to-r from-primary/95 to-primary/70 text-primary-foreground">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold tracking-tight font-display">Notifications</h3>
-          <motion.div
-            variants={badgeVariants}
-            initial="initial"
-            animate={unreadCount > 0 ? "pulse" : "initial"}
-            key={unreadCount} // Trigger animation on count change
-          >
-            <Badge variant="secondary" className="bg-white/30 text-white hover:bg-white/40 text-xs font-medium">
-              {unreadCount} New
-            </Badge>
-          </motion.div>
-        </div>
-      </div>
-      
-      <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <div className="px-4 pt-3 pb-2">
-          <TabsList className="grid grid-cols-3 w-full bg-gray-100 rounded-lg p-1">
-            {["all", "system", "order"].map((tab) => (
-              <motion.div
-                key={tab}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <TabsTrigger 
-                  value={tab} 
-                  className="text-sm font-medium capitalize data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md"
-                >
-                  {tab === "all" ? "All" : tab === "system" ? "System" : "Orders"}
-                </TabsTrigger>
-              </motion.div>
-            ))}
-          </TabsList>
-        </div>
-        
-        <TabsContent value="all" className="m-0">
-          <NotificationList 
-            notifications={filteredNotifications} 
-            markAsRead={markAsRead} 
-            deleteNotification={deleteNotification}
-            getNotificationIcon={getNotificationIcon}
-          />
-        </TabsContent>
-        
-        <TabsContent value="system" className="m-0">
-          <NotificationList 
-            notifications={filteredNotifications} 
-            markAsRead={markAsRead} 
-            deleteNotification={deleteNotification}
-            getNotificationIcon={getNotificationIcon}
-          />
-        </TabsContent>
-        
-        <TabsContent value="order" className="m-0">
-          <NotificationList 
-            notifications={filteredNotifications} 
-            markAsRead={markAsRead} 
-            deleteNotification={deleteNotification}
-            getNotificationIcon={getNotificationIcon}
-          />
-        </TabsContent>
-      </Tabs>
-      
-      <div className="p-3 bg-gray-50 border-t border-gray-200 flex justify-between">
-        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="text-xs font-medium text-primary hover:bg-primary/10"
-            onClick={markAllAsRead}
-          >
-            Mark All Read
-          </Button>
-        </motion.div>
-        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100"
-            onClick={clearAllNotifications}
-          >
-            Clear All
-          </Button>
-        </motion.div>
-      </div>
-    </motion.div>
-  );
-};
-
-interface NotificationListProps {
-  notifications: Notification[];
-  markAsRead: (id: number) => void;
-  deleteNotification: (id: number) => void;
-  getNotificationIcon: (type: NotificationType) => React.ReactNode;
-}
-
-const NotificationList = ({ notifications, markAsRead, deleteNotification, getNotificationIcon }: NotificationListProps) => {
-  if (notifications.length === 0) {
-    return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.3 }}
-        className="p-8 text-center text-gray-500"
-      >
-        <BellRing className="h-10 w-10 mx-auto mb-2 opacity-20" />
-        <p className="text-sm font-medium">No notifications to display</p>
-      </motion.div>
-    );
-  }
-  
-  return (
-    <ScrollArea className="h-[350px]">
-      <AnimatePresence>
-        {notifications.map((notification) => (
-          <motion.div
-            key={notification.id}
-            variants={notificationVariants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            className={`flex items-start p-4 hover:bg-gray-50 transition-colors rounded-lg mx-2 my-1 ${
-              !notification.read ? 'bg-gradient-to-r from-blue-50 to-white' : ''
-            }`}
-            whileHover={{ scale: 1.01 }}
-          >
-            <motion.div 
-              className="flex-shrink-0 p-1"
-              initial={{ scale: 0.8 }}
-              animate={{ scale: 1 }}
-              transition={{ duration: 0.3 }}
-            >
-              {getNotificationIcon(notification.type)}
-            </motion.div>
-            <div className="ml-3 flex-1">
-              <div className="flex justify-between items-start">
-                <p className={`text-sm font-medium ${!notification.read ? 'text-navy' : 'text-gray-700'} tracking-tight`}>
-                  {notification.title}
-                </p>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-500">{notification.time}</span>
-                  <motion.div whileHover={{ scale: 1.2 }} whileTap={{ scale: 0.8 }}>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="h-5 w-5 text-gray-400 hover:text-gray-600"
-                      onClick={() => deleteNotification(notification.id)}
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
-                  </motion.div>
-                </div>
+  const NotificationList = ({ notifications }: { notifications: typeof DUMMY_NOTIFICATIONS }) => (
+    <div className="space-y-1">
+      {notifications.map((notification) => (
+        <div
+          key={notification.id}
+          className={`p-4 rounded-lg border transition-all duration-200 hover:shadow-md cursor-pointer ${
+            notification.read
+              ? "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+              : "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800"
+          }`}
+          onClick={() => markAsRead(notification.id)}
+        >
+          <div className="flex items-start space-x-3">
+            {getNotificationIcon(notification.type)}
+            <div className="space-y-1">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{notification.title}</p>
+                <span className="text-xs text-gray-500 dark:text-gray-400">{notification.time}</span>
               </div>
-              <p className="text-xs text-gray-600 mt-1 leading-relaxed">{notification.message}</p>
-              <div className="mt-2 flex items-center justify-between">
-                {!notification.read && (
-                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="p-0 h-auto text-xs text-primary font-medium hover:text-primary/80"
-                      onClick={() => markAsRead(notification.id)}
-                    >
-                      Mark as read
-                    </Button>
-                  </motion.div>
-                )}
-                {notification.action && (
-                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="p-0 h-auto text-xs text-primary font-medium hover:text-primary/80"
-                    >
-                      {notification.action}
-                    </Button>
-                  </motion.div>
-                )}
-              </div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">{notification.description}</p>
             </div>
-          </motion.div>
-        ))}
-      </AnimatePresence>
-    </ScrollArea>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+
+  return (
+    <div className="w-full max-w-md bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg shadow-lg">
+      <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm">
+              <Filter className="h-4 w-4 mr-2" />
+              <span>Latest</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuLabel>Sort by</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>Date</DropdownMenuItem>
+            <DropdownMenuItem>Priority</DropdownMenuItem>
+            <DropdownMenuItem>Read Status</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <div className="flex items-center space-x-2">
+          <Button variant="ghost" size="icon" onClick={markAllAsRead}>
+            <CheckCheck className="h-4 w-4" />
+            <span className="sr-only">Mark all as read</span>
+          </Button>
+          <Button variant="ghost" size="icon" onClick={clearAllNotifications}>
+            <Trash2 className="h-4 w-4" />
+            <span className="sr-only">Clear all</span>
+          </Button>
+        </div>
+      </div>
+
+      <Tabs defaultValue="all" className="border-b border-gray-200 dark:border-gray-800">
+        <TabsList className="flex justify-between">
+          <TabsTrigger value="all" onClick={() => setActiveTab("all")}>
+            All
+          </TabsTrigger>
+          <TabsTrigger value="success" onClick={() => setActiveTab("success")}>
+            <Check className="h-4 w-4 mr-1" />
+            Success
+          </TabsTrigger>
+          <TabsTrigger value="info" onClick={() => setActiveTab("info")}>
+            <Info className="h-4 w-4 mr-1" />
+            Info
+          </TabsTrigger>
+          <TabsTrigger value="warning" onClick={() => setActiveTab("warning")}>
+            <AlertTriangle className="h-4 w-4 mr-1" />
+            Warning
+          </TabsTrigger>
+          <TabsTrigger value="error" onClick={() => setActiveTab("error")}>
+            <X className="h-4 w-4 mr-1" />
+            Error
+          </TabsTrigger>
+        </TabsList>
+        <Separator />
+      </Tabs>
+
+      <ScrollArea className="h-[400px]">
+        <div className="p-4">
+          <NotificationList notifications={filteredNotifications} />
+        </div>
+      </ScrollArea>
+
+      <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-800">
+        <Button variant="link" className="w-full">
+          View All Notifications
+        </Button>
+      </div>
+    </div>
   );
 };
 
