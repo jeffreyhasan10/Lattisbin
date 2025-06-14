@@ -21,7 +21,9 @@ import {
   WifiOff,
   Home,
   ChevronRight,
-  ArrowLeft
+  ArrowLeft,
+  TrendingUp,
+  Calendar
 } from "lucide-react";
 import { toast } from "sonner";
 import InteractiveMap from "./InteractiveMap";
@@ -149,19 +151,19 @@ const DriverDashboard = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "pending": return "bg-orange-500";
-      case "in-progress": return "bg-blue-600";
-      case "completed": return "bg-green-500";
-      default: return "bg-gray-500";
+      case "pending": return "bg-gradient-to-r from-amber-500 to-orange-500";
+      case "in-progress": return "bg-gradient-to-r from-blue-500 to-indigo-500";
+      case "completed": return "bg-gradient-to-r from-emerald-500 to-green-500";
+      default: return "bg-gradient-to-r from-gray-500 to-slate-500";
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case "pending": return <AlertCircle className="h-4 w-4" />;
-      case "in-progress": return <Clock className="h-4 w-4" />;
-      case "completed": return <CheckCircle className="h-4 w-4" />;
-      default: return <Clock className="h-4 w-4" />;
+      case "pending": return <AlertCircle className="h-4 w-4 text-white" />;
+      case "in-progress": return <Clock className="h-4 w-4 text-white" />;
+      case "completed": return <CheckCircle className="h-4 w-4 text-white" />;
+      default: return <Clock className="h-4 w-4 text-white" />;
     }
   };
 
@@ -181,24 +183,24 @@ const DriverDashboard = () => {
 
   if (!driverSession) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent shadow-lg"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50/30">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/50 to-indigo-50/30">
       {/* Breadcrumbs */}
-      <div className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="px-4 py-3">
-          <div className="flex items-center justify-between mb-2">
+      <div className="bg-white/80 dark:bg-gray-900/80 border-b border-blue-100/60 dark:border-gray-700/50 shadow-sm backdrop-blur-sm">
+        <div className="px-4 lg:px-6 py-4">
+          <div className="flex items-center justify-between">
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem>
                   <BreadcrumbLink 
                     href="/driver/dashboard" 
-                    className="flex items-center gap-1 text-blue-600 hover:text-blue-800"
+                    className="flex items-center gap-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium transition-colors"
                   >
                     <Home className="h-4 w-4" />
                     Dashboard
@@ -206,9 +208,9 @@ const DriverDashboard = () => {
                 </BreadcrumbItem>
                 {activeView !== 'overview' && (
                   <>
-                    <BreadcrumbSeparator />
+                    <BreadcrumbSeparator className="text-blue-300 dark:text-blue-600" />
                     <BreadcrumbItem>
-                      <BreadcrumbPage className="text-gray-700 font-medium">
+                      <BreadcrumbPage className="text-slate-700 dark:text-gray-300 font-semibold">
                         {getViewTitle()}
                       </BreadcrumbPage>
                     </BreadcrumbItem>
@@ -222,7 +224,7 @@ const DriverDashboard = () => {
                 variant="outline"
                 size="sm"
                 onClick={() => setActiveView('overview')}
-                className="flex items-center gap-2 border-blue-200 text-blue-700 hover:bg-blue-50"
+                className="flex items-center gap-2 border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 shadow-sm rounded-xl"
               >
                 <ArrowLeft className="h-4 w-4" />
                 Back to Overview
@@ -233,7 +235,7 @@ const DriverDashboard = () => {
       </div>
 
       {/* Mobile Navigation Tabs */}
-      <div className="lg:hidden bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
+      <div className="lg:hidden bg-white/90 dark:bg-gray-900/90 border-b border-blue-100/50 dark:border-gray-700/50 sticky top-16 z-40 shadow-sm backdrop-blur-sm">
         <div className="flex">
           {[
             { key: 'overview', label: 'Overview', icon: Home },
@@ -243,10 +245,10 @@ const DriverDashboard = () => {
             <button
               key={key}
               onClick={() => setActiveView(key as any)}
-              className={`flex-1 py-4 px-4 text-sm font-medium flex items-center justify-center gap-2 transition-all duration-200 ${
+              className={`flex-1 py-4 px-4 text-sm font-semibold flex items-center justify-center gap-2 transition-all duration-200 ${
                 activeView === key
-                  ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/50' 
-                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                  ? 'text-blue-600 dark:text-blue-400 border-b-3 border-blue-600 dark:border-blue-400 bg-blue-50/50 dark:bg-blue-900/30' 
+                  : 'text-slate-500 dark:text-gray-400 hover:text-slate-700 dark:hover:text-gray-300 hover:bg-slate-50 dark:hover:bg-gray-800/50'
               }`}
             >
               <Icon className="h-4 w-4" />
@@ -291,23 +293,25 @@ const DriverDashboard = () => {
         </div>
 
         {/* Welcome Header */}
-        <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 text-white p-6 lg:p-8 rounded-2xl shadow-lg">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div>
-              <h1 className="text-2xl lg:text-3xl font-bold mb-2">
-                Good {new Date().getHours() < 12 ? 'Morning' : new Date().getHours() < 18 ? 'Afternoon' : 'Evening'}, {driverSession.name}! 👋
+        <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-700 text-white p-6 lg:p-8 rounded-3xl shadow-2xl border border-blue-200/20">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+            <div className="flex-1">
+              <h1 className="text-2xl lg:text-4xl font-bold mb-3 flex items-center gap-3">
+                <span className="text-3xl">👋</span>
+                Good {new Date().getHours() < 12 ? 'Morning' : new Date().getHours() < 18 ? 'Afternoon' : 'Evening'}, {driverSession.name}!
               </h1>
-              <p className="text-blue-100 text-base lg:text-lg">Ready to make today productive?</p>
+              <p className="text-blue-100 text-base lg:text-lg font-medium">Ready to make today productive and efficient?</p>
             </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 text-center">
-              <p className="text-2xl lg:text-3xl font-bold">
+            <div className="bg-white/15 backdrop-blur-md rounded-2xl p-4 lg:p-6 text-center border border-white/20 shadow-lg">
+              <p className="text-2xl lg:text-3xl font-bold mb-1">
                 {currentTime.toLocaleTimeString('en-US', { 
                   hour: '2-digit', 
                   minute: '2-digit',
                   hour12: true 
                 })}
               </p>
-              <p className="text-sm text-blue-200">
+              <p className="text-sm text-blue-200 flex items-center justify-center gap-1">
+                <Calendar className="h-4 w-4" />
                 {currentTime.toLocaleDateString('en-US', { 
                   weekday: 'long',
                   month: 'short',
@@ -324,20 +328,20 @@ const DriverDashboard = () => {
             {/* Performance Metrics */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
               {[
-                { label: 'Pending', value: pendingJobs, color: 'orange', icon: AlertCircle },
-                { label: 'Active', value: inProgressJobs, color: 'blue', icon: Clock },
-                { label: 'Completed', value: completedJobs, color: 'green', icon: CheckCircle },
-                { label: 'Earned', value: `RM${totalPayments}`, color: 'purple', icon: DollarSign }
-              ].map(({ label, value, color, icon: Icon }) => (
-                <Card key={label} className={`shadow-lg border-0 bg-gradient-to-br from-white to-${color}-50/50 hover:shadow-xl transition-all duration-300`}>
+                { label: 'Pending Jobs', value: pendingJobs, color: 'from-amber-400 to-orange-500', icon: AlertCircle, bgColor: 'from-amber-50 to-orange-50' },
+                { label: 'Active Jobs', value: inProgressJobs, color: 'from-blue-400 to-indigo-500', icon: Clock, bgColor: 'from-blue-50 to-indigo-50' },
+                { label: 'Completed', value: completedJobs, color: 'from-emerald-400 to-green-500', icon: CheckCircle, bgColor: 'from-emerald-50 to-green-50' },
+                { label: 'Total Earned', value: `RM${totalPayments}`, color: 'from-purple-400 to-pink-500', icon: DollarSign, bgColor: 'from-purple-50 to-pink-50' }
+              ].map(({ label, value, color, icon: Icon, bgColor }) => (
+                <Card key={label} className={`shadow-xl border-0 bg-gradient-to-br ${bgColor} dark:from-gray-800 dark:to-gray-700 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 rounded-2xl`}>
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium text-gray-600 mb-2">{label}</p>
-                        <p className={`text-3xl font-bold text-${color}-600`}>{value}</p>
+                        <p className="text-sm font-semibold text-slate-600 dark:text-gray-400 mb-2">{label}</p>
+                        <p className={`text-3xl font-bold bg-gradient-to-r ${color} bg-clip-text text-transparent`}>{value}</p>
                       </div>
-                      <div className={`bg-${color}-100 rounded-full p-3`}>
-                        <Icon className={`h-6 w-6 text-${color}-600`} />
+                      <div className={`bg-gradient-to-r ${color} rounded-2xl p-3 shadow-lg`}>
+                        <Icon className="h-6 w-6 text-white" />
                       </div>
                     </div>
                   </CardContent>
@@ -346,28 +350,29 @@ const DriverDashboard = () => {
             </div>
 
             {/* Quick Actions */}
-            <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-gray-50/50">
-              <CardHeader className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-t-xl">
-                <CardTitle className="text-xl flex items-center gap-2">
+            <Card className="shadow-xl border-0 bg-gradient-to-br from-white via-blue-50/30 to-indigo-50/30 dark:from-gray-800 dark:to-gray-700 rounded-3xl overflow-hidden">
+              <CardHeader className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white rounded-t-3xl">
+                <CardTitle className="text-xl lg:text-2xl flex items-center gap-3 font-bold">
                   <Route className="h-6 w-6" />
                   Quick Actions
+                  <TrendingUp className="h-5 w-5 ml-auto" />
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-6">
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <CardContent className="p-6 lg:p-8">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
                   {[
-                    { label: 'Orders', icon: FileText, action: () => navigate("/driver/orders"), color: 'blue' },
-                    { label: 'Map View', icon: Map, action: () => setActiveView('map'), color: 'green' },
-                    { label: 'Lorries', icon: Truck, action: () => navigate("/driver/lorries"), color: 'purple' },
-                    { label: 'Expenses', icon: Fuel, action: () => navigate("/driver/expenses"), color: 'orange' }
-                  ].map(({ label, icon: Icon, action, color }) => (
+                    { label: 'My Orders', icon: FileText, action: () => navigate("/driver/orders"), gradient: 'from-blue-500 via-blue-600 to-indigo-600', shadow: 'shadow-blue-500/25' },
+                    { label: 'Map View', icon: Map, action: () => setActiveView('map'), gradient: 'from-emerald-500 via-green-600 to-teal-600', shadow: 'shadow-emerald-500/25' },
+                    { label: 'My Lorries', icon: Truck, action: () => navigate("/driver/lorries"), gradient: 'from-purple-500 via-violet-600 to-indigo-600', shadow: 'shadow-purple-500/25' },
+                    { label: 'Expenses', icon: Fuel, action: () => navigate("/driver/expenses"), gradient: 'from-amber-500 via-orange-600 to-red-600', shadow: 'shadow-amber-500/25' }
+                  ].map(({ label, icon: Icon, action, gradient, shadow }) => (
                     <Button
                       key={label}
                       onClick={action}
-                      className={`bg-gradient-to-r from-${color}-500 to-${color}-600 hover:from-${color}-600 hover:to-${color}-700 text-white flex-col h-20 gap-2 shadow-md hover:shadow-lg transition-all duration-200`}
+                      className={`bg-gradient-to-r ${gradient} hover:scale-105 text-white flex-col h-24 lg:h-28 gap-3 ${shadow} hover:shadow-2xl transition-all duration-300 rounded-2xl border-0 font-semibold text-sm lg:text-base transform active:scale-95`}
                     >
-                      <Icon className="h-6 w-6" />
-                      <span className="text-sm font-medium">{label}</span>
+                      <Icon className="h-6 w-6 lg:h-7 lg:w-7" />
+                      <span>{label}</span>
                     </Button>
                   ))}
                 </div>
@@ -375,36 +380,39 @@ const DriverDashboard = () => {
             </Card>
 
             {/* Today's Jobs */}
-            <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-blue-50/50">
-              <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-t-xl">
-                <CardTitle className="text-xl flex items-center gap-2">
+            <Card className="shadow-xl border-0 bg-gradient-to-br from-white via-slate-50/50 to-blue-50/30 dark:from-gray-800 dark:to-gray-700 rounded-3xl overflow-hidden">
+              <CardHeader className="bg-gradient-to-r from-slate-700 via-blue-700 to-indigo-700 text-white rounded-t-3xl">
+                <CardTitle className="text-xl lg:text-2xl flex items-center gap-3 font-bold">
                   <Clock className="h-6 w-6" />
                   Today's Jobs
+                  <Badge className="ml-auto bg-white/20 text-white border-white/30 font-bold">
+                    {jobs.length} Total
+                  </Badge>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-6">
-                <div className="space-y-4">
+              <CardContent className="p-6 lg:p-8">
+                <div className="space-y-4 lg:space-y-6">
                   {jobs.slice(0, 3).map((job) => (
-                    <div key={job.id} className="bg-white rounded-xl p-5 border border-gray-100 hover:border-blue-200 hover:shadow-md transition-all duration-200">
+                    <div key={job.id} className="bg-white dark:bg-gray-800 rounded-2xl p-5 lg:p-6 border border-slate-200/50 dark:border-gray-700/50 hover:border-blue-300/50 dark:hover:border-blue-600/50 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <div className={`p-3 rounded-full ${getStatusColor(job.status)} shadow-sm`}>
+                        <div className="flex items-center gap-4 flex-1">
+                          <div className={`p-3 rounded-2xl ${getStatusColor(job.status)} shadow-lg`}>
                             {getStatusIcon(job.status)}
                           </div>
                           <div className="min-w-0 flex-1">
-                            <p className="font-semibold text-gray-900 text-base truncate">{job.customerName}</p>
-                            <p className="text-sm text-gray-600 mb-1">{job.binType} • {job.assignedTime}</p>
-                            <p className="text-sm text-gray-500 flex items-center gap-1">
-                              <MapPin className="h-4 w-4" />
+                            <p className="font-bold text-slate-900 dark:text-white text-base lg:text-lg truncate">{job.customerName}</p>
+                            <p className="text-sm text-slate-600 dark:text-gray-400 mb-2 font-medium">{job.binType} • {job.assignedTime}</p>
+                            <p className="text-sm text-slate-500 dark:text-gray-500 flex items-center gap-2">
+                              <MapPin className="h-4 w-4 text-blue-500" />
                               {job.distance}
                             </p>
                           </div>
                         </div>
                         <div className="text-right space-y-2">
-                          <Badge className="bg-green-100 text-green-800 border-green-200">
+                          <Badge className="bg-gradient-to-r from-emerald-400 to-green-500 text-white border-0 font-bold shadow-lg">
                             RM{job.amount}
                           </Badge>
-                          <p className="text-xs text-gray-500">{job.paymentMethod}</p>
+                          <p className="text-xs text-slate-500 dark:text-gray-500 font-medium">{job.paymentMethod}</p>
                         </div>
                       </div>
                     </div>
@@ -414,32 +422,33 @@ const DriverDashboard = () => {
             </Card>
 
             {/* Emergency Contacts */}
-            <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-red-50/50">
-              <CardHeader className="bg-gradient-to-r from-red-500 to-red-600 text-white rounded-t-xl">
-                <CardTitle className="text-xl flex items-center gap-2">
+            <Card className="shadow-xl border-0 bg-gradient-to-br from-white via-red-50/30 to-pink-50/30 dark:from-gray-800 dark:to-gray-700 rounded-3xl overflow-hidden">
+              <CardHeader className="bg-gradient-to-r from-red-600 via-red-700 to-pink-700 text-white rounded-t-3xl">
+                <CardTitle className="text-xl lg:text-2xl flex items-center gap-3 font-bold">
                   <Phone className="h-6 w-6" />
                   Emergency Contacts
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-6">
-                <div className="space-y-3">
+              <CardContent className="p-6 lg:p-8">
+                <div className="space-y-4">
                   {[
-                    { label: 'Office', number: '03-1234 5678' },
-                    { label: 'Supervisor', number: '012-345 6789' }
-                  ].map(({ label, number }) => (
+                    { label: 'Office Support', number: '03-1234 5678', icon: Phone },
+                    { label: 'Supervisor', number: '012-345 6789', icon: User }
+                  ].map(({ label, number, icon: Icon }) => (
                     <Button
                       key={label}
                       variant="outline"
-                      className="w-full justify-start h-12 border-gray-200 hover:bg-gray-50"
+                      className="w-full justify-start h-14 border-slate-200 dark:border-gray-700 hover:bg-slate-50 dark:hover:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md transition-all duration-200"
                     >
-                      <Phone className="h-5 w-5 mr-3 text-blue-600" />
-                      <div className="text-left">
-                        <p className="font-medium text-base">{label}</p>
-                        <p className="text-sm text-gray-500">{number}</p>
+                      <Icon className="h-5 w-5 mr-4 text-blue-600 dark:text-blue-400" />
+                      <div className="text-left flex-1">
+                        <p className="font-semibold text-base text-slate-800 dark:text-white">{label}</p>
+                        <p className="text-sm text-slate-500 dark:text-gray-400">{number}</p>
                       </div>
+                      <ChevronRight className="h-5 w-5 text-slate-400" />
                     </Button>
                   ))}
-                  <Button className="w-full h-12 text-base font-semibold bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-md">
+                  <Button className="w-full h-14 text-base font-bold bg-gradient-to-r from-red-500 via-red-600 to-pink-600 hover:from-red-600 hover:via-red-700 hover:to-pink-700 text-white shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl transform hover:scale-105">
                     🚨 Emergency Alert
                   </Button>
                 </div>

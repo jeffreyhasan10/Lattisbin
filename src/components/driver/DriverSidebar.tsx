@@ -17,6 +17,7 @@ import {
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarRail,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import {
   Home,
@@ -40,6 +41,7 @@ interface DriverSidebarProps {
 const DriverSidebar: React.FC<DriverSidebarProps> = ({ collapsed }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { isMobile, setOpenMobile } = useSidebar();
   const [expandedGroups, setExpandedGroups] = useState({
     main: true,
     management: true,
@@ -56,6 +58,10 @@ const DriverSidebar: React.FC<DriverSidebarProps> = ({ collapsed }) => {
 
   const handleTabChange = (tab: string) => {
     navigate(`/driver/${tab}`);
+    // Close mobile sidebar when navigating
+    if (isMobile) {
+      setOpenMobile(false);
+    }
   };
 
   const handleLogout = () => {
@@ -88,11 +94,11 @@ const DriverSidebar: React.FC<DriverSidebarProps> = ({ collapsed }) => {
     <Sidebar
       collapsible="offcanvas"
       variant="sidebar"
-      className="bg-gradient-to-b from-white to-gray-50/80 dark:from-gray-900 dark:to-gray-800 border-r border-blue-100/50 dark:border-gray-700/50 shadow-xl transition-all duration-300"
+      className="bg-gradient-to-b from-white via-slate-50/80 to-blue-50/60 dark:from-gray-900 dark:to-gray-800 border-r border-blue-100/60 dark:border-gray-700/50 shadow-2xl transition-all duration-300"
     >
-      <SidebarHeader className="p-6 border-b border-blue-100/30 dark:border-gray-700/30 bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700">
+      <SidebarHeader className="p-6 border-b border-blue-100/40 dark:border-gray-700/40 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-700">
         <div className="flex items-center gap-3">
-          <div className="h-12 w-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg border border-white/30">
+          <div className="h-12 w-12 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-xl border border-white/30">
             <span className="font-bold text-white text-xl">D</span>
           </div>
           {!collapsed && (
@@ -100,17 +106,17 @@ const DriverSidebar: React.FC<DriverSidebarProps> = ({ collapsed }) => {
               <h1 className="text-xl font-bold text-white tracking-tight">
                 Driver<span className="text-blue-200">Portal</span>
               </h1>
-              <p className="text-xs text-blue-100/80 mt-0.5">Professional Dashboard</p>
+              <p className="text-xs text-blue-100/80 mt-0.5 font-medium">Professional Dashboard</p>
             </div>
           )}
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="px-3 py-6 overflow-y-auto custom-scrollbar">
+      <SidebarContent className="px-3 py-6 overflow-y-auto">
         {menuItems.map((group) => (
           <SidebarGroup key={group.group} className="mb-6">
             <SidebarGroupLabel
-              className="flex items-center justify-between text-xs font-semibold uppercase text-blue-600 dark:text-blue-400 px-3 py-2 cursor-pointer hover:text-blue-700 dark:hover:text-blue-300 transition-colors duration-200"
+              className="flex items-center justify-between text-xs font-bold uppercase text-blue-600 dark:text-blue-400 px-3 py-3 cursor-pointer hover:text-blue-700 dark:hover:text-blue-300 transition-colors duration-200 rounded-xl hover:bg-blue-50/50 dark:hover:bg-blue-900/20"
               onClick={() => toggleGroup(group.group)}
             >
               <span className="tracking-wider">{group.label}</span>
@@ -123,8 +129,8 @@ const DriverSidebar: React.FC<DriverSidebarProps> = ({ collapsed }) => {
               )}
             </SidebarGroupLabel>
             {expandedGroups[group.group] && (
-              <SidebarGroupContent className="mt-2">
-                <SidebarMenu className="space-y-1">
+              <SidebarGroupContent className="mt-3">
+                <SidebarMenu className="space-y-2">
                   {group.items.map((item) => (
                     <SidebarMenuItem key={item.tab}>
                       <TooltipProvider>
@@ -133,10 +139,10 @@ const DriverSidebar: React.FC<DriverSidebarProps> = ({ collapsed }) => {
                             <SidebarMenuButton
                               isActive={activeTab === item.tab}
                               onClick={() => handleTabChange(item.tab)}
-                              className={`rounded-xl py-3 px-4 transition-all duration-300 group ${
+                              className={`rounded-2xl py-3 px-4 transition-all duration-300 group ${
                                 activeTab === item.tab
-                                  ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md hover:shadow-lg"
-                                  : "text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-300"
+                                  ? "bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-600 text-white shadow-xl hover:shadow-2xl transform scale-105"
+                                  : "text-slate-700 dark:text-gray-300 hover:bg-blue-50/70 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-300 hover:shadow-md"
                               }`}
                               aria-label={item.label}
                             >
@@ -147,15 +153,15 @@ const DriverSidebar: React.FC<DriverSidebarProps> = ({ collapsed }) => {
                               }`} />
                               {!collapsed && (
                                 <div className="flex items-center justify-between w-full">
-                                  <span className="font-medium text-sm">{item.label}</span>
+                                  <span className="font-semibold text-sm">{item.label}</span>
                                   {item.badge && (
                                     <Badge
-                                      className={`text-xs px-2 py-0.5 ${
+                                      className={`text-xs px-2 py-0.5 font-bold shadow-sm ${
                                         activeTab === item.tab
-                                          ? "bg-white/20 text-white border-white/30"
+                                          ? "bg-white/25 text-white border-white/40"
                                           : item.tab === "orders"
-                                          ? "bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-300"
-                                          : "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300"
+                                          ? "bg-gradient-to-r from-amber-400 to-orange-500 text-white border-0"
+                                          : "bg-gradient-to-r from-blue-400 to-indigo-500 text-white border-0"
                                       }`}
                                     >
                                       {item.badge}
@@ -177,20 +183,20 @@ const DriverSidebar: React.FC<DriverSidebarProps> = ({ collapsed }) => {
         ))}
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-blue-100/30 dark:border-gray-700/30 p-4 mt-auto bg-gradient-to-r from-gray-50 to-blue-50/50 dark:from-gray-800 dark:to-blue-900/10">
+      <SidebarFooter className="border-t border-blue-100/40 dark:border-gray-700/40 p-4 mt-auto bg-gradient-to-r from-slate-50 via-blue-50/50 to-indigo-50/30 dark:from-gray-800 dark:to-blue-900/10">
         <div className="flex flex-col gap-4">
           {/* User Profile Card */}
-          <div className="flex items-center gap-3 p-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-blue-100/50 dark:border-gray-700/50">
-            <Avatar className="h-10 w-10 border-2 border-blue-200 dark:border-blue-700">
+          <div className="flex items-center gap-3 p-4 bg-white/70 dark:bg-gray-800/70 rounded-2xl shadow-lg border border-blue-100/60 dark:border-gray-700/60 backdrop-blur-sm">
+            <Avatar className="h-10 w-10 border-2 border-blue-200 dark:border-blue-700 shadow-md">
               <AvatarImage src="/placeholder-avatar.jpg" alt="Driver" />
-              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-semibold">
+              <AvatarFallback className="bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600 text-white font-bold">
                 AR
               </AvatarFallback>
             </Avatar>
             {!collapsed && (
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">Ahmad Rahman</p>
-                <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">Professional Driver</p>
+                <p className="text-sm font-bold text-slate-900 dark:text-white truncate">Ahmad Rahman</p>
+                <p className="text-xs text-blue-600 dark:text-blue-400 font-semibold">Professional Driver</p>
               </div>
             )}
             <TooltipProvider>
@@ -199,7 +205,7 @@ const DriverSidebar: React.FC<DriverSidebarProps> = ({ collapsed }) => {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-600 hover:text-blue-700"
+                    className="h-8 w-8 hover:bg-blue-100/60 dark:hover:bg-blue-900/30 text-blue-600 hover:text-blue-700 rounded-xl"
                     aria-label="Driver settings"
                     onClick={() => handleTabChange("profile")}
                   >
@@ -218,13 +224,13 @@ const DriverSidebar: React.FC<DriverSidebarProps> = ({ collapsed }) => {
                 <TooltipTrigger asChild>
                   <Button
                     variant="ghost"
-                    className={`flex-1 flex items-center gap-2 rounded-xl py-3 transition-all duration-300 hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 ${
+                    className={`flex-1 flex items-center gap-2 rounded-2xl py-3 transition-all duration-300 hover:bg-blue-100/60 dark:hover:bg-blue-900/30 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 shadow-sm hover:shadow-md ${
                       collapsed ? "justify-center px-0" : "justify-start px-3"
                     }`}
                     aria-label="Help & Support"
                   >
                     <HelpCircle className="h-5 w-5" />
-                    {!collapsed && <span className="font-medium text-sm">Help</span>}
+                    {!collapsed && <span className="font-semibold text-sm">Help</span>}
                   </Button>
                 </TooltipTrigger>
                 {collapsed && <TooltipContent>Help & Support</TooltipContent>}
@@ -237,7 +243,7 @@ const DriverSidebar: React.FC<DriverSidebarProps> = ({ collapsed }) => {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-10 w-10 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 rounded-xl transition-all duration-300"
+                    className="h-10 w-10 hover:bg-red-100/60 dark:hover:bg-red-900/30 text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 rounded-2xl transition-all duration-300 shadow-sm hover:shadow-md"
                     onClick={handleLogout}
                     aria-label="Logout"
                   >
