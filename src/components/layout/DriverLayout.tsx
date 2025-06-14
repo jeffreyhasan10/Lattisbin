@@ -8,15 +8,17 @@ import DriverHeader from "@/components/driver/DriverHeader";
 const DriverLayout = () => {
   return (
     <SidebarProvider defaultOpen={true}>
-      <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20">
+      <div className="min-h-screen flex w-full bg-gray-50">
         <DriverSidebar collapsed={false} />
         <div className="flex-1 flex flex-col min-w-0">
           <DriverHeader 
             onSidebarToggle={() => {}}
             title="Driver Dashboard"
           />
-          <main className="flex-1 overflow-auto bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20">
-            <Outlet />
+          <main className="flex-1 overflow-auto bg-gray-50">
+            <div className="h-full w-full">
+              <Outlet />
+            </div>
           </main>
         </div>
       </div>

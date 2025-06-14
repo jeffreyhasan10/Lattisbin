@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,8 +17,6 @@ import {
   AlertCircle,
   Truck,
   Package,
-  Filter,
-  Search,
   Calendar,
   User,
   FileText
@@ -115,13 +114,13 @@ const DriverOrders = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "pending": return "bg-orange-500";
-      case "en-route-pickup": return "bg-blue-400";
-      case "bin-collected": return "bg-purple-500";
-      case "in-transit": return "bg-indigo-500";
-      case "delivered": return "bg-green-400";
-      case "completed": return "bg-green-600";
-      default: return "bg-gray-500";
+      case "pending": return "bg-yellow-100 text-yellow-800 border-yellow-200";
+      case "en-route-pickup": return "bg-blue-100 text-blue-800 border-blue-200";
+      case "bin-collected": return "bg-purple-100 text-purple-800 border-purple-200";
+      case "in-transit": return "bg-indigo-100 text-indigo-800 border-indigo-200";
+      case "delivered": return "bg-green-100 text-green-800 border-green-200";
+      case "completed": return "bg-green-100 text-green-800 border-green-200";
+      default: return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
 
@@ -177,22 +176,22 @@ const DriverOrders = () => {
 
   if (selectedOrderData) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20">
+      <div className="min-h-screen bg-gray-50">
         {/* Header */}
-        <div className="bg-white/90 dark:bg-gray-900/90 shadow-sm border-b border-blue-100/60 dark:border-gray-700/50 sticky top-0 z-10 backdrop-blur-sm">
+        <div className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-10">
           <div className="px-4 py-4">
             <div className="flex items-center gap-3">
               <Button 
                 variant="ghost" 
                 size="sm"
                 onClick={() => setSelectedOrder(null)}
-                className="hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-xl"
+                className="hover:bg-gray-100 rounded-lg"
               >
                 <ArrowLeft className="h-5 w-5" />
               </Button>
               <div>
-                <h1 className="font-bold text-xl text-slate-900 dark:text-white">Order Details</h1>
-                <p className="text-sm text-blue-600 dark:text-blue-400 font-medium">{selectedOrderData.id}</p>
+                <h1 className="font-bold text-xl text-slate-900">Order Details</h1>
+                <p className="text-sm text-slate-600 font-medium">{selectedOrderData.id}</p>
               </div>
             </div>
           </div>
@@ -201,13 +200,13 @@ const DriverOrders = () => {
         <ScrollArea className="h-[calc(100vh-80px)]">
           <div className="p-4 space-y-6">
             {/* Status Card */}
-            <Card className="shadow-lg border-0 bg-gradient-to-br from-white via-blue-50/30 to-indigo-50/20 dark:from-gray-800 dark:to-gray-700 rounded-2xl overflow-hidden">
+            <Card className="bg-white border border-gray-200 shadow-sm">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <Badge className={`${getStatusColor(selectedOrderData.status)} text-white px-4 py-2 rounded-xl font-semibold shadow-lg`}>
+                  <Badge className={`px-4 py-2 rounded-lg font-semibold border ${getStatusColor(selectedOrderData.status)}`}>
                     {getStatusText(selectedOrderData.status)}
                   </Badge>
-                  <div className="flex items-center gap-2 text-slate-600 dark:text-gray-400">
+                  <div className="flex items-center gap-2 text-slate-600">
                     <Clock className="h-4 w-4" />
                     <span className="text-sm font-medium">{selectedOrderData.assignedTime}</span>
                   </div>
@@ -215,7 +214,7 @@ const DriverOrders = () => {
                 
                 {selectedOrderData.status !== "completed" && (
                   <Button 
-                    className="w-full bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-600 hover:from-blue-600 hover:via-indigo-600 hover:to-purple-700 text-white shadow-xl hover:shadow-2xl transition-all duration-300 rounded-xl h-12 font-semibold"
+                    className="w-full bg-slate-900 hover:bg-slate-800 text-white shadow-sm h-12 font-semibold"
                     onClick={() => updateOrderStatus(selectedOrderData.id, getNextStatus(selectedOrderData.status))}
                   >
                     Update to: {getStatusText(getNextStatus(selectedOrderData.status))}
@@ -225,21 +224,21 @@ const DriverOrders = () => {
             </Card>
 
             {/* Customer Information */}
-            <Card className="shadow-lg border-0 bg-gradient-to-br from-white via-slate-50/50 to-blue-50/30 dark:from-gray-800 dark:to-gray-700 rounded-2xl overflow-hidden">
-              <CardHeader className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-700 text-white rounded-t-2xl">
-                <CardTitle className="text-lg flex items-center gap-3 font-bold">
-                  <User className="h-5 w-5" />
+            <Card className="bg-white border border-gray-200 shadow-sm">
+              <CardHeader className="bg-gray-50 border-b border-gray-100">
+                <CardTitle className="text-lg flex items-center gap-3 font-bold text-slate-900">
+                  <User className="h-5 w-5 text-slate-600" />
                   Customer Information
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6 space-y-4">
                 <div>
-                  <p className="font-bold text-lg text-slate-900 dark:text-white">{selectedOrderData.customerName}</p>
-                  <p className="text-sm text-slate-600 dark:text-gray-400 font-medium">{selectedOrderData.customerCompany}</p>
+                  <p className="font-bold text-lg text-slate-900">{selectedOrderData.customerName}</p>
+                  <p className="text-sm text-slate-600 font-medium">{selectedOrderData.customerCompany}</p>
                 </div>
                 <Button 
                   variant="outline" 
-                  className="w-full justify-start h-12 border-blue-200 dark:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-xl shadow-sm hover:shadow-md transition-all duration-300"
+                  className="w-full justify-start h-12 border-gray-300 hover:bg-gray-50 rounded-lg"
                   onClick={() => window.open(`tel:${selectedOrderData.customerPhone}`)}
                 >
                   <Phone className="h-5 w-5 mr-3 text-green-600" />
@@ -249,46 +248,47 @@ const DriverOrders = () => {
             </Card>
 
             {/* Bin Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Package className="h-5 w-5" />
+            <Card className="bg-white border border-gray-200 shadow-sm">
+              <CardHeader className="bg-gray-50 border-b border-gray-100">
+                <CardTitle className="text-lg flex items-center gap-2 font-bold text-slate-900">
+                  <Package className="h-5 w-5 text-slate-600" />
                   Bin Information
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-2">
+              <CardContent className="p-6 space-y-2">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-gray-600">Type</p>
-                    <p className="font-medium">{selectedOrderData.binType}</p>
+                    <p className="text-sm text-slate-600">Type</p>
+                    <p className="font-medium text-slate-900">{selectedOrderData.binType}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600">Serial</p>
-                    <p className="font-medium">{selectedOrderData.binSerial}</p>
+                    <p className="text-sm text-slate-600">Serial</p>
+                    <p className="font-medium text-slate-900">{selectedOrderData.binSerial}</p>
                   </div>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Size</p>
-                  <p className="font-medium">{selectedOrderData.binSize}</p>
+                  <p className="text-sm text-slate-600">Size</p>
+                  <p className="font-medium text-slate-900">{selectedOrderData.binSize}</p>
                 </div>
               </CardContent>
             </Card>
 
             {/* Locations */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <MapPin className="h-5 w-5" />
+            <Card className="bg-white border border-gray-200 shadow-sm">
+              <CardHeader className="bg-gray-50 border-b border-gray-100">
+                <CardTitle className="text-lg flex items-center gap-2 font-bold text-slate-900">
+                  <MapPin className="h-5 w-5 text-slate-600" />
                   Locations
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="p-6 space-y-4">
                 <div>
-                  <p className="text-sm text-gray-600 mb-1">Pickup Address</p>
-                  <p className="text-sm mb-2">{selectedOrderData.pickupAddress}</p>
+                  <p className="text-sm text-slate-600 mb-1">Pickup Address</p>
+                  <p className="text-sm mb-2 text-slate-900">{selectedOrderData.pickupAddress}</p>
                   <Button 
                     variant="outline" 
                     size="sm"
+                    className="border-gray-300 hover:bg-gray-50"
                     onClick={() => openNavigation(
                       selectedOrderData.pickupLat, 
                       selectedOrderData.pickupLng, 
@@ -301,11 +301,12 @@ const DriverOrders = () => {
                 </div>
                 
                 <div>
-                  <p className="text-sm text-gray-600 mb-1">Delivery Address</p>
-                  <p className="text-sm mb-2">{selectedOrderData.deliveryAddress}</p>
+                  <p className="text-sm text-slate-600 mb-1">Delivery Address</p>
+                  <p className="text-sm mb-2 text-slate-900">{selectedOrderData.deliveryAddress}</p>
                   <Button 
                     variant="outline" 
                     size="sm"
+                    className="border-gray-300 hover:bg-gray-50"
                     onClick={() => openNavigation(
                       selectedOrderData.deliveryLat, 
                       selectedOrderData.deliveryLng, 
@@ -320,24 +321,24 @@ const DriverOrders = () => {
             </Card>
 
             {/* Payment Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <DollarSign className="h-5 w-5" />
+            <Card className="bg-white border border-gray-200 shadow-sm">
+              <CardHeader className="bg-gray-50 border-b border-gray-100">
+                <CardTitle className="text-lg flex items-center gap-2 font-bold text-slate-900">
+                  <DollarSign className="h-5 w-5 text-slate-600" />
                   Payment Information
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-2">
+              <CardContent className="p-6 space-y-2">
                 <div className="flex justify-between">
-                  <span>Amount:</span>
+                  <span className="text-slate-600">Amount:</span>
                   <span className="font-bold text-green-600">RM{selectedOrderData.amount.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Method:</span>
-                  <Badge variant="outline">{selectedOrderData.paymentMethod}</Badge>
+                  <span className="text-slate-600">Method:</span>
+                  <Badge variant="outline" className="border-gray-300">{selectedOrderData.paymentMethod}</Badge>
                 </div>
                 <Button 
-                  className="w-full mt-3"
+                  className="w-full mt-3 bg-slate-900 hover:bg-slate-800"
                   onClick={() => navigate("/driver/payments", { state: { orderId: selectedOrderData.id } })}
                 >
                   Collect Payment
@@ -347,40 +348,40 @@ const DriverOrders = () => {
 
             {/* Special Instructions */}
             {selectedOrderData.specialInstructions && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <AlertCircle className="h-5 w-5 text-yellow-500" />
+              <Card className="bg-white border border-gray-200 shadow-sm">
+                <CardHeader className="bg-gray-50 border-b border-gray-100">
+                  <CardTitle className="text-lg flex items-center gap-2 font-bold text-slate-900">
+                    <AlertCircle className="h-5 w-5 text-yellow-600" />
                     Special Instructions
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-sm">{selectedOrderData.specialInstructions}</p>
+                <CardContent className="p-6">
+                  <p className="text-sm text-slate-700">{selectedOrderData.specialInstructions}</p>
                 </CardContent>
               </Card>
             )}
 
             {/* Photo Documentation */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Camera className="h-5 w-5" />
+            <Card className="bg-white border border-gray-200 shadow-sm">
+              <CardHeader className="bg-gray-50 border-b border-gray-100">
+                <CardTitle className="text-lg flex items-center gap-2 font-bold text-slate-900">
+                  <Camera className="h-5 w-5 text-slate-600" />
                   Photo Documentation
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-2">
+              <CardContent className="p-6">
                 <div className="grid grid-cols-3 gap-2">
-                  <Button variant="outline" className="h-20 flex-col">
-                    <Camera className="h-6 w-6 mb-1" />
-                    <span className="text-xs">Before</span>
+                  <Button variant="outline" className="h-20 flex-col border-gray-300 hover:bg-gray-50">
+                    <Camera className="h-6 w-6 mb-1 text-slate-600" />
+                    <span className="text-xs text-slate-700">Before</span>
                   </Button>
-                  <Button variant="outline" className="h-20 flex-col">
-                    <Camera className="h-6 w-6 mb-1" />
-                    <span className="text-xs">During</span>
+                  <Button variant="outline" className="h-20 flex-col border-gray-300 hover:bg-gray-50">
+                    <Camera className="h-6 w-6 mb-1 text-slate-600" />
+                    <span className="text-xs text-slate-700">During</span>
                   </Button>
-                  <Button variant="outline" className="h-20 flex-col">
-                    <Camera className="h-6 w-6 mb-1" />
-                    <span className="text-xs">After</span>
+                  <Button variant="outline" className="h-20 flex-col border-gray-300 hover:bg-gray-50">
+                    <Camera className="h-6 w-6 mb-1 text-slate-600" />
+                    <span className="text-xs text-slate-700">After</span>
                   </Button>
                 </div>
               </CardContent>
@@ -392,24 +393,24 @@ const DriverOrders = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20">
+    <div className="min-h-screen bg-gray-50">
       {/* Breadcrumbs */}
-      <div className="bg-white/90 dark:bg-gray-900/90 border-b border-blue-100/60 dark:border-gray-700/50 shadow-sm backdrop-blur-sm">
+      <div className="bg-white border-b border-gray-200">
         <div className="px-4 py-4">
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
                 <BreadcrumbLink 
                   href="/driver/dashboard" 
-                  className="flex items-center gap-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium transition-colors"
+                  className="flex items-center gap-2 text-slate-600 hover:text-slate-900 font-medium transition-colors"
                 >
                   <ArrowLeft className="h-4 w-4" />
                   Dashboard
                 </BreadcrumbLink>
               </BreadcrumbItem>
-              <BreadcrumbSeparator className="text-blue-300 dark:text-blue-600" />
+              <BreadcrumbSeparator className="text-slate-400" />
               <BreadcrumbItem>
-                <BreadcrumbPage className="text-slate-700 dark:text-gray-300 font-semibold">
+                <BreadcrumbPage className="text-slate-700 font-semibold">
                   My Orders
                 </BreadcrumbPage>
               </BreadcrumbItem>
@@ -419,23 +420,23 @@ const DriverOrders = () => {
       </div>
 
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-700 text-white p-6 shadow-xl">
+      <div className="bg-white p-6 shadow-sm">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl lg:text-3xl font-bold mb-2 flex items-center gap-3">
-              <FileText className="h-7 w-7" />
+            <h1 className="text-2xl lg:text-3xl font-bold text-slate-900 mb-2 flex items-center gap-3">
+              <FileText className="h-7 w-7 text-slate-600" />
               My Orders
             </h1>
-            <p className="text-blue-100 text-base font-medium">{orders.length} total orders • {filteredOrders.length} showing</p>
+            <p className="text-slate-600 font-medium">{orders.length} total orders • {filteredOrders.length} showing</p>
           </div>
-          <div className="bg-white/15 backdrop-blur-md rounded-xl p-4 text-center border border-white/20 shadow-lg">
-            <p className="text-lg font-bold mb-1">
+          <div className="bg-gray-50 rounded-xl p-4 text-center border border-gray-200">
+            <p className="text-lg font-bold text-slate-900 mb-1">
               {new Date().toLocaleDateString('en-US', { 
                 month: 'short',
                 day: 'numeric'
               })}
             </p>
-            <p className="text-xs text-blue-200 flex items-center justify-center gap-1">
+            <p className="text-xs text-slate-500 flex items-center justify-center gap-1">
               <Calendar className="h-3 w-3" />
               Today
             </p>
@@ -446,7 +447,7 @@ const DriverOrders = () => {
       <ScrollArea className="h-[calc(100vh-180px)]">
         <div className="p-4 space-y-6">
           {/* Filter Tabs */}
-          <Card className="shadow-lg border-0 bg-gradient-to-br from-white via-slate-50/50 to-blue-50/30 dark:from-gray-800 dark:to-gray-700 rounded-2xl overflow-hidden">
+          <Card className="bg-white border border-gray-200 shadow-sm">
             <CardContent className="p-4">
               <div className="flex gap-2 overflow-x-auto pb-2">
                 {[
@@ -460,10 +461,10 @@ const DriverOrders = () => {
                     variant={filterStatus === key ? "default" : "outline"}
                     size="sm"
                     onClick={() => setFilterStatus(key)}
-                    className={`whitespace-nowrap rounded-xl transition-all duration-300 ${
+                    className={`whitespace-nowrap rounded-lg transition-all duration-300 ${
                       filterStatus === key
-                        ? "bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-600 text-white shadow-lg hover:shadow-xl"
-                        : "border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/30"
+                        ? "bg-slate-900 text-white shadow-sm"
+                        : "border-gray-300 text-slate-700 hover:bg-gray-50"
                     }`}
                   >
                     {label} ({count})
@@ -478,47 +479,47 @@ const DriverOrders = () => {
             {filteredOrders.map((order) => (
               <Card 
                 key={order.id} 
-                className="cursor-pointer hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border-0 bg-gradient-to-br from-white via-slate-50/50 to-blue-50/30 dark:from-gray-800 dark:to-gray-700 rounded-2xl overflow-hidden shadow-lg"
+                className="cursor-pointer hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 bg-white border border-gray-200 shadow-sm"
                 onClick={() => setSelectedOrder(order.id)}
               >
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-4 flex-1">
-                      <div className={`p-3 rounded-xl ${getStatusColor(order.status)} shadow-lg`}>
+                      <div className="p-3 rounded-lg bg-gray-50 border border-gray-200">
                         {getStatusIcon(order.status)}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="font-bold text-slate-900 dark:text-white text-lg truncate">{order.customerName}</p>
-                        <p className="text-sm text-slate-600 dark:text-gray-400 mb-2 font-medium">{order.customerCompany}</p>
-                        <p className="text-xs text-slate-500 dark:text-gray-500 flex items-center gap-2">
+                        <p className="font-bold text-slate-900 text-lg truncate">{order.customerName}</p>
+                        <p className="text-sm text-slate-600 mb-2 font-medium">{order.customerCompany}</p>
+                        <p className="text-xs text-slate-500 flex items-center gap-2">
                           <Clock className="h-3 w-3" />
                           {order.id} • {order.assignedTime}
                         </p>
                       </div>
                     </div>
-                    <Badge className={`${getStatusColor(order.status)} text-white text-xs px-3 py-1 rounded-lg font-bold shadow-lg`}>
+                    <Badge className={`text-xs px-3 py-1 rounded-lg font-semibold border ${getStatusColor(order.status)}`}>
                       {getStatusText(order.status)}
                     </Badge>
                   </div>
                   
                   <div className="space-y-3 text-sm">
-                    <div className="flex items-center gap-3 p-3 bg-white/60 dark:bg-gray-800/60 rounded-xl">
-                      <Package className="h-5 w-5 text-blue-500" />
+                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                      <Package className="h-5 w-5 text-slate-600" />
                       <div>
-                        <p className="font-semibold text-slate-900 dark:text-white">{order.binType}</p>
-                        <p className="text-xs text-slate-500 dark:text-gray-500">Serial: {order.binSerial}</p>
+                        <p className="font-semibold text-slate-900">{order.binType}</p>
+                        <p className="text-xs text-slate-500">Serial: {order.binSerial}</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3 p-3 bg-white/60 dark:bg-gray-800/60 rounded-xl">
+                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
                       <MapPin className="h-5 w-5 text-red-500" />
-                      <span className="truncate font-medium text-slate-700 dark:text-gray-300">{order.deliveryAddress}</span>
+                      <span className="truncate font-medium text-slate-700">{order.deliveryAddress}</span>
                     </div>
-                    <div className="flex items-center justify-between p-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl">
+                    <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
                       <div className="flex items-center gap-2">
                         <DollarSign className="h-5 w-5 text-green-600" />
                         <span className="font-bold text-green-600 text-lg">RM{order.amount.toFixed(2)}</span>
                       </div>
-                      <Badge variant="outline" className="text-xs border-green-200 text-green-700 bg-green-50 dark:bg-green-900/20 dark:border-green-700 dark:text-green-300">
+                      <Badge variant="outline" className="text-xs border-green-200 text-green-700 bg-green-50">
                         {order.paymentMethod}
                       </Badge>
                     </div>
@@ -528,11 +529,11 @@ const DriverOrders = () => {
             ))}
             
             {filteredOrders.length === 0 && (
-              <Card className="shadow-lg border-0 bg-gradient-to-br from-white via-slate-50/50 to-blue-50/30 dark:from-gray-800 dark:to-gray-700 rounded-2xl">
+              <Card className="bg-white border border-gray-200 shadow-sm">
                 <CardContent className="p-12 text-center">
                   <FileText className="h-12 w-12 text-slate-400 mx-auto mb-4" />
-                  <p className="text-lg font-semibold text-slate-600 dark:text-gray-400 mb-2">No orders found</p>
-                  <p className="text-sm text-slate-500 dark:text-gray-500">No orders match the selected filter.</p>
+                  <p className="text-lg font-semibold text-slate-600 mb-2">No orders found</p>
+                  <p className="text-sm text-slate-500">No orders match the selected filter.</p>
                 </CardContent>
               </Card>
             )}
