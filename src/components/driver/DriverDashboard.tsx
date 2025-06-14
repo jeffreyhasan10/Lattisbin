@@ -101,7 +101,7 @@ const DriverDashboard = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "pending": return "bg-orange-500";
-      case "in-progress": return "bg-blue-500";
+      case "in-progress": return "bg-blue-600";
       case "completed": return "bg-green-500";
       default: return "bg-gray-500";
     }
@@ -127,156 +127,200 @@ const DriverDashboard = () => {
   }
 
   return (
-    <div className="p-6 space-y-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
-      {/* Time and Date */}
-      <Card>
-        <CardContent className="p-4 text-center">
-          <p className="text-2xl font-bold text-green-600">
-            {currentTime.toLocaleTimeString('en-US', { 
-              hour: '2-digit', 
-              minute: '2-digit',
-              hour12: true 
-            })}
-          </p>
-          <p className="text-sm text-gray-600">
-            {currentTime.toLocaleDateString('en-US', { 
-              weekday: 'long',
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric'
-            })}
-          </p>
-        </CardContent>
-      </Card>
-
-      {/* Performance Metrics */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4 text-center">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <AlertCircle className="h-5 w-5 text-orange-500" />
-              <span className="text-2xl font-bold text-orange-500">{pendingJobs}</span>
+    <div className="dashboard-bg min-h-screen">
+      <div className="dashboard-content space-y-6">
+        {/* Welcome Header */}
+        <div className="dashboard-panel p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="dashboard-title text-3xl mb-2">Good Morning, {driverSession.name}! 👋</h1>
+              <p className="text-gray-600">Ready to make today productive?</p>
             </div>
-            <p className="text-sm text-gray-600">Pending</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4 text-center">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <Clock className="h-5 w-5 text-blue-500" />
-              <span className="text-2xl font-bold text-blue-500">{inProgressJobs}</span>
+            <div className="text-right">
+              <p className="text-2xl font-bold text-blue-600">
+                {currentTime.toLocaleTimeString('en-US', { 
+                  hour: '2-digit', 
+                  minute: '2-digit',
+                  hour12: true 
+                })}
+              </p>
+              <p className="text-sm text-gray-500">
+                {currentTime.toLocaleDateString('en-US', { 
+                  weekday: 'long',
+                  month: 'short',
+                  day: 'numeric'
+                })}
+              </p>
             </div>
-            <p className="text-sm text-gray-600">In Progress</p>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <Card>
-          <CardContent className="p-4 text-center">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <CheckCircle className="h-5 w-5 text-green-500" />
-              <span className="text-2xl font-bold text-green-500">{completedJobs}</span>
-            </div>
-            <p className="text-sm text-gray-600">Completed</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4 text-center">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <DollarSign className="h-5 w-5 text-green-600" />
-              <span className="text-lg font-bold text-green-600">RM{totalPayments}</span>
-            </div>
-            <p className="text-sm text-gray-600">Collected</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Button 
-          className="h-20 bg-blue-600 hover:bg-blue-700 flex flex-col"
-          onClick={() => navigate("/driver/orders")}
-        >
-          <FileText className="h-6 w-6 mb-2" />
-          <span className="text-sm">My Orders</span>
-        </Button>
-
-        <Button 
-          className="h-20 bg-purple-600 hover:bg-purple-700 flex flex-col"
-          onClick={() => navigate("/driver/lorries")}
-        >
-          <Truck className="h-6 w-6 mb-2" />
-          <span className="text-sm">Lorry Select</span>
-        </Button>
-
-        <Button 
-          className="h-20 bg-green-600 hover:bg-green-700 flex flex-col"
-          onClick={() => navigate("/driver/payments")}
-        >
-          <DollarSign className="h-6 w-6 mb-2" />
-          <span className="text-sm">Payments</span>
-        </Button>
-
-        <Button 
-          className="h-20 bg-orange-600 hover:bg-orange-700 flex flex-col"
-          onClick={() => navigate("/driver/expenses")}
-        >
-          <Fuel className="h-6 w-6 mb-2" />
-          <span className="text-sm">Expenses</span>
-        </Button>
-      </div>
-
-      {/* Today's Jobs Summary */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Clock className="h-5 w-5" />
-            Today's Jobs
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {jobs.slice(0, 3).map((job) => (
-            <div key={job.id} className="flex items-center justify-between p-3 border rounded-lg">
-              <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-full ${getStatusColor(job.status)}`}>
-                  {getStatusIcon(job.status)}
-                </div>
+        {/* Performance Metrics */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+          <Card className="dashboard-stat-card border-orange-100 hover:border-orange-200">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-medium text-sm">{job.customerName}</p>
-                  <p className="text-xs text-gray-600">{job.binType} - {job.assignedTime}</p>
+                  <p className="text-sm font-medium text-gray-600 mb-1">Pending</p>
+                  <p className="text-3xl font-bold text-orange-600">{pendingJobs}</p>
+                </div>
+                <div className="dashboard-icon-container bg-orange-100">
+                  <AlertCircle className="h-6 w-6 text-orange-600" />
                 </div>
               </div>
-              <Badge variant="outline" className="text-xs">
-                RM{job.amount}
-              </Badge>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
 
-      {/* Emergency Contacts */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2 text-red-600">
-            <Phone className="h-5 w-5" />
-            Emergency Contacts
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <Button variant="outline" className="w-full justify-start" size="sm">
-            <Phone className="h-4 w-4 mr-2" />
-            Office: 03-1234 5678
-          </Button>
-          <Button variant="outline" className="w-full justify-start" size="sm">
-            <Phone className="h-4 w-4 mr-2" />
-            Supervisor: 012-345 6789
-          </Button>
-          <Button variant="destructive" className="w-full" size="sm">
-            🚨 Emergency Alert
-          </Button>
-        </CardContent>
-      </Card>
+          <Card className="dashboard-stat-card border-blue-100 hover:border-blue-200">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600 mb-1">In Progress</p>
+                  <p className="text-3xl font-bold text-blue-600">{inProgressJobs}</p>
+                </div>
+                <div className="dashboard-icon-container bg-blue-100">
+                  <Clock className="h-6 w-6 text-blue-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="dashboard-stat-card border-green-100 hover:border-green-200">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600 mb-1">Completed</p>
+                  <p className="text-3xl font-bold text-green-600">{completedJobs}</p>
+                </div>
+                <div className="dashboard-icon-container bg-green-100">
+                  <CheckCircle className="h-6 w-6 text-green-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="dashboard-stat-card border-blue-100 hover:border-blue-200">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600 mb-1">Collected</p>
+                  <p className="text-2xl font-bold text-blue-600">RM{totalPayments}</p>
+                </div>
+                <div className="dashboard-icon-container bg-blue-100">
+                  <DollarSign className="h-6 w-6 text-blue-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Quick Actions */}
+        <Card className="dashboard-panel">
+          <CardHeader className="dashboard-gradient-header">
+            <CardTitle className="text-xl">Quick Actions</CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <Button 
+                className="dashboard-button-primary flex-col h-20 gap-2"
+                onClick={() => navigate("/driver/orders")}
+              >
+                <FileText className="h-6 w-6" />
+                <span className="text-sm">My Orders</span>
+              </Button>
+
+              <Button 
+                className="dashboard-button-primary flex-col h-20 gap-2"
+                onClick={() => navigate("/driver/lorries")}
+              >
+                <Truck className="h-6 w-6" />
+                <span className="text-sm">Lorry Select</span>
+              </Button>
+
+              <Button 
+                className="dashboard-button-primary flex-col h-20 gap-2"
+                onClick={() => navigate("/driver/payments")}
+              >
+                <DollarSign className="h-6 w-6" />
+                <span className="text-sm">Payments</span>
+              </Button>
+
+              <Button 
+                className="dashboard-button-primary flex-col h-20 gap-2"
+                onClick={() => navigate("/driver/expenses")}
+              >
+                <Fuel className="h-6 w-6" />
+                <span className="text-sm">Expenses</span>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Today's Jobs Summary */}
+        <Card className="dashboard-panel">
+          <CardHeader className="dashboard-gradient-header">
+            <CardTitle className="text-xl flex items-center gap-2">
+              <Clock className="h-5 w-5" />
+              Today's Jobs
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="space-y-4">
+              {jobs.slice(0, 3).map((job) => (
+                <div key={job.id} className="flex items-center justify-between p-4 border border-gray-100 rounded-lg hover:bg-gray-50 transition-colors">
+                  <div className="flex items-center gap-4">
+                    <div className={`p-2 rounded-full ${getStatusColor(job.status)}`}>
+                      {getStatusIcon(job.status)}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900">{job.customerName}</p>
+                      <p className="text-sm text-gray-600">{job.binType} - {job.assignedTime}</p>
+                      <p className="text-xs text-gray-500">{job.pickupAddress}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <Badge variant="outline" className="dashboard-filter-badge mb-1">
+                      RM{job.amount}
+                    </Badge>
+                    <p className="text-xs text-gray-500">{job.paymentMethod}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Emergency Contacts */}
+        <Card className="dashboard-panel">
+          <CardHeader className="bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-4 rounded-t-xl">
+            <CardTitle className="text-xl flex items-center gap-2">
+              <Phone className="h-5 w-5" />
+              Emergency Contacts
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="space-y-3">
+              <Button variant="outline" className="w-full justify-start h-12" size="sm">
+                <Phone className="h-4 w-4 mr-3" />
+                <div className="text-left">
+                  <p className="font-medium">Office</p>
+                  <p className="text-sm text-gray-500">03-1234 5678</p>
+                </div>
+              </Button>
+              <Button variant="outline" className="w-full justify-start h-12" size="sm">
+                <Phone className="h-4 w-4 mr-3" />
+                <div className="text-left">
+                  <p className="font-medium">Supervisor</p>
+                  <p className="text-sm text-gray-500">012-345 6789</p>
+                </div>
+              </Button>
+              <Button variant="destructive" className="w-full h-12 text-lg font-semibold" size="sm">
+                🚨 Emergency Alert
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
