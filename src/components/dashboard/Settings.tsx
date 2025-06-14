@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -150,6 +150,18 @@ const Settings = () => {
     },
   };
 
+  const cardVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { 
+        duration: 0.5,
+        ease: [0.4, 0, 0.2, 1]
+      }
+    }
+  };
+
   return (
     <motion.div
       className="space-y-6 p-6 max-w-7xl mx-auto"
@@ -209,7 +221,7 @@ const Settings = () => {
           >
             <TabsContent value="profile" className="mt-0">
               <motion.div variants={itemVariants}>
-                <Card className="border-none shadow-lg hover:shadow-xl transition-shadow duration-300 bg-white rounded-2xl overflow-hidden">
+                <Card className="border-none shadow-lg hover:shadow-xl transition-shadow duration-300 bg-white rounded-2xl overflow-hidden" variants={cardVariants}>
                   <CardHeader className="bg-gradient-to-r from-gray-50 to-gray-100">
                     <CardTitle className="text-xl font-semibold text-gray-900">
                       Personal Information

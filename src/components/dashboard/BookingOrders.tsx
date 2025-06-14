@@ -1,416 +1,370 @@
-import React, { useState, useMemo, useCallback } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Calendar as CalendarIcon, Search, Plus, MapPin, Phone, Truck, Package2, Clock, CheckCircle, AlertTriangle, Eye, Edit, Trash2, Filter, Download, RotateCcw, Users, DollarSign } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import { CalendarIcon, CheckCircle, XCircle, MapPin, User, Phone, FileText, Clock, Plus, Pencil, Trash2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 
-const DUMMY_BOOKINGS = [
+interface Booking {
+  id: number;
+  customerName: string;
+  customerPhone: string;
+  pickupAddress: string;
+  deliveryAddress: string;
+  binType: string;
+  binSerial: string;
+  bookingDate: Date;
+  status: "pending" | "confirmed" | "completed" | "cancelled";
+}
+
+const DUMMY_BOOKINGS: Booking[] = [
   {
-    id: "BKG001",
+    id: 1,
     customerName: "ABC Construction",
-    customerContact: "012-3456789",
-    pickupAddress: "123, Jalan ABC, KL",
-    deliveryAddress: "456, Jalan XYZ, PJ",
-    binType: "Open Top",
-    binSize: "10x10x5",
-    pickupDate: "2024-03-15",
-    deliveryDate: "2024-03-16",
+    customerPhone: "03-12345678",
+    pickupAddress: "Jalan Ampang, KL",
+    deliveryAddress: "Jalan Tun Razak, KL",
+    binType: "ASR100",
+    binSerial: "ASR100-001",
+    bookingDate: new Date(),
     status: "pending",
-    amount: 500,
   },
   {
-    id: "BKG002",
-    customerName: "XYZ Sdn Bhd",
-    customerContact: "016-1234567",
-    pickupAddress: "789, Lebuh WAU, Shah Alam",
-    deliveryAddress: "012, Jalan Test, Subang",
-    binType: "Roll-Off",
-    binSize: "12x8x6",
-    pickupDate: "2024-03-20",
-    deliveryDate: "2024-03-21",
+    id: 2,
+    customerName: "XYZ Corporation",
+    customerPhone: "03-98765432",
+    pickupAddress: "Persiaran KLCC, KL",
+    deliveryAddress: "Bukit Bintang, KL",
+    binType: "LASR100",
+    binSerial: "LASR100-002",
+    bookingDate: new Date(),
     status: "confirmed",
-    amount: 750,
   },
   {
-    id: "BKG003",
-    customerName: "Test Corp",
-    customerContact: "019-9876543",
-    pickupAddress: "345, Lorong 1, Melawati",
-    deliveryAddress: "678, Jalan 2, Ampang",
-    binType: "Compactor",
-    binSize: "8x6x4",
-    pickupDate: "2024-03-25",
-    deliveryDate: "2024-03-26",
+    id: 3,
+    customerName: "PQR Industries",
+    customerPhone: "03-55555555",
+    pickupAddress: "Jalan Kuching, KL",
+    deliveryAddress: "Mont Kiara, KL",
+    binType: "PWD100",
+    binSerial: "PWD100-003",
+    bookingDate: new Date(),
     status: "completed",
-    amount: 1000,
   },
 ];
 
 const BookingOrders = () => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [bookings, setBookings] = useState(DUMMY_BOOKINGS);
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [selectedBooking, setSelectedBooking] = useState(null);
+  const [bookings, setBookings] = useState<Booking[]>(DUMMY_BOOKINGS);
+  const [modalOpen, setModalOpen] = useState<boolean>(false);
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
 
-  const filteredBookings = useMemo(() => {
-    return DUMMY_BOOKINGS.filter((booking) => {
-      const matchesSearch =
-        booking.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        booking.id.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesStatus = statusFilter === "all" || booking.status === statusFilter;
-      return matchesSearch && matchesStatus;
-    });
-  }, [searchTerm, statusFilter]);
-
-  const handleOpenAddDialog = () => {
-    setIsAddDialogOpen(true);
+  const openModal = (booking?: any) => {
+    setSelectedBooking(booking || null);
+    setModalOpen(true);
   };
 
-  const handleCloseAddDialog = () => {
-    setIsAddDialogOpen(false);
-  };
-
-  const handleOpenEditDialog = (booking) => {
-    setSelectedBooking(booking);
-    setIsEditDialogOpen(true);
-  };
-
-  const handleCloseEditDialog = () => {
-    setIsEditDialogOpen(false);
+  const closeModal = () => {
+    setModalOpen(false);
     setSelectedBooking(null);
   };
 
-  const handleOpenDeleteDialog = (booking) => {
-    setSelectedBooking(booking);
-    setIsDeleteDialogOpen(true);
-  };
-
-  const handleCloseDeleteDialog = () => {
-    setIsDeleteDialogOpen(false);
-    setSelectedBooking(null);
-  };
-
-  const handleAddBooking = (newBooking) => {
-    setBookings([...bookings, newBooking]);
-    setIsAddDialogOpen(false);
-    toast.success("Booking added successfully!");
-  };
-
-  const handleEditBooking = (editedBooking) => {
-    setBookings(
-      bookings.map((booking) =>
-        booking.id === editedBooking.id ? editedBooking : booking
-      )
-    );
-    setIsEditDialogOpen(false);
-    setSelectedBooking(null);
-    toast.success("Booking edited successfully!");
-  };
-
-  const handleDeleteBooking = () => {
+  const handleSave = (newBooking: any) => {
     if (selectedBooking) {
-      setBookings(bookings.filter((booking) => booking.id !== selectedBooking.id));
-      setIsDeleteDialogOpen(false);
-      setSelectedBooking(null);
-      toast.success("Booking deleted successfully!");
+      setBookings(prev => prev.map(b => b.id === selectedBooking.id ? { ...selectedBooking, ...newBooking } : b));
+    } else {
+      const id = Math.max(...bookings.map(b => b.id)) + 1;
+      setBookings(prev => [...prev, { id, ...newBooking }]);
+    }
+    closeModal();
+  };
+
+  const handleDelete = (id: number) => {
+    setBookings(prev => prev.filter(b => b.id !== id));
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "pending": return "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300";
+      case "confirmed": return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300";
+      case "completed": return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300";
+      case "cancelled": return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300";
+      default: return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300";
     }
   };
 
-  const getStatusColor = (status) => {
+  const getStatusIcon = (status: string) => {
     switch (status) {
-      case "pending":
-        return "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300";
-      case "confirmed":
-        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300";
-      case "completed":
-        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300";
-      default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300";
+      case "pending": return <Clock className="h-4 w-4 mr-1" />;
+      case "confirmed": return <CheckCircle className="h-4 w-4 mr-1" />;
+      case "completed": return <CheckCircle className="h-4 w-4 mr-1" />;
+      case "cancelled": return <XCircle className="h-4 w-4 mr-1" />;
+      default: return <FileText className="h-4 w-4 mr-1" />;
     }
   };
 
   return (
-    <div className="space-y-6 p-6 bg-gradient-to-br from-slate-50 to-blue-50/30 dark:from-gray-900 dark:to-gray-800 min-h-screen">
-      <div className="flex justify-between items-center">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold">Booking Orders</CardTitle>
-        </CardHeader>
-        <Button onClick={handleOpenAddDialog}>
-          <Plus className="mr-2 h-4 w-4" />
+    <div className="p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-semibold tracking-tight">Booking Orders</h2>
+        <Button onClick={() => openModal()}>
+          <Plus className="h-4 w-4 mr-2" />
           Add Booking
         </Button>
       </div>
 
-      <div className="flex items-center space-x-4">
-        <Input
-          type="search"
-          placeholder="Search bookings..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+      <ScrollArea className="rounded-md border">
+        <table className="w-full text-sm">
+          <thead className="[&_th]:px-4 [&_tr]:border-b">
+            <tr>
+              <th className="h-12 font-medium text-left">Customer</th>
+              <th className="h-12 font-medium text-left">Phone</th>
+              <th className="h-12 font-medium text-left">Pickup Address</th>
+              <th className="h-12 font-medium text-left">Delivery Address</th>
+              <th className="h-12 font-medium text-left">Bin Details</th>
+              <th className="h-12 font-medium text-left">Booking Date</th>
+              <th className="h-12 font-medium text-left">Status</th>
+              <th className="h-12 font-medium"></th>
+            </tr>
+          </thead>
+          <tbody className="[&_td]:p-4 [&_tr]:border-b last:border-none">
+            {bookings.map((booking) => (
+              <tr key={booking.id}>
+                <td>
+                  <div className="font-medium">{booking.customerName}</div>
+                </td>
+                <td>{booking.customerPhone}</td>
+                <td>
+                  <div className="flex items-center">
+                    <MapPin className="h-4 w-4 mr-2" />
+                    {booking.pickupAddress}
+                  </div>
+                </td>
+                <td>
+                  <div className="flex items-center">
+                    <MapPin className="h-4 w-4 mr-2" />
+                    {booking.deliveryAddress}
+                  </div>
+                </td>
+                <td>
+                  {booking.binType} ({booking.binSerial})
+                </td>
+                <td>{booking.bookingDate.toLocaleDateString()}</td>
+                <td>
+                  <Badge className={getStatusColor(booking.status)}>
+                    <div className="flex items-center">
+                      {getStatusIcon(booking.status)}
+                      {booking.status}
+                    </div>
+                  </Badge>
+                </td>
+                <td>
+                  <div className="flex items-center space-x-2">
+                    <Button variant="ghost" size="icon" onClick={() => openModal(booking)}>
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete the booking.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleDelete(booking.id)}>Delete</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </ScrollArea>
+      
+      {modalOpen && (
+        <BookingModal 
+          booking={selectedBooking}
+          onClose={closeModal}
+          onSave={handleSave}
         />
-        <Select onValueChange={(value) => setStatusFilter(value)}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="confirmed">Confirmed</SelectItem>
-            <SelectItem value="completed">Completed</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-        {filteredBookings.map((booking) => (
-          <Card key={booking.id} className="border border-gray-200 dark:border-gray-700">
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold">{booking.customerName}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-1">
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  <MapPin className="inline-block h-4 w-4 mr-1" />
-                  {booking.pickupAddress}
-                </p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  <CalendarIcon className="inline-block h-4 w-4 mr-1" />
-                  {booking.pickupDate}
-                </p>
-                <Badge className={getStatusColor(booking.status)}>
-                  {booking.status}
-                </Badge>
-              </div>
-              <div className="flex justify-end mt-4 space-x-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleOpenEditDialog(booking)}
-                >
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleOpenDeleteDialog(booking)}
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Add Booking Dialog */}
-      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Add New Booking</DialogTitle>
-          </DialogHeader>
-          <AddEditBookingForm
-            onClose={handleCloseAddDialog}
-            onSave={handleAddBooking}
-          />
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit Booking Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Edit Booking</DialogTitle>
-          </DialogHeader>
-          <AddEditBookingForm
-            booking={selectedBooking}
-            onClose={handleCloseEditDialog}
-            onSave={handleEditBooking}
-          />
-        </DialogContent>
-      </Dialog>
-
-      {/* Delete Booking Dialog */}
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Delete Booking</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <p>Are you sure you want to delete this booking?</p>
-          </div>
-          <DialogFooter>
-            <Button variant="secondary" onClick={handleCloseDeleteDialog}>
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={handleDeleteBooking}>
-              Delete
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      )}
     </div>
   );
 };
 
-const AddEditBookingForm = ({ booking, onClose, onSave }) => {
+interface BookingModalProps {
+  booking: Booking | null;
+  onClose: () => void;
+  onSave: (booking: any) => void;
+}
+
+const BookingModal: React.FC<BookingModalProps> = ({ booking, onClose, onSave }) => {
   const [customerName, setCustomerName] = useState(booking?.customerName || "");
-  const [customerContact, setCustomerContact] = useState(booking?.customerContact || "");
+  const [customerPhone, setCustomerPhone] = useState(booking?.customerPhone || "");
   const [pickupAddress, setPickupAddress] = useState(booking?.pickupAddress || "");
   const [deliveryAddress, setDeliveryAddress] = useState(booking?.deliveryAddress || "");
   const [binType, setBinType] = useState(booking?.binType || "");
-  const [binSize, setBinSize] = useState(booking?.binSize || "");
-  const [pickupDate, setPickupDate] = useState(booking?.pickupDate || "");
-  const [deliveryDate, setDeliveryDate] = useState(booking?.deliveryDate || "");
+  const [binSerial, setBinSerial] = useState(booking?.binSerial || "");
+  const [date, setDate] = useState<Date | undefined>(booking?.bookingDate || undefined);
   const [status, setStatus] = useState(booking?.status || "pending");
-  const [amount, setAmount] = useState(booking?.amount || "");
 
-  const handleSubmit = () => {
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
     const newBooking = {
-      id: booking?.id || Math.random().toString(36).substring(7),
       customerName,
-      customerContact,
+      customerPhone,
       pickupAddress,
       deliveryAddress,
       binType,
-      binSize,
-      pickupDate,
-      deliveryDate,
+      binSerial,
+      bookingDate: date,
       status,
-      amount: parseFloat(amount),
     };
     onSave(newBooking);
-    onClose();
+    toast.success(`Booking ${booking ? 'updated' : 'created'} successfully!`);
   };
 
   return (
-    <div className="grid gap-4 py-4">
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="customerName" className="text-right">
-          Customer Name
-        </Label>
-        <Input
-          id="customerName"
-          value={customerName}
-          onChange={(e) => setCustomerName(e.target.value)}
-          className="col-span-3"
-        />
-      </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="customerContact" className="text-right">
-          Customer Contact
-        </Label>
-        <Input
-          id="customerContact"
-          value={customerContact}
-          onChange={(e) => setCustomerContact(e.target.value)}
-          className="col-span-3"
-        />
-      </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="pickupAddress" className="text-right">
-          Pickup Address
-        </Label>
-        <Textarea
-          id="pickupAddress"
-          value={pickupAddress}
-          onChange={(e) => setPickupAddress(e.target.value)}
-          className="col-span-3"
-        />
-      </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="deliveryAddress" className="text-right">
-          Delivery Address
-        </Label>
-        <Textarea
-          id="deliveryAddress"
-          value={deliveryAddress}
-          onChange={(e) => setDeliveryAddress(e.target.value)}
-          className="col-span-3"
-        />
-      </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="binType" className="text-right">
-          Bin Type
-        </Label>
-        <Input
-          id="binType"
-          value={binType}
-          onChange={(e) => setBinType(e.target.value)}
-          className="col-span-3"
-        />
-      </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="binSize" className="text-right">
-          Bin Size
-        </Label>
-        <Input
-          id="binSize"
-          value={binSize}
-          onChange={(e) => setBinSize(e.target.value)}
-          className="col-span-3"
-        />
-      </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="pickupDate" className="text-right">
-          Pickup Date
-        </Label>
-        <Input
-          id="pickupDate"
-          type="date"
-          value={pickupDate}
-          onChange={(e) => setPickupDate(e.target.value)}
-          className="col-span-3"
-        />
-      </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="deliveryDate" className="text-right">
-          Delivery Date
-        </Label>
-        <Input
-          id="deliveryDate"
-          type="date"
-          value={deliveryDate}
-          onChange={(e) => setDeliveryDate(e.target.value)}
-          className="col-span-3"
-        />
-      </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="status" className="text-right">
-          Status
-        </Label>
-        <Select value={status} onValueChange={(value) => setStatus(value)}>
-          <SelectTrigger className="col-span-3">
-            <SelectValue placeholder="Select status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="confirmed">Confirmed</SelectItem>
-            <SelectItem value="completed">Completed</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="amount" className="text-right">
-          Amount
-        </Label>
-        <Input
-          id="amount"
-          type="number"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          className="col-span-3"
-        />
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div className="bg-white dark:bg-gray-900 rounded-lg p-6 w-full max-w-md space-y-4">
+        <h2 className="text-lg font-semibold">{booking ? "Edit Booking" : "Add Booking"}</h2>
+        <Separator />
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <Label htmlFor="customerName">Customer Name</Label>
+            <Input
+              id="customerName"
+              type="text"
+              value={customerName}
+              onChange={(e) => setCustomerName(e.target.value)}
+              required
+            />
+          </div>
+          <div>
+            <Label htmlFor="customerPhone">Customer Phone</Label>
+            <Input
+              id="customerPhone"
+              type="text"
+              value={customerPhone}
+              onChange={(e) => setCustomerPhone(e.target.value)}
+              required
+            />
+          </div>
+          <div>
+            <Label htmlFor="pickupAddress">Pickup Address</Label>
+            <Input
+              id="pickupAddress"
+              type="text"
+              value={pickupAddress}
+              onChange={(e) => setPickupAddress(e.target.value)}
+              required
+            />
+          </div>
+          <div>
+            <Label htmlFor="deliveryAddress">Delivery Address</Label>
+            <Input
+              id="deliveryAddress"
+              type="text"
+              value={deliveryAddress}
+              onChange={(e) => setDeliveryAddress(e.target.value)}
+              required
+            />
+          </div>
+          <div>
+            <Label htmlFor="binType">Bin Type</Label>
+            <Input
+              id="binType"
+              type="text"
+              value={binType}
+              onChange={(e) => setBinType(e.target.value)}
+              required
+            />
+          </div>
+          <div>
+            <Label htmlFor="binSerial">Bin Serial</Label>
+            <Input
+              id="binSerial"
+              type="text"
+              value={binSerial}
+              onChange={(e) => setBinSerial(e.target.value)}
+              required
+            />
+          </div>
+          <div>
+            <Label>Booking Date</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={"outline"}
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !date && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {date ? format(date, "PPP") : <span>Pick a date</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={date}
+                  onSelect={setDate}
+                  disabled={(date) =>
+                    date < new Date()
+                  }
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+          <div>
+            <Label htmlFor="status">Status</Label>
+            <select
+              id="status"
+              className="w-full rounded-md border border-gray-200 dark:border-gray-700 px-3 py-2"
+              value={status}
+              onChange={(e) => setStatus(e.target.value as "pending" | "confirmed" | "completed" | "cancelled")}
+            >
+              <option value="pending">Pending</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="completed">Completed</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </div>
+          <div className="flex justify-end space-x-2">
+            <Button type="button" variant="ghost" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button type="submit">{booking ? "Update Booking" : "Create Booking"}</Button>
+          </div>
+        </form>
       </div>
     </div>
   );

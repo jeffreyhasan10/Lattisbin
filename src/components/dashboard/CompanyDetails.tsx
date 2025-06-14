@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import React, { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Building2, 
@@ -17,7 +18,6 @@ import {
   ChevronLeft,
   ChevronRight
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -112,18 +112,31 @@ const CompanyDetails = () => {
 
   const cardVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } }
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { 
+        duration: 0.5,
+        ease: [0.4, 0, 0.2, 1]
+      }
+    }
   };
 
-  const contentVariants = {
+  const formVariants = {
     hidden: { opacity: 0, height: 0 },
-    visible: { opacity: 1, height: "auto", transition: { duration: 0.3, ease: "easeInOut" } },
-    exit: { opacity: 0, height: 0, transition: { duration: 0.2 } }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 10 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.3 } }
+    visible: { 
+      opacity: 1, 
+      height: "auto",
+      transition: { 
+        duration: 0.3,
+        ease: [0.4, 0, 0.2, 1]
+      }
+    },
+    exit: { 
+      opacity: 0, 
+      height: 0,
+      transition: { duration: 0.2 }
+    }
   };
 
   const buttonVariants = {
@@ -422,7 +435,7 @@ const CompanyDetails = () => {
                 <AnimatePresence key={company.id}>
                   {expanded.includes(company.id) && (
                     <motion.div
-                      variants={contentVariants}
+                      variants={formVariants}
                       initial="hidden"
                       animate="visible"
                       exit="exit"

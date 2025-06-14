@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo, useCallback } from "react";
 import {
   Table,
@@ -125,7 +124,7 @@ const DataTable = <T extends { id: number }>({
                     role={column.sortable ? "button" : undefined}
                     aria-sort={
                       column.sortable && sortKey === String(column.key)
-                        ? sortDirection
+                        ? sortDirection === "asc" ? "ascending" : "descending"
                         : undefined
                     }
                   >

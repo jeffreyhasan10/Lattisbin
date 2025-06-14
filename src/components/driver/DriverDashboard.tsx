@@ -98,12 +98,6 @@ const DriverDashboard = () => {
     return () => clearInterval(timer);
   }, [navigate]);
 
-  const handleLogout = () => {
-    localStorage.removeItem("driverSession");
-    toast.success("Logged out successfully");
-    navigate("/driver/login");
-  };
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case "pending": return "bg-orange-500";
@@ -133,194 +127,156 @@ const DriverDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b sticky top-0 z-10">
-        <div className="max-w-md mx-auto px-4 py-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="bg-green-600 p-2 rounded-full">
-                <Truck className="h-5 w-5 text-white" />
-              </div>
-              <div>
-                <h1 className="font-bold text-lg">Driver Portal</h1>
-                <p className="text-sm text-gray-600">{driverSession.name}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Bell className="h-5 w-5 text-gray-600" />
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={handleLogout}
-                className="text-red-600"
-              >
-                Logout
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div className="p-6 space-y-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
+      {/* Time and Date */}
+      <Card>
+        <CardContent className="p-4 text-center">
+          <p className="text-2xl font-bold text-green-600">
+            {currentTime.toLocaleTimeString('en-US', { 
+              hour: '2-digit', 
+              minute: '2-digit',
+              hour12: true 
+            })}
+          </p>
+          <p className="text-sm text-gray-600">
+            {currentTime.toLocaleDateString('en-US', { 
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            })}
+          </p>
+        </CardContent>
+      </Card>
 
-      <div className="max-w-md mx-auto p-4 space-y-4">
-        {/* Time and Date */}
+      {/* Performance Metrics */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4 text-center">
-            <p className="text-2xl font-bold text-green-600">
-              {currentTime.toLocaleTimeString('en-US', { 
-                hour: '2-digit', 
-                minute: '2-digit',
-                hour12: true 
-              })}
-            </p>
-            <p className="text-sm text-gray-600">
-              {currentTime.toLocaleDateString('en-US', { 
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-              })}
-            </p>
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <AlertCircle className="h-5 w-5 text-orange-500" />
+              <span className="text-2xl font-bold text-orange-500">{pendingJobs}</span>
+            </div>
+            <p className="text-sm text-gray-600">Pending</p>
           </CardContent>
         </Card>
 
-        {/* Performance Metrics */}
-        <div className="grid grid-cols-2 gap-3">
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <AlertCircle className="h-5 w-5 text-orange-500" />
-                <span className="text-2xl font-bold text-orange-500">{pendingJobs}</span>
-              </div>
-              <p className="text-sm text-gray-600">Pending</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <Clock className="h-5 w-5 text-blue-500" />
-                <span className="text-2xl font-bold text-blue-500">{inProgressJobs}</span>
-              </div>
-              <p className="text-sm text-gray-600">In Progress</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <CheckCircle className="h-5 w-5 text-green-500" />
-                <span className="text-2xl font-bold text-green-500">{completedJobs}</span>
-              </div>
-              <p className="text-sm text-gray-600">Completed</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <DollarSign className="h-5 w-5 text-green-600" />
-                <span className="text-lg font-bold text-green-600">RM{totalPayments}</span>
-              </div>
-              <p className="text-sm text-gray-600">Collected</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="grid grid-cols-2 gap-3">
-          <Button 
-            className="h-16 bg-blue-600 hover:bg-blue-700"
-            onClick={() => navigate("/driver/orders")}
-          >
-            <div className="text-center">
-              <FileText className="h-6 w-6 mx-auto mb-1" />
-              <span className="text-sm">My Orders</span>
-            </div>
-          </Button>
-
-          <Button 
-            className="h-16 bg-purple-600 hover:bg-purple-700"
-            onClick={() => navigate("/driver/lorries")}
-          >
-            <div className="text-center">
-              <Truck className="h-6 w-6 mx-auto mb-1" />
-              <span className="text-sm">Lorry Select</span>
-            </div>
-          </Button>
-
-          <Button 
-            className="h-16 bg-green-600 hover:bg-green-700"
-            onClick={() => navigate("/driver/payments")}
-          >
-            <div className="text-center">
-              <DollarSign className="h-6 w-6 mx-auto mb-1" />
-              <span className="text-sm">Payments</span>
-            </div>
-          </Button>
-
-          <Button 
-            className="h-16 bg-orange-600 hover:bg-orange-700"
-            onClick={() => navigate("/driver/expenses")}
-          >
-            <div className="text-center">
-              <Fuel className="h-6 w-6 mx-auto mb-1" />
-              <span className="text-sm">Expenses</span>
-            </div>
-          </Button>
-        </div>
-
-        {/* Today's Jobs Summary */}
         <Card>
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Clock className="h-5 w-5" />
-              Today's Jobs
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {jobs.slice(0, 3).map((job) => (
-              <div key={job.id} className="flex items-center justify-between p-3 border rounded-lg">
-                <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-full ${getStatusColor(job.status)}`}>
-                    {getStatusIcon(job.status)}
-                  </div>
-                  <div>
-                    <p className="font-medium text-sm">{job.customerName}</p>
-                    <p className="text-xs text-gray-600">{job.binType} - {job.assignedTime}</p>
-                  </div>
-                </div>
-                <Badge variant="outline" className="text-xs">
-                  RM{job.amount}
-                </Badge>
-              </div>
-            ))}
+          <CardContent className="p-4 text-center">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <Clock className="h-5 w-5 text-blue-500" />
+              <span className="text-2xl font-bold text-blue-500">{inProgressJobs}</span>
+            </div>
+            <p className="text-sm text-gray-600">In Progress</p>
           </CardContent>
         </Card>
 
-        {/* Emergency Contacts */}
         <Card>
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2 text-red-600">
-              <Phone className="h-5 w-5" />
-              Emergency Contacts
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <Button variant="outline" className="w-full justify-start" size="sm">
-              <Phone className="h-4 w-4 mr-2" />
-              Office: 03-1234 5678
-            </Button>
-            <Button variant="outline" className="w-full justify-start" size="sm">
-              <Phone className="h-4 w-4 mr-2" />
-              Supervisor: 012-345 6789
-            </Button>
-            <Button variant="destructive" className="w-full" size="sm">
-              🚨 Emergency Alert
-            </Button>
+          <CardContent className="p-4 text-center">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <CheckCircle className="h-5 w-5 text-green-500" />
+              <span className="text-2xl font-bold text-green-500">{completedJobs}</span>
+            </div>
+            <p className="text-sm text-gray-600">Completed</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4 text-center">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <DollarSign className="h-5 w-5 text-green-600" />
+              <span className="text-lg font-bold text-green-600">RM{totalPayments}</span>
+            </div>
+            <p className="text-sm text-gray-600">Collected</p>
           </CardContent>
         </Card>
       </div>
+
+      {/* Quick Actions */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <Button 
+          className="h-20 bg-blue-600 hover:bg-blue-700 flex flex-col"
+          onClick={() => navigate("/driver/orders")}
+        >
+          <FileText className="h-6 w-6 mb-2" />
+          <span className="text-sm">My Orders</span>
+        </Button>
+
+        <Button 
+          className="h-20 bg-purple-600 hover:bg-purple-700 flex flex-col"
+          onClick={() => navigate("/driver/lorries")}
+        >
+          <Truck className="h-6 w-6 mb-2" />
+          <span className="text-sm">Lorry Select</span>
+        </Button>
+
+        <Button 
+          className="h-20 bg-green-600 hover:bg-green-700 flex flex-col"
+          onClick={() => navigate("/driver/payments")}
+        >
+          <DollarSign className="h-6 w-6 mb-2" />
+          <span className="text-sm">Payments</span>
+        </Button>
+
+        <Button 
+          className="h-20 bg-orange-600 hover:bg-orange-700 flex flex-col"
+          onClick={() => navigate("/driver/expenses")}
+        >
+          <Fuel className="h-6 w-6 mb-2" />
+          <span className="text-sm">Expenses</span>
+        </Button>
+      </div>
+
+      {/* Today's Jobs Summary */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Clock className="h-5 w-5" />
+            Today's Jobs
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {jobs.slice(0, 3).map((job) => (
+            <div key={job.id} className="flex items-center justify-between p-3 border rounded-lg">
+              <div className="flex items-center gap-3">
+                <div className={`p-2 rounded-full ${getStatusColor(job.status)}`}>
+                  {getStatusIcon(job.status)}
+                </div>
+                <div>
+                  <p className="font-medium text-sm">{job.customerName}</p>
+                  <p className="text-xs text-gray-600">{job.binType} - {job.assignedTime}</p>
+                </div>
+              </div>
+              <Badge variant="outline" className="text-xs">
+                RM{job.amount}
+              </Badge>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+      {/* Emergency Contacts */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2 text-red-600">
+            <Phone className="h-5 w-5" />
+            Emergency Contacts
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <Button variant="outline" className="w-full justify-start" size="sm">
+            <Phone className="h-4 w-4 mr-2" />
+            Office: 03-1234 5678
+          </Button>
+          <Button variant="outline" className="w-full justify-start" size="sm">
+            <Phone className="h-4 w-4 mr-2" />
+            Supervisor: 012-345 6789
+          </Button>
+          <Button variant="destructive" className="w-full" size="sm">
+            🚨 Emergency Alert
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   );
 };
