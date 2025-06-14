@@ -119,11 +119,11 @@ const DriverOrders = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "completed": return "bg-green-100 text-green-800 border-green-300";
-      case "in-progress": return "bg-blue-100 text-blue-800 border-blue-300";
-      case "pending": return "bg-yellow-100 text-yellow-800 border-yellow-300";
-      case "cancelled": return "bg-red-100 text-red-800 border-red-300";
-      default: return "bg-gray-100 text-gray-800 border-gray-300";
+      case "completed": return "bg-emerald-50 text-emerald-700 border-emerald-200";
+      case "in-progress": return "bg-blue-50 text-blue-700 border-blue-200";
+      case "pending": return "bg-orange-50 text-orange-700 border-orange-200";
+      case "cancelled": return "bg-red-50 text-red-700 border-red-200";
+      default: return "bg-gray-50 text-gray-700 border-gray-200";
     }
   };
 
@@ -140,7 +140,7 @@ const DriverOrders = () => {
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case "high": return "bg-red-50 border-red-200 text-red-700";
-      case "medium": return "bg-yellow-50 border-yellow-200 text-yellow-700";
+      case "medium": return "bg-amber-50 border-amber-200 text-amber-700";
       case "low": return "bg-green-50 border-green-200 text-green-700";
       default: return "bg-gray-50 border-gray-200 text-gray-700";
     }
@@ -177,14 +177,14 @@ const DriverOrders = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-gray-50 p-4 lg:p-6">
       {/* Breadcrumbs */}
-      <div className="bg-white border-b border-gray-200 rounded-lg mb-6 shadow-sm">
-        <div className="px-6 py-4">
+      <div className="bg-white border border-gray-200 rounded-xl mb-4 shadow-sm">
+        <div className="px-4 py-3">
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbPage className="text-blue-700 font-semibold">
+                <BreadcrumbPage className="text-blue-600 font-medium">
                   My Orders
                 </BreadcrumbPage>
               </BreadcrumbItem>
@@ -193,41 +193,45 @@ const DriverOrders = () => {
         </div>
       </div>
 
-      {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 shadow-lg rounded-lg mb-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl lg:text-3xl font-bold text-white mb-2 flex items-center gap-3">
-              <FileText className="h-7 w-7 text-blue-200" />
-              My Orders
-            </h1>
-            <p className="text-blue-100 font-medium">Manage and track your delivery orders</p>
-          </div>
-          <div className="text-right">
-            <div className="bg-white/10 rounded-xl p-4 border border-white/20 backdrop-blur-sm">
-              <p className="text-lg font-bold text-white">{orders.length}</p>
-              <p className="text-xs text-blue-200">Total Orders</p>
+      {/* Header Card */}
+      <Card className="bg-gradient-to-br from-blue-500 to-blue-600 border-0 shadow-lg mb-6">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between text-white">
+            <div>
+              <h1 className="text-2xl font-bold mb-2 flex items-center gap-3">
+                <div className="p-2 bg-white/20 rounded-lg">
+                  <FileText className="h-6 w-6" />
+                </div>
+                My Orders
+              </h1>
+              <p className="text-blue-100">Manage and track your delivery orders</p>
+            </div>
+            <div className="text-center">
+              <div className="bg-white/15 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                <p className="text-2xl font-bold">{orders.length}</p>
+                <p className="text-sm text-blue-100">Total Orders</p>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Search and Filters */}
-      <Card className="bg-white border border-blue-200 shadow-lg mb-6">
-        <CardContent className="p-6">
-          <div className="flex flex-col sm:flex-row gap-4 items-center">
+      <Card className="shadow-sm mb-6 border-gray-200">
+        <CardContent className="p-4">
+          <div className="flex flex-col sm:flex-row gap-3 items-center">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-400 h-4 w-4" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
                 placeholder="Search orders by customer, ID, or location..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 border-blue-200 focus:border-blue-400 focus:ring-blue-400"
+                className="pl-10 border-gray-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-400"
               />
             </div>
             <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="w-48 border-blue-200 focus:border-blue-400">
-                <Filter className="h-4 w-4 mr-2 text-blue-500" />
+              <SelectTrigger className="w-44 border-gray-200 focus:border-blue-400">
+                <Filter className="h-4 w-4 mr-2 text-gray-500" />
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent>
@@ -243,64 +247,66 @@ const DriverOrders = () => {
       </Card>
 
       {/* Orders Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <Card className="bg-white border border-blue-200 shadow-lg">
-          <CardContent className="p-6 pb-0">
-            <TabsList className="grid w-full grid-cols-5 bg-blue-50 border border-blue-200">
-              <TabsTrigger value="all" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <Card className="shadow-sm border-gray-200">
+          <CardContent className="p-4 pb-0">
+            <TabsList className="grid w-full grid-cols-5 bg-gray-100 h-10">
+              <TabsTrigger value="all" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-sm">
                 All ({orderCounts.all})
               </TabsTrigger>
-              <TabsTrigger value="pending" className="data-[state=active]:bg-yellow-600 data-[state=active]:text-white">
+              <TabsTrigger value="pending" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white text-sm">
                 Pending ({orderCounts.pending})
               </TabsTrigger>
-              <TabsTrigger value="in-progress" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+              <TabsTrigger value="in-progress" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-sm">
                 Active ({orderCounts["in-progress"]})
               </TabsTrigger>
-              <TabsTrigger value="completed" className="data-[state=active]:bg-green-600 data-[state=active]:text-white">
-                Completed ({orderCounts.completed})
+              <TabsTrigger value="completed" className="data-[state=active]:bg-emerald-600 data-[state=active]:text-white text-sm">
+                Done ({orderCounts.completed})
               </TabsTrigger>
-              <TabsTrigger value="cancelled" className="data-[state=active]:bg-red-600 data-[state=active]:text-white">
+              <TabsTrigger value="cancelled" className="data-[state=active]:bg-red-500 data-[state=active]:text-white text-sm">
                 Cancelled ({orderCounts.cancelled})
               </TabsTrigger>
             </TabsList>
           </CardContent>
         </Card>
 
-        <TabsContent value={activeTab} className="mt-6">
+        <TabsContent value={activeTab}>
           <ScrollArea className="h-[calc(100vh-400px)]">
             <div className="space-y-4">
               {filteredOrders.length === 0 ? (
-                <Card className="bg-white border border-blue-200 shadow-lg">
+                <Card className="shadow-sm border-gray-200">
                   <CardContent className="p-12 text-center">
-                    <FileText className="h-12 w-12 text-blue-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-slate-700 mb-2">No orders found</h3>
-                    <p className="text-slate-500">
+                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <FileText className="h-8 w-8 text-gray-400" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-700 mb-2">No orders found</h3>
+                    <p className="text-gray-500">
                       {searchTerm ? "Try adjusting your search terms" : "No orders match the current filter"}
                     </p>
                   </CardContent>
                 </Card>
               ) : (
                 filteredOrders.map((order) => (
-                  <Card key={order.id} className="bg-white border border-blue-200 shadow-lg hover:shadow-xl transition-all duration-300 hover:border-blue-300">
+                  <Card key={order.id} className="shadow-sm border-gray-200 hover:shadow-md transition-all duration-200 hover:border-blue-300">
                     <CardContent className="p-6">
                       <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
                         {/* Order Header */}
                         <div className="flex-1">
                           <div className="flex items-start justify-between mb-4">
                             <div className="flex items-center gap-3">
-                              <div className="p-3 bg-blue-50 rounded-xl border border-blue-200">
-                                <Package className="h-6 w-6 text-blue-600" />
+                              <div className="p-3 bg-blue-50 rounded-xl border border-blue-100">
+                                <Package className="h-5 w-5 text-blue-600" />
                               </div>
                               <div>
-                                <h3 className="text-lg font-bold text-slate-900">{order.customer}</h3>
-                                <p className="text-sm text-blue-600 font-medium">Order ID: {order.id}</p>
+                                <h3 className="text-lg font-bold text-gray-900">{order.customer}</h3>
+                                <p className="text-sm text-blue-600 font-medium">#{order.id}</p>
                               </div>
                             </div>
                             <div className="flex items-center gap-2">
-                              <Badge className={`border ${getPriorityColor(order.priority)} font-medium`}>
+                              <Badge className={`border ${getPriorityColor(order.priority)} font-medium px-2 py-1`}>
                                 {order.priority.toUpperCase()}
                               </Badge>
-                              <Badge className={`border ${getStatusColor(order.status)} font-medium flex items-center gap-1`}>
+                              <Badge className={`border ${getStatusColor(order.status)} font-medium flex items-center gap-1 px-2 py-1`}>
                                 {getStatusIcon(order.status)}
                                 {order.status.replace('-', ' ').toUpperCase()}
                               </Badge>
@@ -309,77 +315,77 @@ const DriverOrders = () => {
 
                           {/* Order Details Grid */}
                           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-                            <div className="flex items-center gap-2 text-sm">
-                              <MapPin className="h-4 w-4 text-blue-500" />
+                            <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                              <MapPin className="h-4 w-4 text-blue-500 mt-0.5" />
                               <div>
-                                <p className="font-medium text-slate-700">Pickup Location</p>
-                                <p className="text-slate-600">{order.pickupLocation}</p>
+                                <p className="font-medium text-gray-700 text-sm">Pickup</p>
+                                <p className="text-gray-600 text-sm">{order.pickupLocation}</p>
                               </div>
                             </div>
-                            <div className="flex items-center gap-2 text-sm">
-                              <MapPin className="h-4 w-4 text-green-500" />
+                            <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                              <MapPin className="h-4 w-4 text-emerald-500 mt-0.5" />
                               <div>
-                                <p className="font-medium text-slate-700">Delivery Location</p>
-                                <p className="text-slate-600">{order.location}</p>
+                                <p className="font-medium text-gray-700 text-sm">Delivery</p>
+                                <p className="text-gray-600 text-sm">{order.location}</p>
                               </div>
                             </div>
-                            <div className="flex items-center gap-2 text-sm">
-                              <Calendar className="h-4 w-4 text-purple-500" />
+                            <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                              <Calendar className="h-4 w-4 text-purple-500 mt-0.5" />
                               <div>
-                                <p className="font-medium text-slate-700">Schedule</p>
-                                <p className="text-slate-600">{order.date} at {order.time}</p>
+                                <p className="font-medium text-gray-700 text-sm">Schedule</p>
+                                <p className="text-gray-600 text-sm">{order.date} at {order.time}</p>
                               </div>
                             </div>
-                            <div className="flex items-center gap-2 text-sm">
-                              <Truck className="h-4 w-4 text-orange-500" />
+                            <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                              <Truck className="h-4 w-4 text-orange-500 mt-0.5" />
                               <div>
-                                <p className="font-medium text-slate-700">Vehicle Type</p>
-                                <p className="text-slate-600">{order.lorryType}</p>
+                                <p className="font-medium text-gray-700 text-sm">Vehicle</p>
+                                <p className="text-gray-600 text-sm">{order.lorryType}</p>
                               </div>
                             </div>
-                            <div className="flex items-center gap-2 text-sm">
-                              <Package className="h-4 w-4 text-indigo-500" />
+                            <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                              <Package className="h-4 w-4 text-indigo-500 mt-0.5" />
                               <div>
-                                <p className="font-medium text-slate-700">Waste Type</p>
-                                <p className="text-slate-600">{order.wasteType}</p>
+                                <p className="font-medium text-gray-700 text-sm">Waste Type</p>
+                                <p className="text-gray-600 text-sm">{order.wasteType}</p>
                               </div>
                             </div>
-                            <div className="flex items-center gap-2 text-sm">
-                              <DollarSign className="h-4 w-4 text-green-500" />
+                            <div className="flex items-start gap-3 p-3 bg-gradient-to-r from-emerald-50 to-green-50 rounded-lg border border-emerald-100">
+                              <DollarSign className="h-4 w-4 text-emerald-600 mt-0.5" />
                               <div>
-                                <p className="font-medium text-slate-700">Payment</p>
-                                <p className="text-green-600 font-bold">RM {order.amount.toFixed(2)}</p>
+                                <p className="font-medium text-gray-700 text-sm">Payment</p>
+                                <p className="text-emerald-600 font-bold text-sm">RM {order.amount.toFixed(2)}</p>
                               </div>
                             </div>
                           </div>
 
                           {/* Distance and Duration */}
-                          <div className="flex items-center gap-4 text-sm text-slate-600 mb-4">
-                            <span className="flex items-center gap-1">
+                          <div className="flex items-center gap-4 text-sm text-gray-600 mb-4 bg-blue-50 p-3 rounded-lg">
+                            <span className="flex items-center gap-2">
                               <Navigation className="h-4 w-4 text-blue-500" />
-                              {order.distance}
+                              <span className="font-medium">{order.distance}</span>
                             </span>
-                            <span className="flex items-center gap-1">
+                            <span className="flex items-center gap-2">
                               <Clock className="h-4 w-4 text-orange-500" />
-                              {order.estimatedDuration}
+                              <span className="font-medium">{order.estimatedDuration}</span>
                             </span>
                           </div>
 
                           {/* Notes */}
                           {order.notes && (
-                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-                              <p className="text-sm text-slate-700">
-                                <span className="font-medium text-blue-700">Notes:</span> {order.notes}
+                            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
+                              <p className="text-sm text-gray-700">
+                                <span className="font-medium text-amber-700">Notes:</span> {order.notes}
                               </p>
                             </div>
                           )}
                         </div>
 
                         {/* Action Buttons */}
-                        <div className="flex flex-col gap-2 min-w-48">
+                        <div className="flex flex-col gap-2 min-w-40">
                           <Button
                             onClick={() => handleViewOrder(order.id)}
-                            className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium shadow-md"
+                            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-sm"
                           >
                             <Eye className="h-4 w-4 mr-2" />
                             View Details
@@ -390,7 +396,7 @@ const DriverOrders = () => {
                               <Button
                                 variant="outline"
                                 onClick={() => handleNavigate(order.location)}
-                                className="w-full border-blue-300 text-blue-600 hover:bg-blue-50 hover:border-blue-400"
+                                className="w-full border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300"
                               >
                                 <Navigation className="h-4 w-4 mr-2" />
                                 Navigate
@@ -399,7 +405,7 @@ const DriverOrders = () => {
                               <Button
                                 variant="outline"
                                 onClick={() => handleCallCustomer(order.customerPhone)}
-                                className="w-full border-green-300 text-green-600 hover:bg-green-50 hover:border-green-400"
+                                className="w-full border-emerald-200 text-emerald-600 hover:bg-emerald-50 hover:border-emerald-300"
                               >
                                 <Phone className="h-4 w-4 mr-2" />
                                 Call Customer
