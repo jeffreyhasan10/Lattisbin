@@ -17,7 +17,6 @@ import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
-  SidebarRail,
   useSidebar,
 } from "@/components/ui/sidebar";
 import {
@@ -261,7 +260,6 @@ const DriverSidebar: React.FC<DriverSidebarProps> = ({ collapsed }) => {
           </div>
         </div>
       </SidebarFooter>
-      <SidebarRail className="bg-slate-200/50" />
     </Sidebar>
   );
 };
