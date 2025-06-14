@@ -65,48 +65,48 @@ const DriverHeader: React.FC<DriverHeaderProps> = ({ onSidebarToggle, title }) =
   ];
 
   return (
-    <header className="sticky top-0 z-50 bg-gradient-to-r from-blue-600 to-blue-700 border-b border-blue-500 shadow-lg backdrop-blur-sm">
-      <div className="flex items-center justify-between px-6 py-4">
-        <div className="flex items-center gap-4">
+    <header className="sticky top-0 z-50 bg-gradient-to-r from-blue-600 to-blue-700 border-b border-blue-500 shadow-md backdrop-blur-sm">
+      <div className="flex items-center justify-between px-4 py-2.5">
+        <div className="flex items-center gap-3">
           <Button
             variant="ghost"
             size="icon"
             onClick={onSidebarToggle}
-            className="lg:hidden hover:bg-blue-500/30 text-white hover:text-blue-100 rounded-lg transition-all duration-200"
+            className="lg:hidden hover:bg-blue-500/30 text-white hover:text-blue-100 rounded-lg transition-all duration-200 h-8 w-8"
           >
-            <Menu className="h-5 w-5" />
+            <Menu className="h-4 w-4" />
           </Button>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <div className="hidden sm:block">
-              <h1 className="text-xl lg:text-2xl font-bold text-white">
+              <h1 className="text-lg lg:text-xl font-bold text-white">
                 {title}
               </h1>
-              <p className="text-sm text-blue-100 font-medium">
+              <p className="text-xs text-blue-100 font-medium">
                 Welcome back, {driverSession?.name || 'Driver'}
               </p>
             </div>
             
             {/* Connection Status */}
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-white/10 rounded-full border border-white/20 backdrop-blur-sm">
+            <div className="flex items-center gap-2 px-2.5 py-1 bg-white/10 rounded-full border border-white/20 backdrop-blur-sm">
               {isOnline ? (
                 <>
-                  <Wifi className="h-4 w-4 text-green-300" />
-                  <span className="text-sm font-medium text-green-200 hidden sm:inline">Online</span>
+                  <Wifi className="h-3 w-3 text-green-300" />
+                  <span className="text-xs font-medium text-green-200 hidden sm:inline">Online</span>
                 </>
               ) : (
                 <>
-                  <WifiOff className="h-4 w-4 text-red-300" />
-                  <span className="text-sm font-medium text-red-200 hidden sm:inline">Offline</span>
+                  <WifiOff className="h-3 w-3 text-red-300" />
+                  <span className="text-xs font-medium text-red-200 hidden sm:inline">Offline</span>
                 </>
               )}
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {/* Current Time */}
-          <div className="hidden md:flex flex-col items-end bg-white/10 px-4 py-2 rounded-lg border border-white/20 backdrop-blur-sm">
-            <div className="text-lg font-bold text-white">
+          <div className="hidden md:flex flex-col items-end bg-white/10 px-3 py-1.5 rounded-lg border border-white/20 backdrop-blur-sm">
+            <div className="text-sm font-bold text-white">
               {currentTime.toLocaleTimeString('en-US', { 
                 hour: '2-digit', 
                 minute: '2-digit',
@@ -127,10 +127,10 @@ const DriverHeader: React.FC<DriverHeaderProps> = ({ onSidebarToggle, title }) =
               <Button
                 variant="ghost"
                 size="icon"
-                className="relative hover:bg-white/10 text-white hover:text-blue-100 rounded-lg transition-all duration-200"
+                className="relative hover:bg-white/10 text-white hover:text-blue-100 rounded-lg transition-all duration-200 h-8 w-8"
               >
-                <Bell className="h-5 w-5" />
-                <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 text-xs bg-red-500 text-white border-2 border-blue-600">
+                <Bell className="h-4 w-4" />
+                <Badge className="absolute -top-1 -right-1 h-4 w-4 rounded-full p-0 text-xs bg-red-500 text-white border-2 border-blue-600">
                   {notifications.length}
                 </Badge>
               </Button>
@@ -139,22 +139,22 @@ const DriverHeader: React.FC<DriverHeaderProps> = ({ onSidebarToggle, title }) =
               className="w-80 p-0 bg-white border border-gray-200 shadow-xl rounded-xl"
               align="end"
             >
-              <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-blue-100 rounded-t-xl">
-                <h3 className="font-bold text-blue-900">Notifications</h3>
-                <p className="text-sm text-blue-700">{notifications.length} new updates</p>
+              <div className="p-3 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-blue-100 rounded-t-xl">
+                <h3 className="font-bold text-blue-900 text-sm">Notifications</h3>
+                <p className="text-xs text-blue-700">{notifications.length} new updates</p>
               </div>
-              <div className="max-h-96 overflow-y-auto">
+              <div className="max-h-80 overflow-y-auto">
                 {notifications.map((notification) => (
-                  <div key={notification.id} className="p-4 border-b border-gray-100 hover:bg-blue-50 transition-all duration-200">
-                    <div className="flex items-start gap-3">
-                      <div className={`w-2.5 h-2.5 rounded-full mt-2 ${
+                  <div key={notification.id} className="p-3 border-b border-gray-100 hover:bg-blue-50 transition-all duration-200">
+                    <div className="flex items-start gap-2">
+                      <div className={`w-2 h-2 rounded-full mt-1.5 ${
                         notification.type === 'success' ? 'bg-green-500' :
                         notification.type === 'warning' ? 'bg-yellow-500' : 'bg-blue-500'
                       }`} />
                       <div className="flex-1">
-                        <p className="font-semibold text-sm text-slate-900">{notification.title}</p>
-                        <p className="text-sm text-slate-600">{notification.message}</p>
-                        <p className="text-xs text-slate-500 mt-1">{notification.time}</p>
+                        <p className="font-semibold text-xs text-slate-900">{notification.title}</p>
+                        <p className="text-xs text-slate-600">{notification.message}</p>
+                        <p className="text-xs text-slate-500 mt-0.5">{notification.time}</p>
                       </div>
                     </div>
                   </div>
@@ -168,16 +168,16 @@ const DriverHeader: React.FC<DriverHeaderProps> = ({ onSidebarToggle, title }) =
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
-                className="flex items-center gap-3 hover:bg-white/10 p-2 rounded-lg transition-all duration-200"
+                className="flex items-center gap-2 hover:bg-white/10 p-1.5 rounded-lg transition-all duration-200"
               >
-                <Avatar className="h-8 w-8 border-2 border-white/20">
+                <Avatar className="h-7 w-7 border-2 border-white/20">
                   <AvatarImage src="/placeholder-avatar.jpg" alt="Driver" />
-                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white text-sm font-bold">
+                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white text-xs font-bold">
                     {driverSession?.name?.split(' ').map((n: string) => n[0]).join('') || 'D'}
                   </AvatarFallback>
                 </Avatar>
                 <div className="hidden sm:block text-left">
-                  <p className="text-sm font-semibold text-white">
+                  <p className="text-xs font-semibold text-white">
                     {driverSession?.name || 'Driver'}
                   </p>
                   <p className="text-xs text-blue-200">
@@ -190,7 +190,7 @@ const DriverHeader: React.FC<DriverHeaderProps> = ({ onSidebarToggle, title }) =
               className="w-56 bg-white border border-gray-200 shadow-xl rounded-xl"
               align="end"
             >
-              <DropdownMenuLabel className="font-normal p-4">
+              <DropdownMenuLabel className="font-normal p-3">
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-semibold text-slate-900">
                     {driverSession?.name || 'Driver'}
@@ -202,11 +202,11 @@ const DriverHeader: React.FC<DriverHeaderProps> = ({ onSidebarToggle, title }) =
               </DropdownMenuLabel>
               <DropdownMenuSeparator className="bg-gray-100" />
               <DropdownMenuItem className="hover:bg-blue-50 rounded-lg mx-2 my-1">
-                <User className="mr-3 h-4 w-4 text-blue-600" />
+                <User className="mr-2 h-4 w-4 text-blue-600" />
                 Profile
               </DropdownMenuItem>
               <DropdownMenuItem className="hover:bg-blue-50 rounded-lg mx-2 my-1">
-                <Settings className="mr-3 h-4 w-4 text-blue-600" />
+                <Settings className="mr-2 h-4 w-4 text-blue-600" />
                 Settings
               </DropdownMenuItem>
               <DropdownMenuSeparator className="bg-gray-100" />
@@ -214,7 +214,7 @@ const DriverHeader: React.FC<DriverHeaderProps> = ({ onSidebarToggle, title }) =
                 onClick={handleLogout}
                 className="text-red-600 focus:text-red-600 hover:bg-red-50 rounded-lg mx-2 my-1"
               >
-                <LogOut className="mr-3 h-4 w-4" />
+                <LogOut className="mr-2 h-4 w-4" />
                 Logout
               </DropdownMenuItem>
             </DropdownMenuContent>

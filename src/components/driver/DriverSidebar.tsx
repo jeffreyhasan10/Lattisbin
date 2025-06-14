@@ -97,14 +97,14 @@ const DriverSidebar: React.FC<DriverSidebarProps> = ({ collapsed }) => {
       variant="sidebar"
       className="bg-white border-r border-slate-200 shadow-sm transition-all duration-300"
     >
-      <SidebarHeader className="p-6 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-blue-50">
+      <SidebarHeader className="p-4 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-blue-50">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-md">
-            <span className="font-bold text-white text-lg">D</span>
+          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-md">
+            <span className="font-bold text-white text-sm">D</span>
           </div>
           {!isCollapsed && (
             <div>
-              <h1 className="text-lg font-bold text-slate-800 tracking-tight">
+              <h1 className="text-base font-bold text-slate-800 tracking-tight">
                 Driver<span className="text-blue-600">Portal</span>
               </h1>
               <p className="text-xs text-slate-600 mt-0.5 font-medium">Professional Dashboard</p>
@@ -113,12 +113,12 @@ const DriverSidebar: React.FC<DriverSidebarProps> = ({ collapsed }) => {
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="px-4 py-6">
+      <SidebarContent className="px-3 py-4">
         <ScrollArea className="h-full">
           {menuItems.map((group) => (
-            <SidebarGroup key={group.group} className="mb-6">
+            <SidebarGroup key={group.group} className="mb-4">
               <SidebarGroupLabel
-                className={`flex items-center justify-between text-xs font-semibold uppercase text-slate-500 px-3 py-2 transition-colors duration-200 rounded-lg ${
+                className={`flex items-center justify-between text-xs font-semibold uppercase text-slate-500 px-2 py-1.5 transition-colors duration-200 rounded-md ${
                   isCollapsed ? 'cursor-default' : 'cursor-pointer hover:text-slate-700'
                 }`}
                 onClick={() => !isCollapsed && toggleGroup(group.group)}
@@ -126,14 +126,14 @@ const DriverSidebar: React.FC<DriverSidebarProps> = ({ collapsed }) => {
                 <span className="tracking-wider">{isCollapsed ? '•' : group.label}</span>
                 {!isCollapsed && (
                   <ChevronDown 
-                    className={`h-4 w-4 transition-transform duration-200 ${
+                    className={`h-3 w-3 transition-transform duration-200 ${
                       expandedGroups[group.group] ? 'rotate-180' : ''
                     }`} 
                   />
                 )}
               </SidebarGroupLabel>
               {(isCollapsed || expandedGroups[group.group]) && (
-                <SidebarGroupContent className="mt-2">
+                <SidebarGroupContent className="mt-1">
                   <SidebarMenu className="space-y-1">
                     {group.items.map((item) => (
                       <SidebarMenuItem key={item.tab}>
@@ -143,14 +143,14 @@ const DriverSidebar: React.FC<DriverSidebarProps> = ({ collapsed }) => {
                               <SidebarMenuButton
                                 isActive={activeTab === item.tab}
                                 onClick={() => handleTabChange(item.tab)}
-                                className={`rounded-xl py-3 px-4 transition-all duration-300 group ${
+                                className={`rounded-lg py-2.5 px-3 transition-all duration-300 group ${
                                   activeTab === item.tab
                                     ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md transform scale-105"
                                     : "text-slate-700 hover:bg-blue-50 hover:text-blue-700 hover:transform hover:scale-105"
                                 }`}
                                 aria-label={item.label}
                               >
-                                <item.icon className={`h-5 w-5 ${
+                                <item.icon className={`h-4 w-4 ${
                                   activeTab === item.tab 
                                     ? "text-white" 
                                     : "text-slate-500 group-hover:text-blue-600"
@@ -160,7 +160,7 @@ const DriverSidebar: React.FC<DriverSidebarProps> = ({ collapsed }) => {
                                     <span className="font-medium text-sm">{item.label}</span>
                                     {item.badge && (
                                       <Badge
-                                        className={`text-xs px-2 py-0.5 font-medium ${
+                                        className={`text-xs px-1.5 py-0.5 font-medium ${
                                           activeTab === item.tab
                                             ? "bg-white/20 text-white border-white/30"
                                             : "bg-blue-500 text-white border-0 shadow-sm"
@@ -186,21 +186,21 @@ const DriverSidebar: React.FC<DriverSidebarProps> = ({ collapsed }) => {
         </ScrollArea>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-slate-200 p-4 mt-auto bg-gradient-to-r from-slate-50 to-blue-50">
-        <div className="flex flex-col gap-3">
+      <SidebarFooter className="border-t border-slate-200 p-3 mt-auto bg-gradient-to-r from-slate-50 to-blue-50">
+        <div className="flex flex-col gap-2">
           {/* User Profile Card */}
-          <div className={`flex items-center gap-3 p-3 bg-white rounded-xl border border-slate-200 shadow-sm ${
+          <div className={`flex items-center gap-2 p-2 bg-white rounded-lg border border-slate-200 shadow-sm ${
             isCollapsed ? 'justify-center' : ''
           }`}>
-            <Avatar className="h-9 w-9 border-2 border-blue-200 shadow-sm">
+            <Avatar className="h-7 w-7 border-2 border-blue-200 shadow-sm">
               <AvatarImage src="/placeholder-avatar.jpg" alt="Driver" />
-              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-bold text-sm">
+              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-bold text-xs">
                 AR
               </AvatarFallback>
             </Avatar>
             {!isCollapsed && (
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-slate-800 truncate">Ahmad Rahman</p>
+                <p className="text-xs font-semibold text-slate-800 truncate">Ahmad Rahman</p>
                 <p className="text-xs text-slate-600 font-medium">Professional Driver</p>
               </div>
             )}
@@ -210,11 +210,11 @@ const DriverSidebar: React.FC<DriverSidebarProps> = ({ collapsed }) => {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-7 w-7 hover:bg-blue-50 text-slate-500 hover:text-blue-600 rounded-md"
+                    className="h-6 w-6 hover:bg-blue-50 text-slate-500 hover:text-blue-600 rounded-md"
                     aria-label="Driver settings"
                     onClick={() => handleTabChange("profile")}
                   >
-                    <Settings className="h-4 w-4" />
+                    <Settings className="h-3 w-3" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>Settings</TooltipContent>
@@ -223,19 +223,19 @@ const DriverSidebar: React.FC<DriverSidebarProps> = ({ collapsed }) => {
           </div>
           
           {/* Action Buttons */}
-          <div className={`flex gap-2 ${isCollapsed ? 'flex-col' : ''}`}>
+          <div className={`flex gap-1 ${isCollapsed ? 'flex-col' : ''}`}>
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
                     variant="ghost"
-                    className={`flex items-center gap-2 rounded-xl py-2.5 transition-all duration-300 hover:bg-blue-50 text-slate-600 hover:text-blue-700 ${
-                      isCollapsed ? "justify-center px-0 w-full" : "justify-start px-3 flex-1"
+                    className={`flex items-center gap-2 rounded-lg py-2 transition-all duration-300 hover:bg-blue-50 text-slate-600 hover:text-blue-700 ${
+                      isCollapsed ? "justify-center px-0 w-full" : "justify-start px-2 flex-1"
                     }`}
                     aria-label="Help & Support"
                   >
-                    <HelpCircle className="h-4 w-4" />
-                    {!isCollapsed && <span className="font-medium text-sm">Help</span>}
+                    <HelpCircle className="h-3 w-3" />
+                    {!isCollapsed && <span className="font-medium text-xs">Help</span>}
                   </Button>
                 </TooltipTrigger>
                 {isCollapsed && <TooltipContent>Help & Support</TooltipContent>}
@@ -248,11 +248,11 @@ const DriverSidebar: React.FC<DriverSidebarProps> = ({ collapsed }) => {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-9 w-9 hover:bg-red-50 text-red-400 hover:text-red-600 rounded-xl transition-all duration-300"
+                    className="h-7 w-7 hover:bg-red-50 text-red-400 hover:text-red-600 rounded-lg transition-all duration-300"
                     onClick={handleLogout}
                     aria-label="Logout"
                   >
-                    <LogOut className="h-4 w-4" />
+                    <LogOut className="h-3 w-3" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>Logout</TooltipContent>
