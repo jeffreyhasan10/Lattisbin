@@ -187,7 +187,9 @@ const DataTable = ({ columns, data, emptyMessage }) => {
       <div className="p-8 text-center">
         <Users className="h-16 w-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
         <p className="text-gray-500 dark:text-gray-400 text-lg font-medium">{emptyMessage}</p>
-        <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">Try adjusting your search or filter settings, or add a new customer.</p>
+        <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">
+          Try adjusting your search or filter settings, or add a new customer.
+        </p>
       </div>
     );
   }
