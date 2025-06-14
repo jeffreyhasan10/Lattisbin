@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,23 +10,30 @@ import {
   CheckCircle, 
   AlertCircle, 
   DollarSign, 
-  Camera,
   Phone,
   Navigation,
-  Bell,
-  User,
   FileText,
   Fuel,
   Map,
-  Locate,
   Route,
   Target,
   Wifi,
-  WifiOff
+  WifiOff,
+  Home,
+  ChevronRight,
+  ArrowLeft
 } from "lucide-react";
 import { toast } from "sonner";
 import InteractiveMap from "./InteractiveMap";
 import LocationServices from "./LocationServices";
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 
 interface DriverSession {
   name: string;
@@ -165,94 +171,145 @@ const DriverDashboard = () => {
   const totalPayments = jobs.filter(job => job.status === "completed")
     .reduce((sum, job) => sum + job.amount, 0);
 
+  const getViewTitle = () => {
+    switch (activeView) {
+      case 'map': return 'Interactive Map';
+      case 'location': return 'Location Services';
+      default: return 'Dashboard Overview';
+    }
+  };
+
   if (!driverSession) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Mobile Navigation Tabs */}
-      <div className="lg:hidden bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="flex">
-          <button
-            onClick={() => setActiveView('overview')}
-            className={`flex-1 py-3 px-4 text-sm font-medium ${
-              activeView === 'overview' 
-                ? 'text-primary border-b-2 border-primary bg-primary/5' 
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            Overview
-          </button>
-          <button
-            onClick={() => setActiveView('map')}
-            className={`flex-1 py-3 px-4 text-sm font-medium ${
-              activeView === 'map' 
-                ? 'text-primary border-b-2 border-primary bg-primary/5' 
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            Map
-          </button>
-          <button
-            onClick={() => setActiveView('location')}
-            className={`flex-1 py-3 px-4 text-sm font-medium ${
-              activeView === 'location' 
-                ? 'text-primary border-b-2 border-primary bg-primary/5' 
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            Location
-          </button>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50/30">
+      {/* Breadcrumbs */}
+      <div className="bg-white border-b border-gray-200 shadow-sm">
+        <div className="px-4 py-3">
+          <div className="flex items-center justify-between mb-2">
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem>
+                  <BreadcrumbLink 
+                    href="/driver/dashboard" 
+                    className="flex items-center gap-1 text-blue-600 hover:text-blue-800"
+                  >
+                    <Home className="h-4 w-4" />
+                    Dashboard
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                {activeView !== 'overview' && (
+                  <>
+                    <BreadcrumbSeparator />
+                    <BreadcrumbItem>
+                      <BreadcrumbPage className="text-gray-700 font-medium">
+                        {getViewTitle()}
+                      </BreadcrumbPage>
+                    </BreadcrumbItem>
+                  </>
+                )}
+              </BreadcrumbList>
+            </Breadcrumb>
+            
+            {activeView !== 'overview' && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setActiveView('overview')}
+                className="flex items-center gap-2 border-blue-200 text-blue-700 hover:bg-blue-50"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back to Overview
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 
-      <div className="p-4 lg:p-6 space-y-4 lg:space-y-6">
+      {/* Mobile Navigation Tabs */}
+      <div className="lg:hidden bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
+        <div className="flex">
+          {[
+            { key: 'overview', label: 'Overview', icon: Home },
+            { key: 'map', label: 'Map', icon: Map },
+            { key: 'location', label: 'Location', icon: Target }
+          ].map(({ key, label, icon: Icon }) => (
+            <button
+              key={key}
+              onClick={() => setActiveView(key as any)}
+              className={`flex-1 py-4 px-4 text-sm font-medium flex items-center justify-center gap-2 transition-all duration-200 ${
+                activeView === key
+                  ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/50' 
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <Icon className="h-4 w-4" />
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="p-4 lg:p-8 space-y-6">
         {/* Status Bar */}
-        <div className="flex items-center justify-between bg-white p-3 rounded-lg shadow-sm">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+          <div className="flex items-center gap-3">
             {isOnline ? (
-              <Wifi className="h-4 w-4 text-green-500" />
+              <div className="flex items-center gap-2 text-green-600">
+                <Wifi className="h-5 w-5" />
+                <span className="font-medium">Online</span>
+              </div>
             ) : (
-              <WifiOff className="h-4 w-4 text-red-500" />
+              <div className="flex items-center gap-2 text-red-600">
+                <WifiOff className="h-5 w-5" />
+                <span className="font-medium">Offline Mode</span>
+              </div>
             )}
-            <span className="text-sm text-gray-600">
-              {isOnline ? 'Online' : 'Offline Mode'}
-            </span>
           </div>
-          <div className="text-sm text-gray-600">
-            {currentTime.toLocaleTimeString('en-US', { 
-              hour: '2-digit', 
-              minute: '2-digit',
-              hour12: true 
-            })}
+          <div className="text-right">
+            <div className="text-lg font-semibold text-gray-900">
+              {currentTime.toLocaleTimeString('en-US', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                hour12: true 
+              })}
+            </div>
+            <div className="text-sm text-gray-500">
+              {currentTime.toLocaleDateString('en-US', { 
+                weekday: 'short',
+                month: 'short',
+                day: 'numeric'
+              })}
+            </div>
           </div>
         </div>
 
-        {/* Welcome Header - Mobile Optimized */}
-        <div className="bg-gradient-to-r from-primary to-primary/80 text-white p-4 lg:p-6 rounded-xl">
+        {/* Welcome Header */}
+        <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 text-white p-6 lg:p-8 rounded-2xl shadow-lg">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-xl lg:text-2xl font-bold mb-1">
+              <h1 className="text-2xl lg:text-3xl font-bold mb-2">
                 Good {new Date().getHours() < 12 ? 'Morning' : new Date().getHours() < 18 ? 'Afternoon' : 'Evening'}, {driverSession.name}! 👋
               </h1>
-              <p className="text-white/90 text-sm lg:text-base">Ready to make today productive?</p>
+              <p className="text-blue-100 text-base lg:text-lg">Ready to make today productive?</p>
             </div>
-            <div className="text-right">
-              <p className="text-xl lg:text-2xl font-bold">
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 text-center">
+              <p className="text-2xl lg:text-3xl font-bold">
                 {currentTime.toLocaleTimeString('en-US', { 
                   hour: '2-digit', 
                   minute: '2-digit',
                   hour12: true 
                 })}
               </p>
-              <p className="text-xs lg:text-sm text-white/80">
+              <p className="text-sm text-blue-200">
                 {currentTime.toLocaleDateString('en-US', { 
-                  weekday: 'short',
+                  weekday: 'long',
                   month: 'short',
                   day: 'numeric'
                 })}
@@ -264,137 +321,91 @@ const DriverDashboard = () => {
         {/* Overview Tab */}
         {activeView === 'overview' && (
           <>
-            {/* Performance Metrics - Mobile Grid */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
-              <Card className="border-orange-100 hover:border-orange-200 transition-colors">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs font-medium text-gray-600 mb-1">Pending</p>
-                      <p className="text-2xl font-bold text-orange-600">{pendingJobs}</p>
+            {/* Performance Metrics */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+              {[
+                { label: 'Pending', value: pendingJobs, color: 'orange', icon: AlertCircle },
+                { label: 'Active', value: inProgressJobs, color: 'blue', icon: Clock },
+                { label: 'Completed', value: completedJobs, color: 'green', icon: CheckCircle },
+                { label: 'Earned', value: `RM${totalPayments}`, color: 'purple', icon: DollarSign }
+              ].map(({ label, value, color, icon: Icon }) => (
+                <Card key={label} className={`shadow-lg border-0 bg-gradient-to-br from-white to-${color}-50/50 hover:shadow-xl transition-all duration-300`}>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600 mb-2">{label}</p>
+                        <p className={`text-3xl font-bold text-${color}-600`}>{value}</p>
+                      </div>
+                      <div className={`bg-${color}-100 rounded-full p-3`}>
+                        <Icon className={`h-6 w-6 text-${color}-600`} />
+                      </div>
                     </div>
-                    <div className="bg-orange-100 rounded-full p-2">
-                      <AlertCircle className="h-4 w-4 text-orange-600" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-blue-100 hover:border-blue-200 transition-colors">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs font-medium text-gray-600 mb-1">Active</p>
-                      <p className="text-2xl font-bold text-blue-600">{inProgressJobs}</p>
-                    </div>
-                    <div className="bg-blue-100 rounded-full p-2">
-                      <Clock className="h-4 w-4 text-blue-600" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-green-100 hover:border-green-200 transition-colors">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs font-medium text-gray-600 mb-1">Done</p>
-                      <p className="text-2xl font-bold text-green-600">{completedJobs}</p>
-                    </div>
-                    <div className="bg-green-100 rounded-full p-2">
-                      <CheckCircle className="h-4 w-4 text-green-600" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-blue-100 hover:border-blue-200 transition-colors">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs font-medium text-gray-600 mb-1">Earned</p>
-                      <p className="text-lg font-bold text-blue-600">RM{totalPayments}</p>
-                    </div>
-                    <div className="bg-blue-100 rounded-full p-2">
-                      <DollarSign className="h-4 w-4 text-blue-600" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
 
-            {/* Quick Actions - Mobile Grid */}
-            <Card>
-              <CardHeader className="bg-gradient-to-r from-primary/90 to-primary/70 text-white rounded-t-xl">
-                <CardTitle className="text-lg">Quick Actions</CardTitle>
+            {/* Quick Actions */}
+            <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-gray-50/50">
+              <CardHeader className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-t-xl">
+                <CardTitle className="text-xl flex items-center gap-2">
+                  <Route className="h-6 w-6" />
+                  Quick Actions
+                </CardTitle>
               </CardHeader>
-              <CardContent className="p-4">
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                  <Button 
-                    className="bg-primary hover:bg-primary/90 text-white flex-col h-16 gap-1"
-                    onClick={() => navigate("/driver/orders")}
-                  >
-                    <FileText className="h-5 w-5" />
-                    <span className="text-xs">Orders</span>
-                  </Button>
-
-                  <Button 
-                    className="bg-primary hover:bg-primary/90 text-white flex-col h-16 gap-1"
-                    onClick={() => setActiveView('map')}
-                  >
-                    <Map className="h-5 w-5" />
-                    <span className="text-xs">Map</span>
-                  </Button>
-
-                  <Button 
-                    className="bg-primary hover:bg-primary/90 text-white flex-col h-16 gap-1"
-                    onClick={() => navigate("/driver/lorries")}
-                  >
-                    <Truck className="h-5 w-5" />
-                    <span className="text-xs">Lorries</span>
-                  </Button>
-
-                  <Button 
-                    className="bg-primary hover:bg-primary/90 text-white flex-col h-16 gap-1"
-                    onClick={() => navigate("/driver/expenses")}
-                  >
-                    <Fuel className="h-5 w-5" />
-                    <span className="text-xs">Expenses</span>
-                  </Button>
+              <CardContent className="p-6">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                  {[
+                    { label: 'Orders', icon: FileText, action: () => navigate("/driver/orders"), color: 'blue' },
+                    { label: 'Map View', icon: Map, action: () => setActiveView('map'), color: 'green' },
+                    { label: 'Lorries', icon: Truck, action: () => navigate("/driver/lorries"), color: 'purple' },
+                    { label: 'Expenses', icon: Fuel, action: () => navigate("/driver/expenses"), color: 'orange' }
+                  ].map(({ label, icon: Icon, action, color }) => (
+                    <Button
+                      key={label}
+                      onClick={action}
+                      className={`bg-gradient-to-r from-${color}-500 to-${color}-600 hover:from-${color}-600 hover:to-${color}-700 text-white flex-col h-20 gap-2 shadow-md hover:shadow-lg transition-all duration-200`}
+                    >
+                      <Icon className="h-6 w-6" />
+                      <span className="text-sm font-medium">{label}</span>
+                    </Button>
+                  ))}
                 </div>
               </CardContent>
             </Card>
 
-            {/* Today's Jobs - Mobile Optimized */}
-            <Card>
-              <CardHeader className="bg-gradient-to-r from-primary/90 to-primary/70 text-white rounded-t-xl">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Clock className="h-5 w-5" />
+            {/* Today's Jobs */}
+            <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-blue-50/50">
+              <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-t-xl">
+                <CardTitle className="text-xl flex items-center gap-2">
+                  <Clock className="h-6 w-6" />
                   Today's Jobs
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-4">
-                <div className="space-y-3">
+              <CardContent className="p-6">
+                <div className="space-y-4">
                   {jobs.slice(0, 3).map((job) => (
-                    <div key={job.id} className="flex items-center justify-between p-3 border border-gray-100 rounded-lg hover:bg-gray-50 transition-colors">
-                      <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-full ${getStatusColor(job.status)}`}>
-                          {getStatusIcon(job.status)}
+                    <div key={job.id} className="bg-white rounded-xl p-5 border border-gray-100 hover:border-blue-200 hover:shadow-md transition-all duration-200">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className={`p-3 rounded-full ${getStatusColor(job.status)} shadow-sm`}>
+                            {getStatusIcon(job.status)}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="font-semibold text-gray-900 text-base truncate">{job.customerName}</p>
+                            <p className="text-sm text-gray-600 mb-1">{job.binType} • {job.assignedTime}</p>
+                            <p className="text-sm text-gray-500 flex items-center gap-1">
+                              <MapPin className="h-4 w-4" />
+                              {job.distance}
+                            </p>
+                          </div>
                         </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="font-semibold text-gray-900 text-sm truncate">{job.customerName}</p>
-                          <p className="text-xs text-gray-600">{job.binType} • {job.assignedTime}</p>
-                          <p className="text-xs text-gray-500 flex items-center gap-1">
-                            <MapPin className="h-3 w-3" />
-                            {job.distance}
-                          </p>
+                        <div className="text-right space-y-2">
+                          <Badge className="bg-green-100 text-green-800 border-green-200">
+                            RM{job.amount}
+                          </Badge>
+                          <p className="text-xs text-gray-500">{job.paymentMethod}</p>
                         </div>
-                      </div>
-                      <div className="text-right">
-                        <Badge variant="outline" className="text-xs mb-1">
-                          RM{job.amount}
-                        </Badge>
-                        <p className="text-xs text-gray-500">{job.paymentMethod}</p>
                       </div>
                     </div>
                   ))}
@@ -403,30 +414,32 @@ const DriverDashboard = () => {
             </Card>
 
             {/* Emergency Contacts */}
-            <Card>
+            <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-red-50/50">
               <CardHeader className="bg-gradient-to-r from-red-500 to-red-600 text-white rounded-t-xl">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Phone className="h-5 w-5" />
+                <CardTitle className="text-xl flex items-center gap-2">
+                  <Phone className="h-6 w-6" />
                   Emergency Contacts
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-4">
-                <div className="space-y-2">
-                  <Button variant="outline" className="w-full justify-start h-10" size="sm">
-                    <Phone className="h-4 w-4 mr-2" />
-                    <div className="text-left">
-                      <p className="font-medium text-sm">Office</p>
-                      <p className="text-xs text-gray-500">03-1234 5678</p>
-                    </div>
-                  </Button>
-                  <Button variant="outline" className="w-full justify-start h-10" size="sm">
-                    <Phone className="h-4 w-4 mr-2" />
-                    <div className="text-left">
-                      <p className="font-medium text-sm">Supervisor</p>
-                      <p className="text-xs text-gray-500">012-345 6789</p>
-                    </div>
-                  </Button>
-                  <Button variant="destructive" className="w-full h-10 text-base font-semibold" size="sm">
+              <CardContent className="p-6">
+                <div className="space-y-3">
+                  {[
+                    { label: 'Office', number: '03-1234 5678' },
+                    { label: 'Supervisor', number: '012-345 6789' }
+                  ].map(({ label, number }) => (
+                    <Button
+                      key={label}
+                      variant="outline"
+                      className="w-full justify-start h-12 border-gray-200 hover:bg-gray-50"
+                    >
+                      <Phone className="h-5 w-5 mr-3 text-blue-600" />
+                      <div className="text-left">
+                        <p className="font-medium text-base">{label}</p>
+                        <p className="text-sm text-gray-500">{number}</p>
+                      </div>
+                    </Button>
+                  ))}
+                  <Button className="w-full h-12 text-base font-semibold bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-md">
                     🚨 Emergency Alert
                   </Button>
                 </div>
@@ -437,24 +450,20 @@ const DriverDashboard = () => {
 
         {/* Map Tab */}
         {activeView === 'map' && (
-          <div className="space-y-4">
-            <InteractiveMap 
-              jobs={jobs}
-              currentLocation={currentLocation}
-              isOnline={isOnline}
-            />
-          </div>
+          <InteractiveMap 
+            jobs={jobs}
+            currentLocation={currentLocation}
+            isOnline={isOnline}
+          />
         )}
 
         {/* Location Tab */}
         {activeView === 'location' && (
-          <div className="space-y-4">
-            <LocationServices 
-              jobs={jobs}
-              currentLocation={currentLocation}
-              onLocationUpdate={setCurrentLocation}
-            />
-          </div>
+          <LocationServices 
+            jobs={jobs}
+            currentLocation={currentLocation}
+            onLocationUpdate={setCurrentLocation}
+          />
         )}
       </div>
     </div>
