@@ -10,12 +10,12 @@ const DriverLayout = () => {
     <SidebarProvider defaultOpen={true}>
       <div className="min-h-screen flex w-full bg-slate-50">
         <DriverSidebar collapsed={false} />
-        <div className="flex-1 flex flex-col min-w-0 ml-4">
+        <div className="flex-1 flex flex-col min-w-0">
           <DriverHeader 
             onSidebarToggle={() => {}}
             title="Driver Dashboard"
           />
-          <main className="flex-1 overflow-auto bg-slate-50 p-6">
+          <main className="flex-1 overflow-auto bg-slate-50 p-4 md:p-6">
             <div className="h-full w-full">
               <Outlet />
             </div>
