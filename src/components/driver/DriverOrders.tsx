@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import {
   Breadcrumb,
   BreadcrumbList,
@@ -36,6 +36,12 @@ import {
   AlertCircle,
   XCircle,
   FileText,
+  User,
+  Trash2,
+  Map,
+  Route,
+  Timer,
+  Info,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -44,6 +50,8 @@ const DriverOrders = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [activeTab, setActiveTab] = useState("all");
+  const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
   // Mock data for orders
   const orders = [
@@ -62,7 +70,17 @@ const DriverOrders = () => {
       lorryType: "Large Truck",
       distance: "12.5 km",
       estimatedDuration: "45 min",
-      notes: "Handle with care - fragile materials included"
+      notes: "Handle with care - fragile materials included",
+      driverNotes: "Completed successfully. Customer was satisfied.",
+      completedTime: "10:15 AM",
+      paymentStatus: "paid",
+      nearestBin: {
+        name: "Central Waste Collection Point",
+        distance: "2.3 km",
+        location: "Jalan Sultan Ismail, KL",
+        capacity: "Large",
+        type: "Mixed Waste"
+      }
     },
     {
       id: "JOB002",
@@ -79,7 +97,17 @@ const DriverOrders = () => {
       lorryType: "Medium Truck",
       distance: "25.0 km",
       estimatedDuration: "1h 20min",
-      notes: "Multiple pickup points within the resort"
+      notes: "Multiple pickup points within the resort",
+      driverNotes: "Currently en route to pickup location",
+      startedTime: "10:45 AM",
+      paymentStatus: "pending",
+      nearestBin: {
+        name: "Genting Waste Management Center",
+        distance: "1.8 km",
+        location: "Genting Resort Road",
+        capacity: "Extra Large",
+        type: "General Waste"
+      }
     },
     {
       id: "JOB003",
@@ -96,7 +124,15 @@ const DriverOrders = () => {
       lorryType: "Small Truck",
       distance: "8.2 km",
       estimatedDuration: "30 min",
-      notes: "Weekly scheduled pickup"
+      notes: "Weekly scheduled pickup",
+      paymentStatus: "confirmed",
+      nearestBin: {
+        name: "PJ Community Center Bin",
+        distance: "0.9 km",
+        location: "Jalan 14/20, Petaling Jaya",
+        capacity: "Medium",
+        type: "Household Waste"
+      }
     },
     {
       id: "JOB004",
@@ -113,7 +149,17 @@ const DriverOrders = () => {
       lorryType: "Specialized Truck",
       distance: "18.7 km",
       estimatedDuration: "55 min",
-      notes: "Cancelled due to weather conditions"
+      notes: "Cancelled due to weather conditions",
+      cancelledTime: "03:45 PM",
+      cancelReason: "Heavy rain and flooding in the area",
+      paymentStatus: "refunded",
+      nearestBin: {
+        name: "Cyberjaya E-Waste Center",
+        distance: "3.2 km",
+        location: "Persiaran Cyberport, Cyberjaya",
+        capacity: "Specialized",
+        type: "Electronic Waste"
+      }
     }
   ];
 
@@ -146,6 +192,16 @@ const DriverOrders = () => {
     }
   };
 
+  const getPaymentStatusColor = (status: string) => {
+    switch (status) {
+      case "paid": return "bg-emerald-50 text-emerald-700 border-emerald-200";
+      case "pending": return "bg-orange-50 text-orange-700 border-orange-200";
+      case "confirmed": return "bg-blue-50 text-blue-700 border-blue-200";
+      case "refunded": return "bg-purple-50 text-purple-700 border-purple-200";
+      default: return "bg-gray-50 text-gray-700 border-gray-200";
+    }
+  };
+
   const filteredOrders = orders.filter(order => {
     const matchesSearch = order.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -164,8 +220,9 @@ const DriverOrders = () => {
     cancelled: orders.filter(o => o.status === "cancelled").length,
   };
 
-  const handleViewOrder = (orderId: string) => {
-    toast.success(`Viewing order ${orderId}`);
+  const handleViewOrder = (order: any) => {
+    setSelectedOrder(order);
+    setIsDetailsOpen(true);
   };
 
   const handleNavigate = (location: string) => {
@@ -174,6 +231,10 @@ const DriverOrders = () => {
 
   const handleCallCustomer = (phone: string) => {
     toast.success(`Calling ${phone}`);
+  };
+
+  const handleNavigateToNearestBin = (binLocation: string) => {
+    toast.success(`Opening navigation to nearest bin at ${binLocation}`);
   };
 
   return (
@@ -371,6 +432,35 @@ const DriverOrders = () => {
                             </span>
                           </div>
 
+                          {/* Nearest Bin Information */}
+                          <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-lg p-3 mb-4">
+                            <div className="flex items-center justify-between mb-2">
+                              <h4 className="font-medium text-purple-700 flex items-center gap-2">
+                                <Trash2 className="h-4 w-4" />
+                                Nearest Waste Bin
+                              </h4>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleNavigateToNearestBin(order.nearestBin.location)}
+                                className="border-purple-200 text-purple-600 hover:bg-purple-50"
+                              >
+                                <Map className="h-3 w-3 mr-1" />
+                                Navigate
+                              </Button>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3 text-sm">
+                              <div>
+                                <p className="text-gray-600">{order.nearestBin.name}</p>
+                                <p className="text-purple-600 font-medium">{order.nearestBin.distance} away</p>
+                              </div>
+                              <div>
+                                <p className="text-gray-600">{order.nearestBin.type}</p>
+                                <p className="text-purple-600 font-medium">{order.nearestBin.capacity}</p>
+                              </div>
+                            </div>
+                          </div>
+
                           {/* Notes */}
                           {order.notes && (
                             <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
@@ -384,7 +474,7 @@ const DriverOrders = () => {
                         {/* Action Buttons */}
                         <div className="flex flex-col gap-2 min-w-40">
                           <Button
-                            onClick={() => handleViewOrder(order.id)}
+                            onClick={() => handleViewOrder(order)}
                             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-sm"
                           >
                             <Eye className="h-4 w-4 mr-2" />
@@ -422,6 +512,280 @@ const DriverOrders = () => {
           </ScrollArea>
         </TabsContent>
       </Tabs>
+
+      {/* Order Details Modal */}
+      <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3 text-xl">
+              <div className="p-2 bg-blue-50 rounded-lg">
+                <FileText className="h-5 w-5 text-blue-600" />
+              </div>
+              Order Details - #{selectedOrder?.id}
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedOrder && (
+            <div className="space-y-6">
+              {/* Status and Priority */}
+              <div className="flex items-center gap-4">
+                <Badge className={`border ${getStatusColor(selectedOrder.status)} font-medium flex items-center gap-1 px-3 py-1`}>
+                  {getStatusIcon(selectedOrder.status)}
+                  {selectedOrder.status.replace('-', ' ').toUpperCase()}
+                </Badge>
+                <Badge className={`border ${getPriorityColor(selectedOrder.priority)} font-medium px-3 py-1`}>
+                  {selectedOrder.priority.toUpperCase()} PRIORITY
+                </Badge>
+                <Badge className={`border ${getPaymentStatusColor(selectedOrder.paymentStatus)} font-medium px-3 py-1`}>
+                  {selectedOrder.paymentStatus.toUpperCase()}
+                </Badge>
+              </div>
+
+              {/* Customer Information */}
+              <Card className="border-gray-200">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <User className="h-5 w-5 text-blue-600" />
+                    Customer Information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-600">Customer Name</p>
+                      <p className="font-medium">{selectedOrder.customer}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Phone Number</p>
+                      <p className="font-medium">{selectedOrder.customerPhone}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Location Details */}
+              <Card className="border-gray-200">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <MapPin className="h-5 w-5 text-emerald-600" />
+                    Location Details
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                      <p className="text-sm text-blue-600 font-medium mb-1">Pickup Location</p>
+                      <p className="text-gray-700">{selectedOrder.pickupLocation}</p>
+                    </div>
+                    <div className="p-3 bg-emerald-50 rounded-lg border border-emerald-200">
+                      <p className="text-sm text-emerald-600 font-medium mb-1">Delivery Location</p>
+                      <p className="text-gray-700">{selectedOrder.location}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-6 text-sm bg-gray-50 p-3 rounded-lg">
+                    <span className="flex items-center gap-2">
+                      <Route className="h-4 w-4 text-blue-500" />
+                      <span className="font-medium">Distance: {selectedOrder.distance}</span>
+                    </span>
+                    <span className="flex items-center gap-2">
+                      <Timer className="h-4 w-4 text-orange-500" />
+                      <span className="font-medium">Duration: {selectedOrder.estimatedDuration}</span>
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Job Details */}
+              <Card className="border-gray-200">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Package className="h-5 w-5 text-indigo-600" />
+                    Job Details
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-600">Scheduled Date & Time</p>
+                      <p className="font-medium">{selectedOrder.date} at {selectedOrder.time}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Waste Type</p>
+                      <p className="font-medium">{selectedOrder.wasteType}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Vehicle Required</p>
+                      <p className="font-medium">{selectedOrder.lorryType}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gradient-to-r from-emerald-50 to-green-50 p-4 rounded-lg border border-emerald-200">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-gray-600">Total Amount</p>
+                        <p className="text-2xl font-bold text-emerald-600">RM {selectedOrder.amount.toFixed(2)}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm text-gray-600">Payment Status</p>
+                        <Badge className={`border ${getPaymentStatusColor(selectedOrder.paymentStatus)} font-medium`}>
+                          {selectedOrder.paymentStatus.toUpperCase()}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Nearest Bin Details */}
+              <Card className="border-purple-200 bg-gradient-to-r from-purple-50 to-indigo-50">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg flex items-center gap-2 text-purple-700">
+                    <Trash2 className="h-5 w-5" />
+                    Nearest Waste Collection Point
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-purple-600 font-medium">Collection Point</p>
+                      <p className="text-gray-700">{selectedOrder.nearestBin.name}</p>
+                      <p className="text-sm text-gray-600 mt-1">{selectedOrder.nearestBin.location}</p>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-600">Distance:</span>
+                        <span className="font-medium text-purple-600">{selectedOrder.nearestBin.distance}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-600">Capacity:</span>
+                        <span className="font-medium">{selectedOrder.nearestBin.capacity}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-600">Type:</span>
+                        <span className="font-medium">{selectedOrder.nearestBin.type}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <Button 
+                    onClick={() => handleNavigateToNearestBin(selectedOrder.nearestBin.location)}
+                    className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                  >
+                    <Navigation className="h-4 w-4 mr-2" />
+                    Navigate to Collection Point
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Status Timeline and Notes */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Timeline */}
+                <Card className="border-gray-200">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Clock className="h-5 w-5 text-orange-600" />
+                      Status Timeline
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="space-y-3">
+                      {selectedOrder.status === "completed" && (
+                        <div className="flex items-center gap-3 p-2 bg-emerald-50 rounded-lg">
+                          <CheckCircle className="h-4 w-4 text-emerald-600" />
+                          <div>
+                            <p className="text-sm font-medium text-emerald-700">Completed</p>
+                            <p className="text-xs text-gray-600">{selectedOrder.completedTime}</p>
+                          </div>
+                        </div>
+                      )}
+                      {selectedOrder.status === "in-progress" && (
+                        <div className="flex items-center gap-3 p-2 bg-blue-50 rounded-lg">
+                          <AlertCircle className="h-4 w-4 text-blue-600" />
+                          <div>
+                            <p className="text-sm font-medium text-blue-700">In Progress</p>
+                            <p className="text-xs text-gray-600">{selectedOrder.startedTime}</p>
+                          </div>
+                        </div>
+                      )}
+                      {selectedOrder.status === "cancelled" && (
+                        <div className="flex items-center gap-3 p-2 bg-red-50 rounded-lg">
+                          <XCircle className="h-4 w-4 text-red-600" />
+                          <div>
+                            <p className="text-sm font-medium text-red-700">Cancelled</p>
+                            <p className="text-xs text-gray-600">{selectedOrder.cancelledTime}</p>
+                          </div>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-3 p-2 bg-gray-50 rounded-lg">
+                        <Clock className="h-4 w-4 text-gray-600" />
+                        <div>
+                          <p className="text-sm font-medium text-gray-700">Scheduled</p>
+                          <p className="text-xs text-gray-600">{selectedOrder.date} at {selectedOrder.time}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Notes */}
+                <Card className="border-gray-200">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Info className="h-5 w-5 text-gray-600" />
+                      Notes & Instructions
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {selectedOrder.notes && (
+                      <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
+                        <p className="text-sm font-medium text-amber-700 mb-1">Customer Notes:</p>
+                        <p className="text-sm text-gray-700">{selectedOrder.notes}</p>
+                      </div>
+                    )}
+                    {selectedOrder.driverNotes && (
+                      <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                        <p className="text-sm font-medium text-blue-700 mb-1">Driver Notes:</p>
+                        <p className="text-sm text-gray-700">{selectedOrder.driverNotes}</p>
+                      </div>
+                    )}
+                    {selectedOrder.cancelReason && (
+                      <div className="p-3 bg-red-50 rounded-lg border border-red-200">
+                        <p className="text-sm font-medium text-red-700 mb-1">Cancellation Reason:</p>
+                        <p className="text-sm text-gray-700">{selectedOrder.cancelReason}</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-200">
+                <Button
+                  onClick={() => handleNavigate(selectedOrder.location)}
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  <Navigation className="h-4 w-4 mr-2" />
+                  Navigate to Location
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => handleCallCustomer(selectedOrder.customerPhone)}
+                  className="flex-1 border-emerald-200 text-emerald-600 hover:bg-emerald-50"
+                >
+                  <Phone className="h-4 w-4 mr-2" />
+                  Call Customer
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsDetailsOpen(false)}
+                  className="flex-1"
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
