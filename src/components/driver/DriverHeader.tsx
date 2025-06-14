@@ -1,178 +1,74 @@
 
-import React, { useState } from "react";
+import React from "react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Menu, Bell, User, LogOut } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  Menu,
-  Bell,
-  User,
-  Settings,
-  LogOut,
-  Sun,
-  Moon,
-  Smartphone,
-} from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import NotificationsPanel from "@/components/dashboard/NotificationsPanel";
 
 interface DriverHeaderProps {
-  title: string;
   onSidebarToggle: () => void;
+  title: string;
 }
 
-const DriverHeader: React.FC<DriverHeaderProps> = ({ title, onSidebarTog
-gle }) => {
-  const navigate = useNavigate();
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const [theme, setTheme] = useState<"light" | "dark">("light");
-
+const DriverHeader: React.FC<DriverHeaderProps> = ({ onSidebarToggle, title }) => {
   const handleLogout = () => {
-    localStorage.removeItem("driverSession");
-    navigate("/driver/login");
-  };
-
-  const toggleTheme = () => {
-    const newTheme = theme === "light" ? "dark" : "light";
-    setTheme(newTheme);
-    document.documentElement.classList.toggle("dark");
+    // Implement logout logic
+    console.log("Logging out...");
+    window.location.href = "/driver/login";
   };
 
   return (
-    <div className="sticky top-0 z-40 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-sm">
-      <div className="flex items-center justify-between px-4 py-3">
+    <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3">
+      <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
-            size="icon"
+            size="sm"
             onClick={onSidebarToggle}
             className="lg:hidden"
           >
             <Menu className="h-5 w-5" />
           </Button>
-          <div>
-            <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
-              {title}
-            </h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Welcome back, Ahmad Rahman
-            </p>
-          </div>
+          <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+            {title}
+          </h1>
         </div>
 
-        <div className="flex items-center gap-3">
-          {/* Theme Toggle */}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleTheme}
-            className="hover:bg-gray-100 dark:hover:bg-gray-800"
-          >
-            {theme === "light" ? (
-              <Moon className="h-5 w-5" />
-            ) : (
-              <Sun className="h-5 w-5" />
-            )}
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="sm" className="relative">
+            <Bell className="h-5 w-5" />
+            <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+              3
+            </span>
           </Button>
 
-          {/* Notifications */}
-          <Popover open={notificationsOpen} onOpenChange={setNotificationsOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="relative hover:bg-gray-100 dark:hover:bg-gray-800"
-              >
-                <Bell className="h-5 w-5" />
-                <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 text-xs bg-red-500 text-white">
-                  3
-                </Badge>
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent
-              className="w-80 p-0 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-lg"
-              align="end"
-            >
-              <NotificationsPanel />
-            </PopoverContent>
-          </Popover>
-
-          {/* Profile Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 p-2 rounded-lg"
-              >
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src="/placeholder-avatar.jpg" alt="Driver" />
-                  <AvatarFallback className="bg-green-500 text-white text-sm">
-                    AR
-                  </AvatarFallback>
-                </Avatar>
-                <div className="hidden sm:block text-left">
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">
-                    Ahmad Rahman
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Driver ID: DRV001
-                  </p>
-                </div>
+              <Button variant="ghost" size="sm" className="flex items-center gap-2">
+                <User className="h-5 w-5" />
+                <span className="hidden md:inline">Driver 001</span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent
-              className="w-56 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-lg"
-              align="end"
-            >
-              <DropdownMenuLabel className="font-normal">
-                <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">
-                    Ahmad Rahman
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    ahmad.rahman@example.com
-                  </p>
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate("/driver/profile")}>
-                <User className="mr-2 h-4 w-4" />
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem>
+                <User className="h-4 w-4 mr-2" />
                 Profile
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Settings className="mr-2 h-4 w-4" />
-                Settings
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Smartphone className="mr-2 h-4 w-4" />
-                Mobile App
-              </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={handleLogout}
-                className="text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
-              >
-                <LogOut className="mr-2 h-4 w-4" />
+              <DropdownMenuItem onClick={handleLogout} className="text-red-600">
+                <LogOut className="h-4 w-4 mr-2" />
                 Logout
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </div>
-    </div>
+    </header>
   );
 };
 
