@@ -10,8 +10,35 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
+// Collection interface
+interface WasteCollectionItem {
+  id: number;
+  binSN: string;
+  customerName: string;
+  collectionDate: string;
+  wasteType: string;
+  weight: string;
+  images: string[];
+  collectedBy: string;
+  lorryNumber: string;
+  notes: string;
+}
+
+// Form data interface
+interface CollectionFormData {
+  binSN: string;
+  customerName: string;
+  collectionDate: string;
+  wasteType: string;
+  weight: string;
+  images: string[];
+  collectedBy: string;
+  lorryNumber: string;
+  notes: string;
+}
+
 // Dummy waste collection data
-const DUMMY_COLLECTIONS = [
+const DUMMY_COLLECTIONS: WasteCollectionItem[] = [
   {
     id: 1,
     binSN: "ASR100",
@@ -67,11 +94,11 @@ const WASTE_TYPES = ["Scrap Metal", "Plastic Waste", "Construction Waste", "Mixe
 
 const WasteCollection = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [collections, setCollections] = useState(DUMMY_COLLECTIONS);
-  const [selectedCollection, setSelectedCollection] = useState(null);
+  const [collections, setCollections] = useState<WasteCollectionItem[]>(DUMMY_COLLECTIONS);
+  const [selectedCollection, setSelectedCollection] = useState<WasteCollectionItem | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [addCollectionForm, setAddCollectionForm] = useState({
+  const [addCollectionForm, setAddCollectionForm] = useState<CollectionFormData>({
     binSN: "",
     customerName: "",
     collectionDate: "",
@@ -82,7 +109,7 @@ const WasteCollection = () => {
     lorryNumber: "",
     notes: "",
   });
-  const [formErrors, setFormErrors] = useState({});
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   // Filter collections
   const filteredCollections = collections.filter(
@@ -93,7 +120,7 @@ const WasteCollection = () => {
   );
 
   // Waste type badge color
-  const getWasteTypeColor = (type) => {
+  const getWasteTypeColor = (type: string) => {
     switch (type) {
       case "Scrap Metal":
         return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300";
@@ -109,14 +136,14 @@ const WasteCollection = () => {
   };
 
   // Handle view details
-  const handleViewDetails = (collection) => {
+  const handleViewDetails = (collection: WasteCollectionItem) => {
     setSelectedCollection(collection);
     setIsDetailsModalOpen(true);
   };
 
   // Validate add collection form
   const validateAddCollectionForm = () => {
-    const errors = {};
+    const errors: Record<string, string> = {};
     if (!addCollectionForm.binSN.trim()) errors.binSN = "Bin serial is required";
     if (!addCollectionForm.customerName.trim()) errors.customerName = "Customer name is required";
     if (!addCollectionForm.collectionDate) errors.collectionDate = "Collection date is required";
@@ -129,19 +156,19 @@ const WasteCollection = () => {
   };
 
   // Handle input changes for new collection
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setAddCollectionForm((prev) => ({ ...prev, [name]: value }));
   };
 
   // Handle select changes for waste type
-  const handleSelectChange = (value) => {
+  const handleSelectChange = (value: string) => {
     setAddCollectionForm((prev) => ({ ...prev, wasteType: value }));
   };
 
   // Handle file input for images
-  const handleImageUpload = (e) => {
-    const files = Array.from(e.target.files).map((file) => file.name); // Mock file names for demo
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []).map((file) => file.name); // Mock file names for demo
     setAddCollectionForm((prev) => ({ ...prev, images: files }));
   };
 
@@ -387,9 +414,7 @@ const WasteCollection = () => {
                 </p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-5
-
-00 dark:text-gray-400">Waste Type</label>
+                <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Waste Type</label>
                 <Badge
                   className={`mt-1 ${getWasteTypeColor(selectedCollection.wasteType)} rounded-full px-3 py-1 font-medium`}
                 >

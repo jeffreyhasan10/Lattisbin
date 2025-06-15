@@ -157,7 +157,7 @@ const InvoiceSection: React.FC = () => {
     paymentMethod: "Cash",
   });
 
-  // Filter invoices
+  // Filter invoices with proper type safety
   const filteredInvoices = invoices
     .filter((invoice) => {
       const matchesSearch =
@@ -181,9 +181,10 @@ const InvoiceSection: React.FC = () => {
         const amountB = parseFloat(b.amount.replace("RM ", "").replace(",", ""));
         return sortDirection === "asc" ? amountA - amountB : amountB - amountA;
       }
-      const valA = a[sortBy].toLowerCase();
-      const valB = b[sortBy].toLowerCase();
-      return sortDirection === "asc" ? valA.localeCompare(valB) : valB.localeCompare(valB);
+      // For string fields, ensure we're working with strings
+      const valA = String(a[sortBy]).toLowerCase();
+      const valB = String(b[sortBy]).toLowerCase();
+      return sortDirection === "asc" ? valA.localeCompare(valB) : valB.localeCompare(valA);
     });
 
   // Calculate totals
@@ -454,7 +455,7 @@ const InvoiceSection: React.FC = () => {
                   >
                     <div className="flex items-center gap-2">
                       Invoice #
-                      {sortBy === "invoiceNumber" && <ArrowUpDown className={`h-4 w-4 ${sortDirection === "desc" ? "rotate-180" : ""}`} />}
+                      {sortBy === "invoiceNumber" && <ArrowUpDown className={`h-4 w-4 ${sortDirection === "desc" ? "rotate-180" : ""}`} />
                     </div>
                   </TableHead>
                   <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Customer</TableHead>
@@ -464,7 +465,7 @@ const InvoiceSection: React.FC = () => {
                   >
                     <div className="flex items-center gap-2">
                       Issue Date
-                      {sortBy === "date" && <ArrowUpDown className={`h-4 w-4 ${sortDirection === "desc" ? "rotate-180" : ""}`} />}
+                      {sortBy === "date" && <ArrowUpDown className={`h-4 w-4 ${sortDirection === "desc" ? "rotate-180" : ""}`} />
                     </div>
                   </TableHead>
                   <TableHead
@@ -473,7 +474,7 @@ const InvoiceSection: React.FC = () => {
                   >
                     <div className="flex items-center gap-2">
                       Amount
-                      {sortBy === "amount" && <ArrowUpDown className={`h-4 w-4 ${sortDirection === "desc" ? "rotate-180" : ""}`} />}
+                      {sortBy === "amount" && <ArrowUpDown className={`h-4 w-4 ${sortDirection === "desc" ? "rotate-180" : ""}`} />
                     </div>
                   </TableHead>
                   <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Service</TableHead>
