@@ -7,7 +7,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
-import AppLayout from "./components/layout/AppLayout";
 import DriverLayout from "./components/layout/DriverLayout";
 import DriverDashboard from "./components/driver/DriverDashboard";
 import DriverOrders from "./components/driver/DriverOrders";
@@ -30,10 +29,8 @@ function App() {
               <Routes>
                 <Route path="/" element={<Index />} />
                 
-                {/* Admin Dashboard Routes */}
-                <Route path="/dashboard" element={<AppLayout />}>
-                  <Route index element={<Dashboard />} />
-                </Route>
+                {/* Admin Dashboard Routes - Direct routing without AppLayout */}
+                <Route path="/dashboard" element={<Dashboard />} />
                 
                 {/* Driver Dashboard Routes */}
                 <Route path="/driver" element={<DriverLayout />}>

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -99,8 +98,8 @@ const AdminDashboard: React.FC = () => {
   const moduleCards = [
     {
       id: "business-register",
-      title: "Business Register",
-      description: "Company details, ROC number, addresses, and verification",
+      title: "Business Registration",
+      description: "Complete company profile management with ROC validation and multi-location support",
       icon: Building2,
       color: "bg-blue-500",
       count: "12 Companies",
@@ -108,8 +107,8 @@ const AdminDashboard: React.FC = () => {
     },
     {
       id: "customer-register",
-      title: "Customer Register", 
-      description: "Client details, contact persons, and mobile registration",
+      title: "Customer Management", 
+      description: "Comprehensive customer database with verification, contact hierarchy, and payment tracking",
       icon: Users,
       color: "bg-green-500",
       count: "245 Customers",
@@ -117,8 +116,8 @@ const AdminDashboard: React.FC = () => {
     },
     {
       id: "inventory-register",
-      title: "Inventory Management",
-      description: "Bin records, GPS tracking, and maintenance scheduling",
+      title: "Advanced Inventory",
+      description: "Real-time bin tracking with GPS, maintenance scheduling, and utilization analytics",
       icon: Package,
       color: "bg-purple-500",
       count: "156 Bins",
@@ -127,7 +126,7 @@ const AdminDashboard: React.FC = () => {
     {
       id: "fleet-management",
       title: "Fleet Management",
-      description: "Own lorries, insurance alerts, and maintenance tracking",
+      description: "Complete vehicle profiles, insurance tracking, and maintenance alerts",
       icon: Truck,
       color: "bg-orange-500",
       count: "8 Lorries",
@@ -136,7 +135,7 @@ const AdminDashboard: React.FC = () => {
     {
       id: "driver-management",
       title: "Driver Management",
-      description: "Driver profiles, performance metrics, and real-time tracking",
+      description: "Complete driver profiles with performance metrics and real-time tracking",
       icon: UserCheck,
       color: "bg-indigo-500",
       count: `${drivers.length} Drivers`,
@@ -144,8 +143,8 @@ const AdminDashboard: React.FC = () => {
     },
     {
       id: "booking-management",
-      title: "Booking Management",
-      description: "Multi-channel bookings, scheduling, and customer preferences",
+      title: "Advanced Booking",
+      description: "Multi-channel bookings with geographic scheduling and dynamic pricing",
       icon: CalendarRange,
       color: "bg-pink-500",
       count: "34 Bookings",
@@ -153,8 +152,8 @@ const AdminDashboard: React.FC = () => {
     },
     {
       id: "delivery-orders",
-      title: "Delivery Orders",
-      description: "Smart assignment, route optimization, and real-time tracking",
+      title: "Smart Delivery Orders",
+      description: "Auto-assignment, route optimization, and real-time tracking",
       icon: FileText,
       color: "bg-yellow-500",
       count: `${orders.length} Orders`,
@@ -162,12 +161,48 @@ const AdminDashboard: React.FC = () => {
     },
     {
       id: "invoicing",
-      title: "Invoice Management",
-      description: "Auto-generation, PDF creation, and payment tracking",
+      title: "Comprehensive Invoicing",
+      description: "Auto-generation, PDF creation, and multi-currency support",
       icon: Receipt,
       color: "bg-cyan-500",
       count: "89 Invoices",
       tab: "invoices"
+    },
+    {
+      id: "commission",
+      title: "Commission Management",
+      description: "Multi-tier structures with performance tracking and automated payments",
+      icon: DollarSign,
+      color: "bg-emerald-500",
+      count: "RM 12,450",
+      tab: "commission"
+    },
+    {
+      id: "waste-management",
+      title: "Waste Category Management",
+      description: "Comprehensive classification with photo documentation and compliance tracking",
+      icon: Upload,
+      color: "bg-red-500",
+      count: "25 Categories",
+      tab: "waste"
+    },
+    {
+      id: "expenses",
+      title: "Advanced Expense Management",
+      description: "Multi-category tracking with receipt upload and approval workflows",
+      icon: DollarSign,
+      color: "bg-amber-500",
+      count: "RM 8,900",
+      tab: "expenses"
+    },
+    {
+      id: "reports",
+      title: "Comprehensive Reports",
+      description: "Real-time metrics with predictive analytics and custom report builder",
+      icon: BarChart3,
+      color: "bg-teal-500",
+      count: "15 Reports",
+      tab: "reports"
     }
   ];
 
@@ -223,55 +258,22 @@ const AdminDashboard: React.FC = () => {
         <Card className="bg-white/60 backdrop-blur-sm border border-white/30 shadow-lg">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <div className="border-b border-slate-200 bg-slate-50/80 backdrop-blur-sm">
-              <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 h-auto p-2 bg-transparent gap-1">
+              <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 lg:grid-cols-10 h-auto p-2 bg-transparent gap-1">
                 <TabsTrigger 
                   value="overview" 
                   className="px-3 py-3 rounded-xl text-sm font-medium transition-all duration-300 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-slate-200"
                 >
                   Overview
                 </TabsTrigger>
-                <TabsTrigger 
-                  value="business"
-                  className="px-3 py-3 rounded-xl text-sm font-medium transition-all duration-300 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-slate-200"
-                >
-                  Business
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="customers"
-                  className="px-3 py-3 rounded-xl text-sm font-medium transition-all duration-300 data-[state=active]:bg-green-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-slate-200"
-                >
-                  Customers
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="inventory"
-                  className="px-3 py-3 rounded-xl text-sm font-medium transition-all duration-300 data-[state=active]:bg-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-slate-200"
-                >
-                  Inventory
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="drivers"
-                  className="px-3 py-3 rounded-xl text-sm font-medium transition-all duration-300 data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-slate-200"
-                >
-                  Drivers
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="orders"
-                  className="px-3 py-3 rounded-xl text-sm font-medium transition-all duration-300 data-[state=active]:bg-yellow-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-slate-200"
-                >
-                  Orders
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="reports"
-                  className="px-3 py-3 rounded-xl text-sm font-medium transition-all duration-300 data-[state=active]:bg-cyan-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-slate-200"
-                >
-                  Reports
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="settings"
-                  className="px-3 py-3 rounded-xl text-sm font-medium transition-all duration-300 data-[state=active]:bg-slate-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-slate-200"
-                >
-                  Settings
-                </TabsTrigger>
+                <TabsTrigger value="business" className="px-3 py-3 rounded-xl text-sm font-medium transition-all duration-300 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-slate-200">Business</TabsTrigger>
+                <TabsTrigger value="customers" className="px-3 py-3 rounded-xl text-sm font-medium transition-all duration-300 data-[state=active]:bg-green-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-slate-200">Customers</TabsTrigger>
+                <TabsTrigger value="inventory" className="px-3 py-3 rounded-xl text-sm font-medium transition-all duration-300 data-[state=active]:bg-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-slate-200">Inventory</TabsTrigger>
+                <TabsTrigger value="drivers" className="px-3 py-3 rounded-xl text-sm font-medium transition-all duration-300 data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-slate-200">Drivers</TabsTrigger>
+                <TabsTrigger value="orders" className="px-3 py-3 rounded-xl text-sm font-medium transition-all duration-300 data-[state=active]:bg-yellow-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-slate-200">Orders</TabsTrigger>
+                <TabsTrigger value="fleet" className="px-3 py-3 rounded-xl text-sm font-medium transition-all duration-300 data-[state=active]:bg-orange-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-slate-200">Fleet</TabsTrigger>
+                <TabsTrigger value="bookings" className="px-3 py-3 rounded-xl text-sm font-medium transition-all duration-300 data-[state=active]:bg-pink-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-slate-200">Bookings</TabsTrigger>
+                <TabsTrigger value="reports" className="px-3 py-3 rounded-xl text-sm font-medium transition-all duration-300 data-[state=active]:bg-cyan-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-slate-200">Reports</TabsTrigger>
+                <TabsTrigger value="settings" className="px-3 py-3 rounded-xl text-sm font-medium transition-all duration-300 data-[state=active]:bg-slate-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-slate-200">Settings</TabsTrigger>
               </TabsList>
             </div>
 
@@ -321,6 +323,7 @@ const AdminDashboard: React.FC = () => {
                 </div>
               </TabsContent>
 
+              {/* Tab Contents */}
               <TabsContent value="business" className="space-y-6 mt-0">
                 <AdminBusinessRegister />
               </TabsContent>
@@ -341,11 +344,36 @@ const AdminDashboard: React.FC = () => {
                 <AdminOrderManagement />
               </TabsContent>
 
+              {/* Placeholder tabs for future implementation */}
+              <TabsContent value="fleet" className="space-y-6 mt-0">
+                <div className="text-center py-12">
+                  <Truck className="h-16 w-16 mx-auto text-slate-400 mb-4" />
+                  <h3 className="text-xl font-semibold text-slate-900 mb-2">Fleet Management</h3>
+                  <p className="text-slate-600">Complete vehicle profiles with insurance tracking and maintenance alerts</p>
+                  <Button className="mt-4 bg-orange-600 hover:bg-orange-700">
+                    <Truck className="h-4 w-4 mr-2" />
+                    Manage Fleet
+                  </Button>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="bookings" className="space-y-6 mt-0">
+                <div className="text-center py-12">
+                  <CalendarRange className="h-16 w-16 mx-auto text-slate-400 mb-4" />
+                  <h3 className="text-xl font-semibold text-slate-900 mb-2">Advanced Booking System</h3>
+                  <p className="text-slate-600">Multi-channel bookings with geographic scheduling and dynamic pricing</p>
+                  <Button className="mt-4 bg-pink-600 hover:bg-pink-700">
+                    <CalendarRange className="h-4 w-4 mr-2" />
+                    Manage Bookings
+                  </Button>
+                </div>
+              </TabsContent>
+
               <TabsContent value="reports" className="space-y-6 mt-0">
                 <div className="text-center py-12">
                   <BarChart3 className="h-16 w-16 mx-auto text-slate-400 mb-4" />
-                  <h3 className="text-xl font-semibold text-slate-900 mb-2">Reports & Analytics</h3>
-                  <p className="text-slate-600">Comprehensive reports and business intelligence</p>
+                  <h3 className="text-xl font-semibold text-slate-900 mb-2">Comprehensive Reports & Analytics</h3>
+                  <p className="text-slate-600">Real-time metrics with predictive analytics and custom report builder</p>
                   <Button className="mt-4 bg-cyan-600 hover:bg-cyan-700">
                     <BarChart3 className="h-4 w-4 mr-2" />
                     Generate Reports
