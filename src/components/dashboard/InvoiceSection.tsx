@@ -455,7 +455,7 @@ const InvoiceSection: React.FC = () => {
                   >
                     <div className="flex items-center gap-2">
                       Invoice #
-                      {sortBy === "invoiceNumber" && <ArrowUpDown className={`h-4 w-4 ${sortDirection === "desc" ? "rotate-180" : ""}`} />
+                      {sortBy === "invoiceNumber" && <ArrowUpDown className={`h-4 w-4 ${sortDirection === "desc" ? "rotate-180" : ""}`} />}
                     </div>
                   </TableHead>
                   <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Customer</TableHead>
@@ -465,7 +465,7 @@ const InvoiceSection: React.FC = () => {
                   >
                     <div className="flex items-center gap-2">
                       Issue Date
-                      {sortBy === "date" && <ArrowUpDown className={`h-4 w-4 ${sortDirection === "desc" ? "rotate-180" : ""}`} />
+                      {sortBy === "date" && <ArrowUpDown className={`h-4 w-4 ${sortDirection === "desc" ? "rotate-180" : ""}`} />}
                     </div>
                   </TableHead>
                   <TableHead
@@ -474,7 +474,7 @@ const InvoiceSection: React.FC = () => {
                   >
                     <div className="flex items-center gap-2">
                       Amount
-                      {sortBy === "amount" && <ArrowUpDown className={`h-4 w-4 ${sortDirection === "desc" ? "rotate-180" : ""}`} />
+                      {sortBy === "amount" && <ArrowUpDown className={`h-4 w-4 ${sortDirection === "desc" ? "rotate-180" : ""}`} />}
                     </div>
                   </TableHead>
                   <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Service</TableHead>
@@ -561,23 +561,23 @@ const InvoiceSection: React.FC = () => {
                     ))
                   ) : (
                     <motion.tr
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <TableCell colSpan={8} className="text-center py-12">
-                      <div className="flex flex-col items-center justify-center py-8">
-                        <FileText className="h-16 w-16 text-gray-300 dark:text-gray-600 mb-4" />
-                        <p className="text-gray-500 dark:text-gray-400 text-lg font-medium">
-                          No invoices found
-                        </p>
-                        <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">
-                          Try adjusting your search or filter settings.
-                        </p>
-                      </div>
-                    </TableCell>
-                  </motion.tr>
-                )}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <TableCell colSpan={8} className="text-center py-12">
+                        <div className="flex flex-col items-center justify-center py-8">
+                          <FileText className="h-16 w-16 text-gray-300 dark:text-gray-600 mb-4" />
+                          <p className="text-gray-500 dark:text-gray-400 text-lg font-medium">
+                            No invoices found
+                          </p>
+                          <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">
+                            Try adjusting your search or filter settings.
+                          </p>
+                        </div>
+                      </TableCell>
+                    </motion.tr>
+                  )}
                 </AnimatePresence>
               </TableBody>
             </Table>
