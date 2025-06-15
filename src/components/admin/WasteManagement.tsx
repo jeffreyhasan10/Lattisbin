@@ -8,614 +8,308 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Upload, Plus, Camera, Scale, Shield, AlertTriangle, Recycle, Building, Home,  Factory, FileText, TrendingUp, Eye, CheckCircle } from "lucide-react";
-
-interface PhotoDocument {
-  id: string;
-  url: string;
-  timestamp: string;
-  location: string;
-  notes: string;
-}
-
-interface WeightVariance {
-  estimated: number;
-  actual: number;
-  variance: number;
-  percentageVariance: number;
-  reason: string;
-}
-
-interface ComplianceRecord {
-  certificateId: string;
-  issueDate: string;
-  expiryDate: string;
-  status: "valid" | "expiring" | "expired";
-  issuingAuthority: string;
-}
-
-interface WasteCollection {
-  id: string;
-  date: string;
-  location: string;
-  categoryId: string;
-  photos: PhotoDocument[];
-  weightVariance: WeightVariance;
-  complianceChecked: boolean;
-  environmentalImpact: {
-    carbonFootprint: number;
-    recyclingRate: number;
-    disposalMethod: string;
-  };
-}
+import { Trash2, Plus, Camera, Scale, FileText, AlertTriangle, CheckCircle, TrendingUp, Recycle, Factory, Leaf, ClipboardCheck } from "lucide-react";
 
 interface WasteCategory {
   id: string;
   name: string;
-  description: string;
-  icon: React.ComponentType<any>;
-  riskLevel: "low" | "medium" | "high";
-  requiresPhotos: number;
-  averageWeight: number;
-  pricePerKg: number;
-  specialHandling: boolean;
-  environmentalCompliance: string[];
-  totalCollections: number;
-  revenueGenerated: number;
+  type: "recyclable" | "hazardous" | "organic" | "general";
   color: string;
-  complianceRecords: ComplianceRecord[];
-  collections: WasteCollection[];
-  varianceThreshold: number; // percentage
-  regulatoryRequirements: {
-    permitRequired: boolean;
-    reportingFrequency: "weekly" | "monthly" | "quarterly";
-    auditRequired: boolean;
-  };
+  description: string;
+  pricePerKg: number;
+  environmentalImpact: "low" | "medium" | "high";
+  specialHandling: boolean;
+  regulations: string[];
+}
+
+interface WasteCollection {
+  id: string;
+  categoryId: string;
+  categoryName: string;
+  collectionDate: string;
+  estimatedWeight: number;
+  actualWeight: number;
+  photos: string[];
+  location: string;
+  driverName: string;
+  complianceStatus: "compliant" | "pending" | "violation";
+  notes: string;
+  variance: number;
+  variancePercent: number;
 }
 
 const WasteManagement: React.FC = () => {
-  const [wasteCategories, setWasteCategories] = useState<WasteCategory[]>([
+  const [categories, setCategories] = useState<WasteCategory[]>([
     {
-      id: "WASTE001",
+      id: "CAT001",
       name: "Construction Debris",
-      description: "Concrete, bricks, tiles, steel, wood waste from construction sites",
-      icon: Building,
-      riskLevel: "medium",
-      requiresPhotos: 3,
-      averageWeight: 500,
+      type: "general",
+      color: "bg-gray-100 text-gray-800",
+      description: "Concrete, bricks, tiles, and construction materials",
       pricePerKg: 0.15,
+      environmentalImpact: "medium",
       specialHandling: false,
-      environmentalCompliance: ["DOE Registration", "Manifest Required"],
-      totalCollections: 145,
-      revenueGenerated: 45600,
-      color: "bg-orange-500",
-      varianceThreshold: 15,
-      complianceRecords: [
-        {
-          certificateId: "DOE-2024-001",
-          issueDate: "2024-01-01",
-          expiryDate: "2024-12-31",
-          status: "valid",
-          issuingAuthority: "Department of Environment"
-        }
-      ],
-      collections: [
-        {
-          id: "COL001",
-          date: "2024-06-15",
-          location: "Jalan Sultan, KL",
-          categoryId: "WASTE001",
-          photos: [
-            { id: "PH001", url: "", timestamp: "2024-06-15 10:00", location: "Site entrance", notes: "Initial waste assessment" },
-            { id: "PH002", url: "", timestamp: "2024-06-15 10:15", location: "Loading area", notes: "Concrete debris loaded" },
-            { id: "PH003", url: "", timestamp: "2024-06-15 10:30", location: "Truck bed", notes: "Final load verification" }
-          ],
-          weightVariance: {
-            estimated: 500,
-            actual: 485,
-            variance: -15,
-            percentageVariance: -3.0,
-            reason: "Accurate estimation"
-          },
-          complianceChecked: true,
-          environmentalImpact: {
-            carbonFootprint: 2.5,
-            recyclingRate: 85,
-            disposalMethod: "Recycling facility"
-          }
-        }
-      ],
-      regulatoryRequirements: {
-        permitRequired: true,
-        reportingFrequency: "monthly",
-        auditRequired: false
-      }
+      regulations: ["Building Waste Regulation 2020", "Environmental Quality Act"]
     },
     {
-      id: "WASTE002",
-      name: "Household Waste",
-      description: "General household items, furniture, appliances, garden waste",
-      icon: Home,
-      riskLevel: "low",
-      requiresPhotos: 2,
-      averageWeight: 150,
+      id: "CAT002",
+      name: "Electronic Waste",
+      type: "hazardous",
+      color: "bg-red-100 text-red-800",
+      description: "Old electronics, batteries, circuit boards",
+      pricePerKg: 0.80,
+      environmentalImpact: "high",
+      specialHandling: true,
+      regulations: ["E-Waste Management Guidelines", "Hazardous Waste Regulation"]
+    },
+    {
+      id: "CAT003",
+      name: "Recyclable Materials",
+      type: "recyclable",
+      color: "bg-green-100 text-green-800",
+      description: "Paper, cardboard, plastic, glass, metals",
       pricePerKg: 0.25,
+      environmentalImpact: "low",
       specialHandling: false,
-      environmentalCompliance: ["Basic Sorting Required"],
-      totalCollections: 287,
-      revenueGenerated: 28950,
-      color: "bg-green-500",
-      varianceThreshold: 20,
-      complianceRecords: [],
-      collections: [],
-      regulatoryRequirements: {
-        permitRequired: false,
-        reportingFrequency: "quarterly",
-        auditRequired: false
-      }
+      regulations: ["Recycling Standards 2023"]
     },
     {
-      id: "WASTE003",
-      name: "Industrial Scrap",
-      description: "Metal scraps, machinery parts, industrial equipment",
-      icon: Factory,
-      riskLevel: "medium",
-      requiresPhotos: 4,
-      averageWeight: 800,
-      pricePerKg: 0.35,
-      specialHandling: true,
-      environmentalCompliance: ["DOE License", "Chain of Custody"],
-      totalCollections: 89,
-      revenueGenerated: 67850,
-      color: "bg-blue-500",
-      varianceThreshold: 10,
-      complianceRecords: [
-        {
-          certificateId: "DOE-IND-2024-005",
-          issueDate: "2024-02-01",
-          expiryDate: "2025-01-31",
-          status: "valid",
-          issuingAuthority: "Department of Environment"
-        }
-      ],
-      collections: [],
-      regulatoryRequirements: {
-        permitRequired: true,
-        reportingFrequency: "monthly",  
-        auditRequired: true
-      }
-    },
-    {
-      id: "WASTE004",
-      name: "Hazardous Waste",
-      description: "Chemical containers, batteries, electronic waste, medical waste",
-      icon: AlertTriangle,
-      riskLevel: "high",
-      requiresPhotos: 5,
-      averageWeight: 50,
-      pricePerKg: 2.50,
-      specialHandling: true,
-      environmentalCompliance: ["DOE License", "Specialized Transport", "Certified Disposal"],
-      totalCollections: 23,
-      revenueGenerated: 15750,
-      color: "bg-red-500",
-      varianceThreshold: 5,
-      complianceRecords: [
-        {
-          certificateId: "DOE-HAZ-2024-010",
-          issueDate: "2024-01-15",
-          expiryDate: "2024-07-15",
-          status: "expiring",
-          issuingAuthority: "Department of Environment"
-        }
-      ],
-      collections: [],
-      regulatoryRequirements: {
-        permitRequired: true,
-        reportingFrequency: "weekly",
-        auditRequired: true
-      }
+      id: "CAT004",
+      name: "Organic Waste",
+      type: "organic",
+      color: "bg-orange-100 text-orange-800",
+      description: "Food waste, garden trimmings, biodegradable materials",
+      pricePerKg: 0.10,
+      environmentalImpact: "low",
+      specialHandling: false,
+      regulations: ["Organic Waste Composting Guidelines"]
     }
   ]);
 
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [showCollectionModal, setShowCollectionModal] = useState(false);
-  const [showAnalyticsModal, setShowAnalyticsModal] = useState(false);
-  const [showComplianceModal, setShowComplianceModal] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<WasteCategory | null>(null);
+  const [collections, setCollections] = useState<WasteCollection[]>([
+    {
+      id: "COL001",
+      categoryId: "CAT001",
+      categoryName: "Construction Debris",
+      collectionDate: "2024-06-15",
+      estimatedWeight: 500,
+      actualWeight: 485,
+      photos: ["photo1.jpg", "photo2.jpg", "photo3.jpg"],
+      location: "Jalan Ampang, KL",
+      driverName: "Ahmad Rahman",
+      complianceStatus: "compliant",
+      notes: "Collection completed without issues",
+      variance: -15,
+      variancePercent: -3.0
+    },
+    {
+      id: "COL002",
+      categoryId: "CAT002",
+      categoryName: "Electronic Waste",
+      collectionDate: "2024-06-14",
+      estimatedWeight: 150,
+      actualWeight: 180,
+      photos: ["photo4.jpg", "photo5.jpg", "photo6.jpg"],
+      location: "Shah Alam, Selangor",
+      driverName: "Lim Wei Ming",
+      complianceStatus: "pending",
+      notes: "Awaiting hazardous waste certification",
+      variance: 30,
+      variancePercent: 20.0
+    }
+  ]);
 
-  const getRiskBadge = (risk: string) => {
-    switch (risk) {
-      case "low":
-        return <Badge className="bg-green-100 text-green-800">Low Risk</Badge>;
-      case "medium":
-        return <Badge className="bg-orange-100 text-orange-800">Medium Risk</Badge>;
-      case "high":
-        return <Badge className="bg-red-100 text-red-800">High Risk</Badge>;
+  const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
+  const [showCollectionModal, setShowCollectionModal] = useState(false);
+  const [showComplianceModal, setShowComplianceModal] = useState(false);
+
+  const getTypeIcon = (type: string) => {
+    switch (type) {
+      case "recyclable":
+        return <Recycle className="h-4 w-4" />;
+      case "hazardous":
+        return <AlertTriangle className="h-4 w-4" />;
+      case "organic":
+        return <Leaf className="h-4 w-4" />;
+      case "general":
+        return <Factory className="h-4 w-4" />;
+      default:
+        return <Trash2 className="h-4 w-4" />;
+    }
+  };
+
+  const getComplianceStatusBadge = (status: string) => {
+    switch (status) {
+      case "compliant":
+        return <Badge className="bg-green-100 text-green-800">Compliant</Badge>;
+      case "pending":
+        return <Badge className="bg-orange-100 text-orange-800">Pending Review</Badge>;
+      case "violation":
+        return <Badge className="bg-red-100 text-red-800">Violation</Badge>;
       default:
         return <Badge variant="secondary">Unknown</Badge>;
     }
   };
 
-  const getComplianceStatusBadge = (records: ComplianceRecord[]) => {
-    const expiring = records.filter(r => r.status === 'expiring').length;
-    const expired = records.filter(r => r.status === 'expired').length;
-    
-    if (expired > 0) return <Badge className="bg-red-100 text-red-800">Non-Compliant</Badge>;
-    if (expiring > 0) return <Badge className="bg-yellow-100 text-yellow-800">Expiring Soon</Badge>;
-    return <Badge className="bg-green-100 text-green-800">Compliant</Badge>;
+  const getVarianceBadge = (variance: number) => {
+    if (variance > 10) {
+      return <Badge className="bg-red-100 text-red-800">High Variance</Badge>;
+    } else if (variance > 5) {
+      return <Badge className="bg-orange-100 text-orange-800">Medium Variance</Badge>;
+    } else {
+      return <Badge className="bg-green-100 text-green-800">Low Variance</Badge>;
+    }
   };
 
-  const getVarianceAnalysis = () => {
-    const allCollections = wasteCategories.flatMap(cat => cat.collections);
-    const totalVariance = allCollections.reduce((sum, col) => sum + Math.abs(col.weightVariance.percentageVariance), 0);
-    const avgVariance = allCollections.length > 0 ? totalVariance / allCollections.length : 0;
-    const highVarianceCollections = allCollections.filter(col => 
-      Math.abs(col.weightVariance.percentageVariance) > 15
-    ).length;
-    
-    return { avgVariance, highVarianceCollections, totalCollections: allCollections.length };
+  const getTotalWeightVariance = () => {
+    const totalEstimated = collections.reduce((sum, col) => sum + col.estimatedWeight, 0);
+    const totalActual = collections.reduce((sum, col) => sum + col.actualWeight, 0);
+    return ((totalActual - totalEstimated) / totalEstimated) * 100;
   };
 
-  const varianceStats = getVarianceAnalysis();
+  const getComplianceRate = () => {
+    const compliantCount = collections.filter(col => col.complianceStatus === "compliant").length;
+    return (compliantCount / collections.length) * 100;
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Upload className="h-6 w-6 text-blue-600" />
-            Phase 6: Advanced Waste Category Management
+            <Trash2 className="h-6 w-6 text-green-600" />
+            Phase 6: Comprehensive Waste Management System
           </h2>
-          <p className="text-gray-600 mt-1">Comprehensive classification with photo documentation, weight variance analysis, and environmental compliance tracking</p>
+          <p className="text-gray-600 mt-1">Advanced waste classification, photo documentation, and environmental compliance tracking</p>
         </div>
         <div className="flex gap-2">
-          <Dialog open={showAnalyticsModal} onOpenChange={setShowAnalyticsModal}>
-            <DialogTrigger asChild>
-              <Button variant="outline">
-                <TrendingUp className="h-4 w-4 mr-2" />
-                Analytics
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Weight Variance & Environmental Analytics</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Card>
-                    <CardContent className="p-4">
-                      <h3 className="font-semibold mb-2">Avg Weight Variance</h3>
-                      <div className="text-2xl font-bold text-blue-600">{varianceStats.avgVariance.toFixed(1)}%</div>
-                      <p className="text-sm text-gray-600">Estimation accuracy</p>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="p-4">
-                      <h3 className="font-semibold mb-2">High Variance</h3>
-                      <div className="text-2xl font-bold text-orange-600">{varianceStats.highVarianceCollections}</div>
-                      <p className="text-sm text-gray-600">Collections >15% variance</p>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="p-4">
-                      <h3 className="font-semibold mb-2">Total Collections</h3>
-                      <div className="text-2xl font-bold text-green-600">{varianceStats.totalCollections}</div>
-                      <p className="text-sm text-gray-600">Documented collections</p>
-                    </CardContent>
-                  </Card>
-                </div>
-                
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Collection Details with Photo Documentation</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {wasteCategories.map(category => 
-                      category.collections.map(collection => (
-                        <div key={collection.id} className="p-4 border rounded-lg mb-4">
-                          <div className="flex justify-between items-start mb-3">
-                            <div>
-                              <h4 className="font-medium">{category.name}</h4>
-                              <p className="text-sm text-gray-600">{collection.date} - {collection.location}</p>
-                            </div>
-                            <div className="text-right">
-                              <div className="text-sm">Est: {collection.weightVariance.estimated}kg</div>
-                              <div className="text-sm">Act: {collection.weightVariance.actual}kg</div>
-                              <div className={`text-sm font-bold ${Math.abs(collection.weightVariance.percentageVariance) > 10 ? 'text-red-600' : 'text-green-600'}`}>
-                                {collection.weightVariance.percentageVariance > 0 ? '+' : ''}{collection.weightVariance.percentageVariance.toFixed(1)}%
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <div className="mb-3">
-                            <p className="text-sm font-medium mb-2">Photo Documentation ({collection.photos.length} photos)</p>
-                            <div className="grid grid-cols-3 gap-2">
-                              {collection.photos.map(photo => (
-                                <div key={photo.id} className="p-2 bg-gray-100 rounded text-xs">
-                                  <div className="font-medium">{photo.location}</div>
-                                  <div className="text-gray-600">{photo.timestamp}</div>
-                                  <div className="text-gray-500">{photo.notes}</div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                          
-                          <div className="grid grid-cols-3 gap-4 text-sm">
-                            <div>
-                              <span className="text-gray-500">Carbon Footprint:</span>
-                              <div className="font-medium">{collection.environmentalImpact.carbonFootprint} kg CO₂</div>
-                            </div>
-                            <div>
-                              <span className="text-gray-500">Recycling Rate:</span>
-                              <div className="font-medium">{collection.environmentalImpact.recyclingRate}%</div>
-                            </div>
-                            <div>
-                              <span className="text-gray-500">Disposal:</span>
-                              <div className="font-medium">{collection.environmentalImpact.disposalMethod}</div>
-                            </div>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
-            </DialogContent>
-          </Dialog>
           <Dialog open={showComplianceModal} onOpenChange={setShowComplianceModal}>
             <DialogTrigger asChild>
               <Button variant="outline">
-                <Shield className="h-4 w-4 mr-2" />
-                Compliance
+                <ClipboardCheck className="h-4 w-4 mr-2" />
+                Compliance Report
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-3xl">
               <DialogHeader>
-                <DialogTitle>Environmental Compliance Dashboard</DialogTitle>
+                <DialogTitle>Environmental Compliance Report</DialogTitle>
               </DialogHeader>
-              <div className="space-y-4">
-                {wasteCategories.map(category => (
-                  <Card key={category.id}>
-                    <CardHeader>
-                      <div className="flex justify-between items-center">
-                        <CardTitle className="text-lg">{category.name}</CardTitle>
-                        {getComplianceStatusBadge(category.complianceRecords)}
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <h4 className="font-medium mb-2">Regulatory Requirements</h4>
-                          <div className="text-sm space-y-1">
-                            <div>Permit Required: {category.regulatoryRequirements.permitRequired ? 'Yes' : 'No'}</div>
-                            <div>Reporting: {category.regulatoryRequirements.reportingFrequency}</div>
-                            <div>Audit Required: {category.regulatoryRequirements.auditRequired ? 'Yes' : 'No'}</div>
-                          </div>
-                        </div>
-                        <div>
-                          <h4 className="font-medium mb-2">Active Certificates</h4>
-                          {category.complianceRecords.length > 0 ? (
-                            <div className="space-y-2">
-                              {category.complianceRecords.map((record, index) => (
-                                <div key={index} className="p-2 bg-gray-50 rounded text-sm">
-                                  <div className="font-medium">{record.certificateId}</div>
-                                  <div className="text-gray-600">Expires: {record.expiryDate}</div>
-                                  <div className="text-gray-600">Authority: {record.issuingAuthority}</div>
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
-                            <p className="text-sm text-gray-500">No certificates required</p>
-                          )}
-                        </div>
+              <div className="space-y-4 py-4">
+                <div className="grid grid-cols-3 gap-4">
+                  <Card>
+                    <CardContent className="p-4">
+                      <h3 className="font-semibold mb-2">Compliance Rate</h3>
+                      <div className="text-2xl font-bold text-green-600">{getComplianceRate().toFixed(1)}%</div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-4">
+                      <h3 className="font-semibold mb-2">Pending Reviews</h3>
+                      <div className="text-2xl font-bold text-orange-600">
+                        {collections.filter(c => c.complianceStatus === "pending").length}
                       </div>
                     </CardContent>
                   </Card>
-                ))}
+                  <Card>
+                    <CardContent className="p-4">
+                      <h3 className="font-semibold mb-2">Violations</h3>
+                      <div className="text-2xl font-bold text-red-600">
+                        {collections.filter(c => c.complianceStatus === "violation").length}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+                <div>
+                  <h4 className="font-semibold mb-3">Regulatory Compliance by Category</h4>
+                  <div className="space-y-2">
+                    {categories.map((category) => (
+                      <div key={category.id} className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                        <div>
+                          <div className="font-medium">{category.name}</div>
+                          <div className="text-sm text-gray-600">
+                            Regulations: {category.regulations.join(", ")}
+                          </div>
+                        </div>
+                        <Badge className={category.color}>
+                          {category.specialHandling ? "Special Handling" : "Standard"}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </DialogContent>
           </Dialog>
-          <Dialog open={showCollectionModal} onOpenChange={setShowCollectionModal}>
-            <DialogTrigger asChild>
-              <Button variant="outline">
-                <Camera className="h-4 w-4 mr-2" />
-                Log Collection
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>Advanced Waste Collection Logging</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4 py-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Waste Category</Label>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {wasteCategories.map((category) => (
-                          <SelectItem key={category.id} value={category.id}>
-                            {category.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Estimated Weight (kg)</Label>
-                    <Input type="number" placeholder="500" />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label>Collection Location</Label>
-                  <Input placeholder="Complete address with GPS coordinates" />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Actual Weight (kg)</Label>
-                    <Input type="number" placeholder="Enter after weighing" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Variance Reason</Label>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select reason" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="accurate">Accurate Estimation</SelectItem>
-                        <SelectItem value="underestimated">Underestimated Volume</SelectItem>
-                        <SelectItem value="overestimated">Overestimated Volume</SelectItem>
-                        <SelectItem value="moisture">Moisture Content</SelectItem>
-                        <SelectItem value="density">Material Density Different</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label>Photo Documentation (Min. 3 photos required)</Label>
-                  <div className="grid grid-cols-3 gap-2">
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
-                      <Camera className="h-6 w-6 mx-auto mb-1 text-gray-400" />
-                      <p className="text-xs text-gray-600">Before</p>
-                    </div>
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
-                      <Camera className="h-6 w-6 mx-auto mb-1 text-gray-400" />
-                      <p className="text-xs text-gray-600">During</p>
-                    </div>
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
-                      <Camera className="h-6 w-6 mx-auto mb-1 text-gray-400" />
-                      <p className="text-xs text-gray-600">After</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label>Environmental Impact</Label>
-                  <div className="grid grid-cols-3 gap-2">
-                    <div>
-                      <Label className="text-xs">Carbon Footprint (kg CO₂)</Label>
-                      <Input type="number" step="0.1" placeholder="2.5" />
-                    </div>
-                    <div>
-                      <Label className="text-xs">Recycling Rate (%)</Label>
-                      <Input type="number" placeholder="85" />
-                    </div>
-                    <div>
-                      <Label className="text-xs">Disposal Method</Label>
-                      <Select>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Method" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="recycling">Recycling Facility</SelectItem>
-                          <SelectItem value="landfill">Landfill</SelectItem>
-                          <SelectItem value="incineration">Incineration</SelectItem>
-                          <SelectItem value="treatment">Treatment Plant</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label>Special Notes & Compliance Checks</Label>
-                  <Textarea placeholder="Document any special handling requirements, compliance verifications, or observations" />
-                </div>
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setShowCollectionModal(false)}>Cancel</Button>
-                <Button onClick={() => setShowCollectionModal(false)}>Log Collection</Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-          <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
+          <Dialog open={showAddCategoryModal} onOpenChange={setShowAddCategoryModal}>
             <DialogTrigger asChild>
               <Button className="bg-blue-600 hover:bg-blue-700 text-white">
                 <Plus className="h-4 w-4 mr-2" />
-                Add Category
+                Add Waste Category
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent>
               <DialogHeader>
-                <DialogTitle>Add New Waste Category with Compliance Settings</DialogTitle>
+                <DialogTitle>Add New Waste Category</DialogTitle>
               </DialogHeader>
               <div className="grid grid-cols-2 gap-4 py-4">
                 <div className="space-y-2">
                   <Label>Category Name</Label>
-                  <Input placeholder="e.g., Electronic Waste" />
+                  <Input placeholder="e.g., Hazardous Chemicals" />
                 </div>
                 <div className="space-y-2">
-                  <Label>Risk Level</Label>
+                  <Label>Type</Label>
                   <Select>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select risk level" />
+                      <SelectValue placeholder="Select type" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="low">Low Risk</SelectItem>
-                      <SelectItem value="medium">Medium Risk</SelectItem>
-                      <SelectItem value="high">High Risk</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Minimum Photos Required</Label>
-                  <Select>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select number" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="2">2 Photos</SelectItem>
-                      <SelectItem value="3">3 Photos</SelectItem>  
-                      <SelectItem value="4">4 Photos</SelectItem>
-                      <SelectItem value="5">5 Photos</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Price per KG (RM)</Label>
-                  <Input type="number" step="0.01" placeholder="0.25" />
-                </div>
-                <div className="space-y-2">
-                  <Label>Weight Variance Threshold (%)</Label>
-                  <Input type="number" placeholder="15" />
-                </div>
-                <div className="space-y-2">
-                  <Label>Reporting Frequency</Label>
-                  <Select>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select frequency" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="weekly">Weekly</SelectItem>
-                      <SelectItem value="monthly">Monthly</SelectItem>
-                      <SelectItem value="quarterly">Quarterly</SelectItem>
+                      <SelectItem value="recyclable">Recyclable</SelectItem>
+                      <SelectItem value="hazardous">Hazardous</SelectItem>
+                      <SelectItem value="organic">Organic</SelectItem>
+                      <SelectItem value="general">General Waste</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="col-span-2 space-y-2">
                   <Label>Description</Label>
-                  <Textarea placeholder="Detailed description of waste category and handling requirements" />
+                  <Textarea placeholder="Detailed description of waste category..." />
+                </div>
+                <div className="space-y-2">
+                  <Label>Price per KG (RM)</Label>
+                  <Input type="number" placeholder="0.25" step="0.01" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Environmental Impact</Label>
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select impact level" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Low Impact</SelectItem>
+                      <SelectItem value="medium">Medium Impact</SelectItem>
+                      <SelectItem value="high">High Impact</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setShowAddModal(false)}>Cancel</Button>
-                <Button onClick={() => setShowAddModal(false)}>Add Category</Button>
+                <Button variant="outline" onClick={() => setShowAddCategoryModal(false)}>Cancel</Button>
+                <Button onClick={() => setShowAddCategoryModal(false)}>Add Category</Button>
               </div>
             </DialogContent>
           </Dialog>
         </div>
       </div>
 
-      {/* Enhanced Waste Management Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+      {/* Analytics Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-2">
-              <Upload className="h-5 w-5 text-blue-600" />
+              <Trash2 className="h-5 w-5 text-blue-600" />
               <div>
                 <p className="text-sm text-gray-600">Total Categories</p>
-                <p className="text-2xl font-bold">{wasteCategories.length}</p>
+                <p className="text-2xl font-bold">{categories.length}</p>
               </div>
             </div>
           </CardContent>
@@ -625,8 +319,8 @@ const WasteManagement: React.FC = () => {
             <div className="flex items-center gap-2">
               <Scale className="h-5 w-5 text-green-600" />
               <div>
-                <p className="text-sm text-gray-600">Total Collections</p>
-                <p className="text-2xl font-bold">{wasteCategories.reduce((sum, c) => sum + c.totalCollections, 0)}</p>
+                <p className="text-sm text-gray-600">Total Collected (kg)</p>
+                <p className="text-2xl font-bold">{collections.reduce((sum, col) => sum + col.actualWeight, 0).toLocaleString()}</p>
               </div>
             </div>
           </CardContent>
@@ -634,10 +328,10 @@ const WasteManagement: React.FC = () => {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-2">
-              <Camera className="h-5 w-5 text-purple-600" />
+              <TrendingUp className="h-5 w-5 text-purple-600" />
               <div>
-                <p className="text-sm text-gray-600">Photo Documents</p>
-                <p className="text-2xl font-bold">{wasteCategories.reduce((sum, c) => sum + c.collections.reduce((s, col) => s + col.photos.length, 0), 0)}</p>
+                <p className="text-sm text-gray-600">Weight Variance</p>
+                <p className="text-2xl font-bold">{getTotalWeightVariance() > 0 ? '+' : ''}{getTotalWeightVariance().toFixed(1)}%</p>
               </div>
             </div>
           </CardContent>
@@ -645,119 +339,240 @@ const WasteManagement: React.FC = () => {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-orange-600" />
+              <CheckCircle className="h-5 w-5 text-orange-600" />
               <div>
-                <p className="text-sm text-gray-600">Avg Variance</p>
-                <p className="text-2xl font-bold">{varianceStats.avgVariance.toFixed(1)}%</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <Shield className="h-5 w-5 text-green-600" />
-              <div>
-                <p className="text-sm text-gray-600">Compliance</p>
-                <p className="text-2xl font-bold">{wasteCategories.filter(c => c.complianceRecords.every(r => r.status === 'valid')).length}/{wasteCategories.length}</p>
+                <p className="text-sm text-gray-600">Compliance Rate</p>
+                <p className="text-2xl font-bold">{getComplianceRate().toFixed(1)}%</p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Enhanced Category List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {wasteCategories.map((category) => (
-          <Card key={category.id} className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <div className={`${category.color} p-2 rounded-lg text-white`}>
-                    <category.icon className="h-5 w-5" />
-                  </div>
-                  {category.name}
-                </CardTitle>
-                <div className="flex gap-1">
-                  {getRiskBadge(category.riskLevel)}
-                  {getComplianceStatusBadge(category.complianceRecords)}
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-gray-600">{category.description}</p>
-              
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <p className="text-gray-500">Photos Required</p>
-                  <p className="font-medium flex items-center gap-1">
-                    <Camera className="h-3 w-3" />
-                    {category.requiresPhotos} minimum
-                  </p>
-                </div>
-                <div>
-                  <p className="text-gray-500">Variance Threshold</p>
-                  <p className="font-medium">±{category.varianceThreshold}%</p>
-                </div>
-                <div>
-                  <p className="text-gray-500">Collections</p>
-                  <p className="font-medium">{category.totalCollections}</p>
-                </div>
-                <div>
-                  <p className="text-gray-500">Reporting</p>
-                  <p className="font-medium capitalize">{category.regulatoryRequirements.reportingFrequency}</p>
-                </div>
-              </div>
-
-              <div>
-                <p className="text-sm text-gray-500 mb-2">Environmental Compliance</p>
-                <div className="flex flex-wrap gap-1">
-                  {category.environmentalCompliance.map((req, index) => (
-                    <Badge key={index} variant="outline" className="text-xs">
-                      {req}
+      {/* Waste Categories */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Factory className="h-5 w-5 text-green-600" />
+            Waste Categories & Classification
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {categories.map((category) => (
+              <Card key={category.id} className="border-l-4 border-l-blue-500">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      {getTypeIcon(category.type)}
+                      <h3 className="font-semibold">{category.name}</h3>
+                    </div>
+                    <Badge className={category.color} variant="outline">
+                      {category.type}
                     </Badge>
-                  ))}
-                </div>
-              </div>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-3">{category.description}</p>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-gray-500">Price per KG</p>
+                      <p className="font-medium">RM {category.pricePerKg.toFixed(2)}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500">Environmental Impact</p>
+                      <Badge 
+                        className={
+                          category.environmentalImpact === 'high' ? 'bg-red-100 text-red-800' :
+                          category.environmentalImpact === 'medium' ? 'bg-orange-100 text-orange-800' :
+                          'bg-green-100 text-green-800'
+                        }
+                      >
+                        {category.environmentalImpact}
+                      </Badge>
+                    </div>
+                  </div>
+                  {category.specialHandling && (
+                    <div className="mt-3 p-2 bg-yellow-50 rounded-lg">
+                      <div className="flex items-center gap-1 text-sm text-yellow-800">
+                        <AlertTriangle className="h-4 w-4" />
+                        Requires Special Handling
+                      </div>
+                    </div>
+                  )}
+                  <div className="mt-3">
+                    <p className="text-xs text-gray-500 mb-1">Applicable Regulations:</p>
+                    <div className="flex flex-wrap gap-1">
+                      {category.regulations.map((reg, index) => (
+                        <Badge key={index} variant="outline" className="text-xs">
+                          {reg}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
-              {category.specialHandling && (
-                <div className="flex items-center gap-2 p-2 bg-yellow-50 rounded-lg">
-                  <AlertTriangle className="h-4 w-4 text-yellow-600" />
-                  <span className="text-sm text-yellow-800">Requires Special Handling</span>
-                </div>
-              )}
-
-              <div className="flex gap-2 pt-2">
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  className="flex-1"
-                  onClick={() => setShowCollectionModal(true)}
-                >
-                  <Camera className="h-3 w-3 mr-1" />
+      {/* Recent Collections with Photo Documentation */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Camera className="h-5 w-5 text-green-600" />
+              Recent Collections with Documentation
+            </CardTitle>
+            <Dialog open={showCollectionModal} onOpenChange={setShowCollectionModal}>
+              <DialogTrigger asChild>
+                <Button size="sm">
+                  <Plus className="h-4 w-4 mr-2" />
                   Log Collection
                 </Button>
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  className="flex-1"
-                  onClick={() => {
-                    setSelectedCategory(category);
-                    setShowAnalyticsModal(true);
-                  }}
-                >
-                  <TrendingUp className="h-3 w-3 mr-1" />
-                  Analytics
-                </Button>
-                <Button size="sm" variant="outline" className="flex-1">
-                  <FileText className="h-3 w-3 mr-1" />
-                  Report
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>Log New Waste Collection</DialogTitle>
+                </DialogHeader>
+                <div className="grid grid-cols-2 gap-4 py-4">
+                  <div className="space-y-2">
+                    <Label>Waste Category</Label>
+                    <Select>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map((cat) => (
+                          <SelectItem key={cat.id} value={cat.id}>
+                            {cat.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Collection Date</Label>
+                    <Input type="date" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Estimated Weight (kg)</Label>
+                    <Input type="number" placeholder="500" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Actual Weight (kg)</Label>
+                    <Input type="number" placeholder="485" />
+                  </div>
+                  <div className="col-span-2 space-y-2">
+                    <Label>Collection Location</Label>
+                    <Input placeholder="Complete address" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Assigned Driver</Label>
+                    <Input placeholder="Driver name" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Compliance Status</Label>
+                    <Select>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="compliant">Compliant</SelectItem>
+                        <SelectItem value="pending">Pending Review</SelectItem>
+                        <SelectItem value="violation">Violation</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="col-span-2 space-y-2">
+                    <Label>Photo Documentation (Min. 3 Photos Required)</Label>
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+                      <div className="text-center">
+                        <Camera className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                        <p className="text-sm text-gray-600">Upload collection photos</p>
+                        <Button variant="outline" size="sm" className="mt-2">
+                          Choose Files
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="col-span-2 space-y-2">
+                    <Label>Collection Notes</Label>
+                    <Textarea placeholder="Any additional notes or observations..." />
+                  </div>
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button variant="outline" onClick={() => setShowCollectionModal(false)}>Cancel</Button>
+                  <Button onClick={() => setShowCollectionModal(false)}>Log Collection</Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {collections.map((collection) => (
+              <Card key={collection.id} className="hover:shadow-lg transition-shadow">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-blue-100 rounded-full p-2">
+                        {getTypeIcon(categories.find(c => c.id === collection.categoryId)?.type || 'general')}
+                      </div>
+                      <div>
+                        <h3 className="font-semibold">{collection.categoryName}</h3>
+                        <p className="text-sm text-gray-600">{collection.location}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {getComplianceStatusBadge(collection.complianceStatus)}
+                      {getVarianceBadge(Math.abs(collection.variancePercent))}
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                    <div>
+                      <p className="text-sm text-gray-500">Collection Date</p>
+                      <p className="font-medium">{collection.collectionDate}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Estimated Weight</p>
+                      <p className="font-medium">{collection.estimatedWeight} kg</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Actual Weight</p>
+                      <p className="font-medium">{collection.actualWeight} kg</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Variance</p>
+                      <p className={`font-medium ${collection.variance > 0 ? 'text-orange-600' : collection.variance < 0 ? 'text-blue-600' : 'text-green-600'}`}>
+                        {collection.variance > 0 ? '+' : ''}{collection.variance} kg ({collection.variancePercent > 0 ? '+' : ''}{collection.variancePercent.toFixed(1)}%)
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Camera className="h-4 w-4 text-gray-500" />
+                      <span className="text-sm text-gray-600">
+                        {collection.photos.length} photos documented
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-gray-600">Driver: {collection.driverName}</span>
+                    </div>
+                  </div>
+
+                  {collection.notes && (
+                    <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+                      <p className="text-sm text-gray-700">{collection.notes}</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
