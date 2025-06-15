@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -37,7 +36,7 @@ const BusinessLocationManager: React.FC<BusinessLocationManagerProps> = ({
   locations,
   onLocationsUpdate
 }) => {
-  const [editingLocation, setEditingLocation] = useState<Location | null>(null);
+  const [editingLocation, setEditingLocation] = useState<BusinessLocation | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [newLocation, setNewLocation] = useState({
     address: "",
