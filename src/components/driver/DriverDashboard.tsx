@@ -93,7 +93,7 @@ const mockRouteStops = [
     address: "KLCC Twin Towers, Kuala Lumpur",
     coordinates: { lat: 3.1578, lng: 101.7123 },
     estimatedDuration: 25,
-    priority: "high",
+    priority: "high" as const,
     timeWindow: { start: "2:00 PM", end: "3:00 PM" },
     notes: "Large office complex - use service elevator"
   },
@@ -102,7 +102,7 @@ const mockRouteStops = [
     address: "Pavilion Shopping Centre, Bukit Bintang",
     coordinates: { lat: 3.1492, lng: 101.7133 },
     estimatedDuration: 35,
-    priority: "medium",
+    priority: "medium" as const,
     timeWindow: { start: "3:30 PM", end: "4:30 PM" },
     notes: "Peak hour traffic expected"
   },
@@ -111,7 +111,7 @@ const mockRouteStops = [
     address: "Mid Valley Megamall, KL",
     coordinates: { lat: 3.1177, lng: 101.6774 },
     estimatedDuration: 40,
-    priority: "high",
+    priority: "high" as const,
     timeWindow: { start: "5:00 PM", end: "6:00 PM" },
     notes: "Multiple collection points"
   }
