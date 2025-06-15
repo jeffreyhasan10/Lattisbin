@@ -39,8 +39,19 @@ const CustomerAddressManager: React.FC<CustomerAddressManagerProps> = ({
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingAddress, setEditingAddress] = useState<CustomerAddress | null>(null);
   const [geolocating, setGeolocating] = useState(false);
-  const [newAddress, setNewAddress] = useState({
-    type: "Service" as const,
+  const [newAddress, setNewAddress] = useState<{
+    type: "Billing" | "Service" | "Mailing";
+    address: string;
+    city: string;
+    state: string;
+    postcode: string;
+    country: string;
+    gpsCoordinates: string;
+    isPrimary: boolean;
+    deliveryInstructions: string;
+    accessNotes: string;
+  }>({
+    type: "Service",
     address: "",
     city: "",
     state: "",
@@ -260,7 +271,7 @@ const CustomerAddressManager: React.FC<CustomerAddressManagerProps> = ({
                 <div className="grid grid-cols-2 gap-4 space-y-2">
                   <div>
                     <Label htmlFor="type">Address Type *</Label>
-                    <Select value={newAddress.type} onValueChange={(value: any) => setNewAddress(prev => ({...prev, type: value}))}>
+                    <Select value={newAddress.type} onValueChange={(value: "Billing" | "Service" | "Mailing") => setNewAddress(prev => ({...prev, type: value}))}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -472,7 +483,10 @@ const CustomerAddressManager: React.FC<CustomerAddressManagerProps> = ({
               </div>
             ))}
 
-            {addresses.length === 0 && (
+            {addresses.length ===
+
+
+            0 && (
               <div className="text-center py-8 text-gray-500">
                 <MapPin className="h-12 w-12 mx-auto mb-4 opacity-50" />
                 <p>No addresses added yet</p>

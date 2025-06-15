@@ -39,15 +39,27 @@ const ContactPersonManager: React.FC<ContactPersonManagerProps> = ({
 }) => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingContact, setEditingContact] = useState<ContactPerson | null>(null);
-  const [newContact, setNewContact] = useState({
+  const [newContact, setNewContact] = useState<{
+    name: string;
+    role: "Primary" | "Secondary" | "Emergency";
+    phone: string;
+    email: string;
+    icNumber: string;
+    position: string;
+    department: string;
+    accessLevel: "Full" | "Limited" | "View Only";
+    canPlaceOrders: boolean;
+    canViewBilling: boolean;
+    canModifyProfile: boolean;
+  }>({
     name: "",
-    role: "Secondary" as const,
+    role: "Secondary",
     phone: "",
     email: "",
     icNumber: "",
     position: "",
     department: "",
-    accessLevel: "Limited" as const,
+    accessLevel: "Limited",
     canPlaceOrders: false,
     canViewBilling: false,
     canModifyProfile: false
@@ -248,7 +260,7 @@ const ContactPersonManager: React.FC<ContactPersonManagerProps> = ({
                   </div>
                   <div>
                     <Label htmlFor="role">Contact Role *</Label>
-                    <Select value={newContact.role} onValueChange={(value: any) => setNewContact(prev => ({...prev, role: value}))}>
+                    <Select value={newContact.role} onValueChange={(value: "Primary" | "Secondary" | "Emergency") => setNewContact(prev => ({...prev, role: value}))}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -307,7 +319,7 @@ const ContactPersonManager: React.FC<ContactPersonManagerProps> = ({
                   </div>
                   <div>
                     <Label htmlFor="accessLevel">Access Level</Label>
-                    <Select value={newContact.accessLevel} onValueChange={(value: any) => setNewContact(prev => ({...prev, accessLevel: value}))}>
+                    <Select value={newContact.accessLevel} onValueChange={(value: "Full" | "Limited" | "View Only") => setNewContact(prev => ({...prev, accessLevel: value}))}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>

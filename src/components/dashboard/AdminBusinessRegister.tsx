@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -44,7 +43,7 @@ interface Business {
   };
 }
 
-interface Location {
+interface BusinessLocation {
   id: string;
   locationType: "Headquarters" | "Branch" | "Warehouse" | "Service Point";
   address: string;
@@ -195,7 +194,7 @@ const AdminBusinessRegister: React.FC = () => {
     setShowLocationModal(true);
   };
 
-  const handleROCValidation = (businessId: string) => {
+  const handleROCValidationClick = (businessId: string) => {
     setSelectedBusinessId(businessId);
     setShowROCModal(true);
   };
@@ -229,7 +228,7 @@ const AdminBusinessRegister: React.FC = () => {
     ));
   };
 
-  const handleLocationUpdate = (locations: Location[]) => {
+  const handleLocationUpdate = (locations: BusinessLocation[]) => {
     // Update business locations
     setBusinesses(prev => prev.map(business => 
       business.id === selectedBusinessId 
@@ -238,11 +237,11 @@ const AdminBusinessRegister: React.FC = () => {
     ));
   };
 
-  const handleROCValidation = (result: any) => {
+  const handleROCValidationResult = (result: any) => {
     if (result?.isValid) {
       setBusinesses(prev => prev.map(business => 
         business.id === selectedBusinessId 
-          ? { ...business, verificationStatus: "verified" }
+          ? { ...business, verificationStatus: "verified" as const }
           : business
       ));
     }
@@ -561,7 +560,7 @@ const AdminBusinessRegister: React.FC = () => {
                 <Button 
                   size="sm" 
                   variant="outline" 
-                  onClick={() => handleROCValidation(business.id)}
+                  onClick={() => handleROCValidationClick(business.id)}
                   className="text-xs"
                 >
                   <Search className="h-3 w-3 mr-1" />
@@ -610,7 +609,7 @@ const AdminBusinessRegister: React.FC = () => {
           </DialogHeader>
           {selectedBusinessId && (
             <ROCValidationService
-              onValidationResult={handleROCValidation}
+              onValidationResult={handleROCValidationResult}
               initialROC={businesses.find(b => b.id === selectedBusinessId)?.rocNumber || ""}
             />
           )}
