@@ -2,6 +2,7 @@
 import React from "react";
 import { Outlet } from "react-router-dom";
 import { SidebarProvider, useSidebar } from "@/components/ui/sidebar";
+import { NavigationProvider } from "@/contexts/NavigationProvider";
 import DriverSidebar from "@/components/driver/DriverSidebar";
 import DriverHeader from "@/components/driver/DriverHeader";
 
@@ -28,9 +29,11 @@ const DriverLayoutContent = () => {
 
 const DriverLayout = () => {
   return (
-    <SidebarProvider defaultOpen={true}>
-      <DriverLayoutContent />
-    </SidebarProvider>
+    <NavigationProvider>
+      <SidebarProvider defaultOpen={true}>
+        <DriverLayoutContent />
+      </SidebarProvider>
+    </NavigationProvider>
   );
 };
 

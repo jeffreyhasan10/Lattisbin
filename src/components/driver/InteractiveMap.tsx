@@ -13,9 +13,17 @@ import {
   RefreshCw,
   AlertCircle,
   CheckCircle,
-  Clock
+  Clock,
+  Satellite,
+  Download,
+  Wifi,
+  WifiOff
 } from "lucide-react";
 import { toast } from "sonner";
+import { useNavigation } from "@/contexts/NavigationProvider";
+import RouteOptimizer from "./RouteOptimizer";
+import OfflineMapManager, { OfflineArea } from "@/utils/OfflineMapManager";
+import GeofenceManager from "@/utils/GeofenceManager";
 
 interface Job {
   id: string;
@@ -39,10 +47,53 @@ interface InteractiveMapProps {
 
 const InteractiveMap: React.FC<InteractiveMapProps> = ({ jobs, currentLocation, isOnline }) => {
   const mapRef = useRef<HTMLDivElement>(null);
+  const { navigationState, startTracking, stopTracking, getCurrentPosition } = useNavigation();
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [routeMode, setRouteMode] = useState<'single' | 'optimized'>('single');
   const [nearestJobs, setNearestJobs] = useState<Job[]>([]);
+  const [offlineMapManager] = useState(new OfflineMapManager());
+  const [geofenceManager] = useState(new GeofenceManager());
+  const [offlineAreas, setOfflineAreas] = useState<OfflineArea[]>([]);
+  const [showRouteOptimizer, setShowRouteOptimizer] = useState(false);
+
+  // Initialize offline map manager and geofence manager
+  useEffect(() => {
+    const initializeManagers = async () => {
+      try {
+        await offlineMapManager.initialize();
+        const areas = await offlineMapManager.getOfflineAreas();
+        setOfflineAreas(areas);
+
+        // Setup geofence monitoring
+        geofenceManager.addEventListener((event) => {
+          console.log('Geofence event:', event);
+          toast.info(`Geofence ${event.event}: ${event.geofenceId}`);
+        });
+
+        if (navigationState.isTracking) {
+          geofenceManager.startMonitoring(getCurrentPosition);
+        }
+      } catch (error) {
+        console.error('Failed to initialize managers:', error);
+      }
+    };
+
+    initializeManagers();
+
+    return () => {
+      geofenceManager.stopMonitoring();
+    };
+  }, []);
+
+  // Start geofence monitoring when GPS tracking starts
+  useEffect(() => {
+    if (navigationState.isTracking) {
+      geofenceManager.startMonitoring(getCurrentPosition);
+    } else {
+      geofenceManager.stopMonitoring();
+    }
+  }, [navigationState.isTracking]);
 
   // Calculate distance between two coordinates
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
@@ -60,12 +111,12 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ jobs, currentLocation, 
 
   // Find nearest jobs
   useEffect(() => {
-    if (currentLocation) {
+    if (navigationState.currentPosition) {
       const jobsWithDistance = jobs.map(job => ({
         ...job,
         calculatedDistance: calculateDistance(
-          currentLocation.lat,
-          currentLocation.lng,
+          navigationState.currentPosition!.lat,
+          navigationState.currentPosition!.lng,
           job.coordinates.lat,
           job.coordinates.lng
         )
@@ -77,7 +128,7 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ jobs, currentLocation, 
 
       setNearestJobs(sorted);
     }
-  }, [currentLocation, jobs]);
+  }, [navigationState.currentPosition, jobs]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -97,36 +148,89 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ jobs, currentLocation, 
     }
   };
 
+  const handleStartTracking = async () => {
+    const success = await startTracking();
+    if (success) {
+      // Create geofences for active jobs
+      jobs.filter(job => job.status === 'pending').forEach(job => {
+        const geofence = geofenceManager.createCustomerGeofence(
+          job.id,
+          job.customerName,
+          job.pickupAddress,
+          job.coordinates
+        );
+        geofenceManager.addGeofence(geofence);
+      });
+    }
+  };
+
+  const handleStopTracking = () => {
+    stopTracking();
+    geofenceManager.stopMonitoring();
+  };
+
   const openNavigation = (job: Job) => {
     const url = `https://www.google.com/maps/dir/?api=1&destination=${job.coordinates.lat},${job.coordinates.lng}`;
     window.open(url, '_blank');
     toast.success(`Opening navigation to ${job.customerName}`);
   };
 
-  const optimizeRoute = () => {
-    const pendingJobs = jobs.filter(job => job.status === 'pending');
-    if (pendingJobs.length === 0) {
-      toast.info("No pending jobs to optimize");
+  const downloadOfflineArea = async () => {
+    if (!navigationState.currentPosition) {
+      toast.error('Current location required for offline download');
       return;
     }
-    
-    toast.success(`Route optimized for ${pendingJobs.length} stops`);
-    setRouteMode('optimized');
+
+    const area: Omit<OfflineArea, 'downloadStatus' | 'progress' | 'size' | 'lastUpdated'> = {
+      id: `area_${Date.now()}`,
+      name: 'Current Area',
+      bounds: {
+        north: navigationState.currentPosition.lat + 0.05,
+        south: navigationState.currentPosition.lat - 0.05,
+        east: navigationState.currentPosition.lng + 0.05,
+        west: navigationState.currentPosition.lng - 0.05,
+      },
+      priority: 'high',
+    };
+
+    try {
+      toast.info('Starting offline map download...');
+      await offlineMapManager.downloadArea(area);
+      const updatedAreas = await offlineMapManager.getOfflineAreas();
+      setOfflineAreas(updatedAreas);
+      toast.success('Offline map downloaded successfully');
+    } catch (error) {
+      toast.error('Failed to download offline map');
+    }
   };
 
   return (
     <div className="space-y-6">
-      {/* Map Controls */}
+      {/* Enhanced Map Controls */}
       <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-blue-50/30">
         <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-t-lg">
           <CardTitle className="text-lg flex items-center gap-2">
             <MapPin className="h-5 w-5" />
-            Interactive Map
-            {!isOnline && (
-              <Badge variant="outline" className="bg-orange-100 text-orange-800 border-orange-300">
-                Offline Mode
-              </Badge>
-            )}
+            GPS Navigation & Tracking
+            <div className="flex gap-2 ml-auto">
+              {navigationState.isOnline ? (
+                <Badge className="bg-green-100 text-green-800 border-green-300">
+                  <Wifi className="h-3 w-3 mr-1" />
+                  Online
+                </Badge>
+              ) : (
+                <Badge className="bg-orange-100 text-orange-800 border-orange-300">
+                  <WifiOff className="h-3 w-3 mr-1" />
+                  Offline
+                </Badge>
+              )}
+              {navigationState.isTracking && (
+                <Badge className="bg-green-100 text-green-800 border-green-300 animate-pulse">
+                  <Satellite className="h-3 w-3 mr-1" />
+                  GPS Active
+                </Badge>
+              )}
+            </div>
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6 space-y-4">
@@ -141,33 +245,42 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ jobs, currentLocation, 
             />
           </div>
 
-          {/* Map Controls */}
+          {/* Enhanced Controls */}
           <div className="flex flex-wrap gap-3">
+            {!navigationState.isTracking ? (
+              <Button 
+                onClick={handleStartTracking}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                <Satellite className="h-4 w-4 mr-2" />
+                Start GPS Tracking
+              </Button>
+            ) : (
+              <Button 
+                onClick={handleStopTracking}
+                variant="outline"
+                className="border-red-200 text-red-700 hover:bg-red-50"
+              >
+                <Satellite className="h-4 w-4 mr-2" />
+                Stop Tracking
+              </Button>
+            )}
+            
             <Button 
-              variant="outline" 
-              size="sm"
-              className="bg-white hover:bg-blue-50 border-blue-200 text-blue-700"
-              onClick={() => {
-                if (navigator.geolocation) {
-                  navigator.geolocation.getCurrentPosition(
-                    () => toast.success("Location updated"),
-                    () => toast.error("Location access denied")
-                  );
-                }
-              }}
+              onClick={() => setShowRouteOptimizer(!showRouteOptimizer)}
+              className="bg-purple-600 hover:bg-purple-700 text-white"
             >
-              <Locate className="h-4 w-4 mr-2" />
-              My Location
+              <Route className="h-4 w-4 mr-2" />
+              Route Optimizer
             </Button>
             
             <Button 
-              variant="outline" 
-              size="sm"
-              className="bg-white hover:bg-green-50 border-green-200 text-green-700"
-              onClick={optimizeRoute}
+              onClick={downloadOfflineArea}
+              variant="outline"
+              className="bg-white hover:bg-blue-50 border-blue-200 text-blue-700"
             >
-              <Route className="h-4 w-4 mr-2" />
-              Optimize Route
+              <Download className="h-4 w-4 mr-2" />
+              Download Area
             </Button>
             
             <Button 
@@ -180,8 +293,52 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ jobs, currentLocation, 
               Refresh
             </Button>
           </div>
+
+          {/* GPS Status */}
+          {navigationState.currentPosition && (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="text-green-800 font-medium">GPS Active</span>
+                </div>
+                <div className="text-green-700">
+                  Accuracy: {navigationState.currentPosition.accuracy.toFixed(0)}m
+                  {navigationState.currentPosition.speed && (
+                    <span className="ml-2">Speed: {(navigationState.currentPosition.speed * 3.6).toFixed(0)} km/h</span>
+                  )}
+                </div>
+              </div>
+              {navigationState.lastUpdate && (
+                <div className="text-xs text-green-600 mt-1">
+                  Last update: {navigationState.lastUpdate.toLocaleTimeString()}
+                </div>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
+
+      {/* Route Optimizer */}
+      {showRouteOptimizer && (
+        <RouteOptimizer
+          stops={jobs.filter(job => job.status === 'pending').map(job => ({
+            id: job.id,
+            address: job.pickupAddress,
+            coordinates: job.coordinates,
+            estimatedDuration: 30, // Default 30 minutes
+            priority: job.priority as 'high' | 'medium' | 'low',
+            notes: `${job.binType} - RM${job.amount}`,
+          }))}
+          onRouteOptimized={(route) => {
+            toast.success(`Route optimized with ${route.stops.length} stops`);
+            setRouteMode('optimized');
+          }}
+          onNavigationStart={(route) => {
+            toast.success('Navigation started for optimized route');
+          }}
+        />
+      )}
 
       {/* Map Display */}
       <Card className="shadow-lg border-0 overflow-hidden">
@@ -237,7 +394,41 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ jobs, currentLocation, 
         </CardContent>
       </Card>
 
-      {/* Nearest Jobs */}
+      {/* Offline Areas */}
+      {offlineAreas.length > 0 && (
+        <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-gray-50/30">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Download className="h-5 w-5 text-blue-600" />
+              Offline Maps ({offlineAreas.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="space-y-3">
+              {offlineAreas.map((area) => (
+                <div key={area.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div>
+                    <p className="font-medium text-gray-900">{area.name}</p>
+                    <p className="text-sm text-gray-600">
+                      {(area.size / (1024 * 1024)).toFixed(1)} MB • 
+                      {area.downloadStatus === 'completed' ? 'Ready' : area.downloadStatus}
+                    </p>
+                  </div>
+                  <Badge className={
+                    area.downloadStatus === 'completed' ? 'bg-green-100 text-green-800' :
+                    area.downloadStatus === 'downloading' ? 'bg-blue-100 text-blue-800' :
+                    'bg-gray-100 text-gray-800'
+                  }>
+                    {area.progress}%
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Nearest Jobs - Enhanced with GPS data */}
       <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-green-50/30">
         <CardHeader className="bg-gradient-to-r from-green-600 to-green-700 text-white rounded-t-lg">
           <CardTitle className="text-lg flex items-center gap-2">
