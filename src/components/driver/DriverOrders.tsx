@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   Breadcrumb,
   BreadcrumbList,
@@ -42,6 +42,8 @@ import {
   Route,
   Timer,
   Info,
+  Play,
+  Square,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -52,9 +54,9 @@ const DriverOrders = () => {
   const [activeTab, setActiveTab] = useState("all");
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-
-  // Mock data for orders
-  const orders = [
+  
+  // State for orders
+  const [orders, setOrders] = useState([
     {
       id: "JOB001",
       customer: "ABC Construction Sdn Bhd",
@@ -63,7 +65,7 @@ const DriverOrders = () => {
       pickupLocation: "Taman Tun Dr Ismail",
       time: "09:30 AM",
       date: "2024-01-15",
-      status: "completed",
+      status: "assigned",
       amount: 350.00,
       priority: "high",
       wasteType: "Construction Debris",
@@ -71,9 +73,7 @@ const DriverOrders = () => {
       distance: "12.5 km",
       estimatedDuration: "45 min",
       notes: "Handle with care - fragile materials included",
-      driverNotes: "Completed successfully. Customer was satisfied.",
-      completedTime: "10:15 AM",
-      paymentStatus: "paid",
+      paymentStatus: "confirmed",
       nearestBin: {
         name: "Central Waste Collection Point",
         distance: "2.3 km",
@@ -117,7 +117,7 @@ const DriverOrders = () => {
       pickupLocation: "Block A Parking Area",
       time: "02:30 PM",
       date: "2024-01-15",
-      status: "pending",
+      status: "completed",
       amount: 280.00,
       priority: "low",
       wasteType: "Household Waste",
@@ -125,7 +125,9 @@ const DriverOrders = () => {
       distance: "8.2 km",
       estimatedDuration: "30 min",
       notes: "Weekly scheduled pickup",
-      paymentStatus: "confirmed",
+      driverNotes: "Completed successfully. Customer was satisfied.",
+      completedTime: "03:15 PM",
+      paymentStatus: "paid",
       nearestBin: {
         name: "PJ Community Center Bin",
         distance: "0.9 km",
@@ -161,13 +163,32 @@ const DriverOrders = () => {
         type: "Electronic Waste"
       }
     }
-  ];
+  ]);
+
+  // Order management functions
+  const handleStartOrder = (orderId: string) => {
+    setOrders(prev => prev.map(order => 
+      order.id === orderId 
+        ? { ...order, status: "in-progress", startedTime: new Date().toLocaleTimeString() }
+        : order
+    ));
+    toast.success("Order started successfully!");
+  };
+
+  const handleFinishOrder = (orderId: string) => {
+    setOrders(prev => prev.map(order => 
+      order.id === orderId 
+        ? { ...order, status: "completed", completedTime: new Date().toLocaleTimeString() }
+        : order
+    ));
+    toast.success("Order completed successfully!");
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case "completed": return "bg-emerald-50 text-emerald-700 border-emerald-200";
       case "in-progress": return "bg-blue-50 text-blue-700 border-blue-200";
-      case "pending": return "bg-orange-50 text-orange-700 border-orange-200";
+      case "assigned": return "bg-orange-50 text-orange-700 border-orange-200";
       case "cancelled": return "bg-red-50 text-red-700 border-red-200";
       default: return "bg-gray-50 text-gray-700 border-gray-200";
     }
@@ -177,7 +198,7 @@ const DriverOrders = () => {
     switch (status) {
       case "completed": return <CheckCircle className="h-4 w-4" />;
       case "in-progress": return <AlertCircle className="h-4 w-4" />;
-      case "pending": return <Clock className="h-4 w-4" />;
+      case "assigned": return <Clock className="h-4 w-4" />;
       case "cancelled": return <XCircle className="h-4 w-4" />;
       default: return <FileText className="h-4 w-4" />;
     }
@@ -214,7 +235,7 @@ const DriverOrders = () => {
 
   const orderCounts = {
     all: orders.length,
-    pending: orders.filter(o => o.status === "pending").length,
+    assigned: orders.filter(o => o.status === "assigned").length,
     "in-progress": orders.filter(o => o.status === "in-progress").length,
     completed: orders.filter(o => o.status === "completed").length,
     cancelled: orders.filter(o => o.status === "cancelled").length,
@@ -297,7 +318,7 @@ const DriverOrders = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="assigned">Assigned</SelectItem>
                 <SelectItem value="in-progress">In Progress</SelectItem>
                 <SelectItem value="completed">Completed</SelectItem>
                 <SelectItem value="cancelled">Cancelled</SelectItem>
@@ -315,8 +336,8 @@ const DriverOrders = () => {
               <TabsTrigger value="all" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-sm">
                 All ({orderCounts.all})
               </TabsTrigger>
-              <TabsTrigger value="pending" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white text-sm">
-                Pending ({orderCounts.pending})
+              <TabsTrigger value="assigned" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white text-sm">
+                Assigned ({orderCounts.assigned})
               </TabsTrigger>
               <TabsTrigger value="in-progress" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-sm">
                 Active ({orderCounts["in-progress"]})
@@ -384,37 +405,16 @@ const DriverOrders = () => {
                               </div>
                             </div>
                             <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                              <MapPin className="h-4 w-4 text-emerald-500 mt-0.5" />
-                              <div>
-                                <p className="font-medium text-gray-700 text-sm">Delivery</p>
-                                <p className="text-gray-600 text-sm">{order.location}</p>
-                              </div>
-                            </div>
-                            <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
                               <Calendar className="h-4 w-4 text-purple-500 mt-0.5" />
                               <div>
                                 <p className="font-medium text-gray-700 text-sm">Schedule</p>
                                 <p className="text-gray-600 text-sm">{order.date} at {order.time}</p>
                               </div>
                             </div>
-                            <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                              <Truck className="h-4 w-4 text-orange-500 mt-0.5" />
-                              <div>
-                                <p className="font-medium text-gray-700 text-sm">Vehicle</p>
-                                <p className="text-gray-600 text-sm">{order.lorryType}</p>
-                              </div>
-                            </div>
-                            <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                              <Package className="h-4 w-4 text-indigo-500 mt-0.5" />
-                              <div>
-                                <p className="font-medium text-gray-700 text-sm">Waste Type</p>
-                                <p className="text-gray-600 text-sm">{order.wasteType}</p>
-                              </div>
-                            </div>
                             <div className="flex items-start gap-3 p-3 bg-gradient-to-r from-emerald-50 to-green-50 rounded-lg border border-emerald-100">
                               <DollarSign className="h-4 w-4 text-emerald-600 mt-0.5" />
                               <div>
-                                <p className="font-medium text-gray-700 text-sm">Payment</p>
+                                <p className="font-medium text-gray-700 text-sm">Amount</p>
                                 <p className="text-emerald-600 font-bold text-sm">RM {order.amount.toFixed(2)}</p>
                               </div>
                             </div>
@@ -430,6 +430,18 @@ const DriverOrders = () => {
                               <Clock className="h-4 w-4 text-orange-500" />
                               <span className="font-medium">{order.estimatedDuration}</span>
                             </span>
+                            {order.startedTime && (
+                              <span className="flex items-center gap-2">
+                                <Play className="h-4 w-4 text-green-500" />
+                                <span className="font-medium">Started at {order.startedTime}</span>
+                              </span>
+                            )}
+                            {order.completedTime && (
+                              <span className="flex items-center gap-2">
+                                <CheckCircle className="h-4 w-4 text-emerald-500" />
+                                <span className="font-medium">Completed at {order.completedTime}</span>
+                              </span>
+                            )}
                           </div>
 
                           {/* Nearest Bin Information */}
@@ -500,6 +512,27 @@ const DriverOrders = () => {
                                 <Phone className="h-4 w-4 mr-2" />
                                 Call Customer
                               </Button>
+
+                              {/* Order Action Buttons */}
+                              {order.status === "assigned" && (
+                                <Button
+                                  onClick={() => handleStartOrder(order.id)}
+                                  className="w-full bg-green-600 hover:bg-green-700 text-white font-medium"
+                                >
+                                  <Play className="h-4 w-4 mr-2" />
+                                  Start Order
+                                </Button>
+                              )}
+                              
+                              {order.status === "in-progress" && (
+                                <Button
+                                  onClick={() => handleFinishOrder(order.id)}
+                                  className="w-full bg-red-600 hover:bg-red-700 text-white font-medium"
+                                >
+                                  <Square className="h-4 w-4 mr-2" />
+                                  Finish Order
+                                </Button>
+                              )}
                             </>
                           )}
                         </div>

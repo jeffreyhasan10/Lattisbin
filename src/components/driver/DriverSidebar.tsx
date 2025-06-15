@@ -74,6 +74,7 @@ const DriverSidebar: React.FC<DriverSidebarProps> = ({ collapsed }) => {
       items: [
         { tab: "dashboard", label: "Dashboard", icon: Home },
         { tab: "orders", label: "My Orders", icon: FileText, badge: "3" },
+        { tab: "calendar", label: "Schedule", icon: FileText },
         { tab: "lorries", label: "Lorry Selection", icon: Truck },
       ],
     },
@@ -94,7 +95,7 @@ const DriverSidebar: React.FC<DriverSidebarProps> = ({ collapsed }) => {
     <Sidebar
       collapsible="icon"
       variant="sidebar"
-      className="bg-white border-r border-slate-200 shadow-sm transition-all duration-300"
+      className="bg-white border-r border-slate-200 shadow-sm transition-all duration-300 z-50"
     >
       <SidebarHeader className="p-4 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-blue-50">
         <div className="flex items-center gap-3">
@@ -112,7 +113,7 @@ const DriverSidebar: React.FC<DriverSidebarProps> = ({ collapsed }) => {
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="px-3 py-4">
+      <SidebarContent className="px-3 py-4 bg-white">
         <ScrollArea className="h-full">
           {menuItems.map((group) => (
             <SidebarGroup key={group.group} className="mb-4">
@@ -142,10 +143,10 @@ const DriverSidebar: React.FC<DriverSidebarProps> = ({ collapsed }) => {
                               <SidebarMenuButton
                                 isActive={activeTab === item.tab}
                                 onClick={() => handleTabChange(item.tab)}
-                                className={`rounded-lg py-2.5 px-3 transition-all duration-300 group ${
+                                className={`rounded-lg py-2.5 px-3 transition-all duration-300 group bg-white hover:bg-blue-50 ${
                                   activeTab === item.tab
                                     ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md transform scale-105"
-                                    : "text-slate-700 hover:bg-blue-50 hover:text-blue-700 hover:transform hover:scale-105"
+                                    : "text-slate-700 hover:text-blue-700 hover:transform hover:scale-105"
                                 }`}
                                 aria-label={item.label}
                               >
@@ -172,7 +173,7 @@ const DriverSidebar: React.FC<DriverSidebarProps> = ({ collapsed }) => {
                                 )}
                               </SidebarMenuButton>
                             </TooltipTrigger>
-                            {isCollapsed && <TooltipContent side="right">{item.label}</TooltipContent>}
+                            {isCollapsed && <TooltipContent side="right" className="bg-slate-800 text-white">{item.label}</TooltipContent>}
                           </Tooltip>
                         </TooltipProvider>
                       </SidebarMenuItem>
@@ -216,7 +217,7 @@ const DriverSidebar: React.FC<DriverSidebarProps> = ({ collapsed }) => {
                     <Settings className="h-3 w-3" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>Settings</TooltipContent>
+                <TooltipContent className="bg-slate-800 text-white">Settings</TooltipContent>
               </Tooltip>
             </TooltipProvider>
           </div>
@@ -228,7 +229,7 @@ const DriverSidebar: React.FC<DriverSidebarProps> = ({ collapsed }) => {
                 <TooltipTrigger asChild>
                   <Button
                     variant="ghost"
-                    className={`flex items-center gap-2 rounded-lg py-2 transition-all duration-300 hover:bg-blue-50 text-slate-600 hover:text-blue-700 ${
+                    className={`flex items-center gap-2 rounded-lg py-2 transition-all duration-300 hover:bg-blue-50 text-slate-600 hover:text-blue-700 bg-white ${
                       isCollapsed ? "justify-center px-0 w-full" : "justify-start px-2 flex-1"
                     }`}
                     aria-label="Help & Support"
@@ -237,7 +238,7 @@ const DriverSidebar: React.FC<DriverSidebarProps> = ({ collapsed }) => {
                     {!isCollapsed && <span className="font-medium text-xs">Help</span>}
                   </Button>
                 </TooltipTrigger>
-                {isCollapsed && <TooltipContent>Help & Support</TooltipContent>}
+                {isCollapsed && <TooltipContent className="bg-slate-800 text-white">Help & Support</TooltipContent>}
               </Tooltip>
             </TooltipProvider>
             
@@ -247,14 +248,14 @@ const DriverSidebar: React.FC<DriverSidebarProps> = ({ collapsed }) => {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-7 w-7 hover:bg-red-50 text-red-400 hover:text-red-600 rounded-lg transition-all duration-300"
+                    className="h-7 w-7 hover:bg-red-50 text-red-400 hover:text-red-600 rounded-lg transition-all duration-300 bg-white"
                     onClick={handleLogout}
                     aria-label="Logout"
                   >
                     <LogOut className="h-3 w-3" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>Logout</TooltipContent>
+                <TooltipContent className="bg-slate-800 text-white">Logout</TooltipContent>
               </Tooltip>
             </TooltipProvider>
           </div>
