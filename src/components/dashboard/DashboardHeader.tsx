@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Search, Download, Filter, Bell } from "lucide-react";
+import { CalendarIcon, Search, Download } from "lucide-react";
 import { format } from "date-fns";
 import NotificationCenter from "./NotificationCenter";
 
@@ -28,10 +28,10 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   return (
     <div className="space-y-6">
       {/* Header Section */}
-      <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-800 rounded-3xl p-8 text-white shadow-2xl border border-blue-500/20">
+      <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-800 rounded-3xl p-8 text-white shadow-lg">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           <div className="space-y-2">
-            <h1 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
+            <h1 className="text-4xl lg:text-5xl font-bold text-white">
               Dashboard Overview
             </h1>
             <p className="text-blue-100 text-lg">
@@ -89,7 +89,9 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
               Export
             </Button>
             
-            <NotificationCenter />
+            <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg">
+              <NotificationCenter />
+            </div>
           </div>
         </div>
       </div>

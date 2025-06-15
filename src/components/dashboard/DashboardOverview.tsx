@@ -13,7 +13,7 @@ const DashboardOverview: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50/30">
+    <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto p-6 space-y-8">
         <DashboardHeader
           selectedDate={selectedDate}
@@ -24,30 +24,30 @@ const DashboardOverview: React.FC = () => {
 
         <DashboardStatsCards />
 
-        <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-white/20 shadow-xl p-6">
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
           <Tabs defaultValue="overview" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4 lg:w-[500px] bg-gray-100/50 p-1 rounded-xl border border-gray-200/50">
+            <TabsList className="grid w-full grid-cols-4 lg:w-[500px] bg-gray-50 p-1 rounded-xl">
               <TabsTrigger 
                 value="overview" 
-                className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-md transition-all duration-200"
+                className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all duration-200"
               >
                 Overview
               </TabsTrigger>
               <TabsTrigger 
                 value="drivers"
-                className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-md transition-all duration-200"
+                className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all duration-200"
               >
                 Drivers
               </TabsTrigger>
               <TabsTrigger 
                 value="orders"
-                className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-md transition-all duration-200"
+                className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all duration-200"
               >
                 Orders
               </TabsTrigger>
               <TabsTrigger 
                 value="performance"
-                className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-md transition-all duration-200"
+                className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all duration-200"
               >
                 Performance
               </TabsTrigger>
