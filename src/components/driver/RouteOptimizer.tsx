@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -99,16 +98,22 @@ const RouteOptimizer: React.FC<RouteOptimizerProps> = ({
           return bPriority - aPriority;
         }
         
-        // If same priority, sort by distance
-        const aDistance = calculateDistance(currentPosition, a.coordinates);
-        const bDistance = calculateDistance(currentPosition, b.coordinates);
+        // If same priority, sort by distance - use coordinate objects for calculation
+        const aDistance = calculateDistance(
+          { lat: currentPosition.lat, lng: currentPosition.lng }, 
+          a.coordinates
+        );
+        const bDistance = calculateDistance(
+          { lat: currentPosition.lat, lng: currentPosition.lng }, 
+          b.coordinates
+        );
         return aDistance - bDistance;
       });
 
       // Calculate route metrics
       let totalDistance = 0;
       let totalTime = 0;
-      let currentPos = currentPosition;
+      let currentPos = { lat: currentPosition.lat, lng: currentPosition.lng };
 
       optimizedStops.forEach((stop, index) => {
         const distance = calculateDistance(currentPos, stop.coordinates);
