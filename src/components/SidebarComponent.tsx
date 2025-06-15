@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -63,7 +64,7 @@ const SidebarComponent: React.FC<SidebarProps> = ({
   const toggleGroup = (group: string) => {
     setExpandedGroups((prev) => ({
       ...prev,
-      [group]: !prev[group],
+      [group]: !prev[group as keyof typeof prev],
     }));
   };
 
@@ -93,10 +94,10 @@ const SidebarComponent: React.FC<SidebarProps> = ({
       label: "Management",
       items: [
         { tab: "company", label: "Company Details", icon: Building2 },
+        { tab: "drivers", label: "Driver Management", icon: UserCheck, badge: "New" },
         { tab: "customers", label: "Customers", icon: Users, badge: "New" },
         { tab: "bins", label: "Bins", icon: Package2 },
         { tab: "lorries", label: "Lorries", icon: Truck },
-        { tab: "drivers", label: "Driver Management", icon: UserCheck, badge: "New" },
       ],
     },
     {
