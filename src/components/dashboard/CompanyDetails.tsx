@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,10 +27,11 @@ import {
   Eye,
   Trash2,
   Building,
-  Menu,
   ArrowLeft
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 const CompanyDetails = () => {
   const [isEditing, setIsEditing] = useState(false);
@@ -37,6 +39,7 @@ const CompanyDetails = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [showSidebar, setShowSidebar] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   
   const [businessData, setBusinessData] = useState([
     {
@@ -54,7 +57,12 @@ const CompanyDetails = () => {
       logo: null,
       employees: 150,
       revenue: "RM 2.5M",
-      branches: 5
+      branches: 5,
+      contactPerson: "Ahmad Bin Ali",
+      contactPersonId: "760123-12-3456",
+      postcode: "81300",
+      area: "Skudai",
+      state: "Johor"
     },
     {
       id: 2,
@@ -71,7 +79,12 @@ const CompanyDetails = () => {
       logo: null,
       employees: 85,
       revenue: "RM 1.8M",
-      branches: 3
+      branches: 3,
+      contactPerson: "Siti Fatimah",
+      contactPersonId: "850215-11-2345",
+      postcode: "81100",
+      area: "Tebrau",
+      state: "Johor"
     },
     {
       id: 3,
@@ -88,7 +101,12 @@ const CompanyDetails = () => {
       logo: null,
       employees: 45,
       revenue: "RM 850K",
-      branches: 2
+      branches: 2,
+      contactPerson: "Lee Wei Ming",
+      contactPersonId: "901020-14-5678",
+      postcode: "79100",
+      area: "Nusajaya",
+      state: "Johor"
     },
     {
       id: 4,
@@ -105,7 +123,12 @@ const CompanyDetails = () => {
       logo: null,
       employees: 65,
       revenue: "RM 1.2M",
-      branches: 4
+      branches: 4,
+      contactPerson: "Raj Kumar",
+      contactPersonId: "780808-08-1234",
+      postcode: "81200",
+      area: "Nusa Bestari",
+      state: "Johor"
     }
   ]);
 
@@ -113,12 +136,12 @@ const CompanyDetails = () => {
 
   const handleSave = () => {
     setIsEditing(false);
-    // In real app, this would save to backend
+    console.log("Business data saved:", currentBusiness);
   };
 
   const handleCancel = () => {
     setIsEditing(false);
-    // Reset form data
+    // Reset form data would go here in a real app
   };
 
   const handleInputChange = (field, value) => {
@@ -127,6 +150,16 @@ const CompanyDetails = () => {
         ? { ...business, [field]: value }
         : business
     ));
+  };
+
+  const handleDelete = (id) => {
+    if (businessData.length > 1) {
+      const newData = businessData.filter(business => business.id !== id);
+      setBusinessData(newData);
+      if (selectedBusiness >= newData.length) {
+        setSelectedBusiness(newData.length - 1);
+      }
+    }
   };
 
   const filteredBusinesses = businessData.filter(business => {
@@ -177,12 +210,14 @@ const CompanyDetails = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-950 dark:to-gray-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
       {/* Mobile Header */}
-      <div className="lg:hidden bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 sticky top-0 z-40">
+      <div className="lg:hidden bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm border-b border-gray-200/30 dark:border-gray-700/30 p-4 sticky top-0 z-40">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white">Company Portfolio</h1>
+            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              Company Portfolio
+            </h1>
             <p className="text-sm text-gray-600 dark:text-gray-400">
               {currentBusiness.name}
             </p>
@@ -191,9 +226,9 @@ const CompanyDetails = () => {
             variant="outline"
             size="sm"
             onClick={() => setShowSidebar(true)}
-            className="lg:hidden"
+            className="lg:hidden bg-white/80 dark:bg-gray-800/80"
           >
-            <Menu className="h-4 w-4 mr-2" />
+            <Building className="h-4 w-4 mr-2" />
             <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
               {businessData.length}
             </Badge>
@@ -205,7 +240,7 @@ const CompanyDetails = () => {
       {showSidebar && (
         <div className="lg:hidden fixed inset-0 z-50 flex">
           <div className="fixed inset-0 bg-black/50" onClick={() => setShowSidebar(false)} />
-          <div className="relative flex w-full max-w-sm flex-col bg-white dark:bg-gray-800 shadow-xl">
+          <div className="relative flex w-full max-w-sm flex-col bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm shadow-xl">
             <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Business List</h3>
               <Button variant="ghost" size="sm" onClick={() => setShowSidebar(false)}>
@@ -221,11 +256,11 @@ const CompanyDetails = () => {
                   placeholder="Search businesses..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 h-10"
+                  className="pl-10 h-10 bg-white dark:bg-gray-900"
                 />
               </div>
               <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger className="h-10">
+                <SelectTrigger className="h-10 bg-white dark:bg-gray-900">
                   <Filter className="h-4 w-4 mr-2" />
                   <SelectValue />
                 </SelectTrigger>
@@ -279,9 +314,11 @@ const CompanyDetails = () => {
       <div className="flex min-h-screen">
         {/* Desktop Sidebar */}
         <div className="hidden lg:block w-80 xl:w-96 p-6 pr-0">
-          <Card className="bg-white dark:bg-gray-800 shadow-xl border-0 sticky top-6 max-h-[calc(100vh-3rem)] overflow-hidden">
+          <Card className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm border border-white/20 dark:border-gray-700/30 shadow-xl sticky top-6 max-h-[calc(100vh-3rem)] overflow-hidden">
             <CardHeader className="pb-4">
-              <CardTitle className="text-lg font-semibold">Business List</CardTitle>
+              <CardTitle className="text-lg font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                Business Portfolio
+              </CardTitle>
               {/* Search and Filter */}
               <div className="space-y-3 mt-4">
                 <div className="relative">
@@ -290,11 +327,11 @@ const CompanyDetails = () => {
                     placeholder="Search businesses..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 h-10"
+                    className="pl-10 h-10 bg-white dark:bg-gray-900"
                   />
                 </div>
                 <Select value={filterStatus} onValueChange={setFilterStatus}>
-                  <SelectTrigger className="h-10">
+                  <SelectTrigger className="h-10 bg-white dark:bg-gray-900">
                     <Filter className="h-4 w-4 mr-2" />
                     <SelectValue />
                   </SelectTrigger>
@@ -351,23 +388,38 @@ const CompanyDetails = () => {
             className="hidden lg:flex items-center justify-between mb-8"
           >
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Company Portfolio</h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-1">Manage all your business entities and their details</p>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                Company Details
+              </h1>
+              <p className="text-gray-600 dark:text-gray-400 mt-1">Manage your business information and details</p>
             </div>
             <div className="flex gap-3">
               <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300 px-4 py-2 text-sm">
                 {businessData.length} Companies
               </Badge>
-              <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white">
-                <Plus className="h-4 w-4 mr-2" />
-                Add Business
-              </Button>
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Business
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Add New Business</DialogTitle>
+                    <DialogDescription>
+                      This would open the business registration form
+                    </DialogDescription>
+                  </DialogHeader>
+                  <p className="text-gray-600">Navigate to Business Registration to add new businesses.</p>
+                </DialogContent>
+              </Dialog>
             </div>
           </motion.div>
 
           <div className="space-y-6">
             {/* Business Header Card */}
-            <Card className="bg-white dark:bg-gray-800 shadow-xl border-0 overflow-hidden">
+            <Card className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm border border-white/20 dark:border-gray-700/30 shadow-xl overflow-hidden">
               <div className="h-2 bg-gradient-to-r from-blue-600 to-indigo-600" />
               <CardContent className="p-6 sm:p-8">
                 <div className="flex flex-col sm:flex-row justify-between items-start gap-6">
@@ -401,9 +453,30 @@ const CompanyDetails = () => {
                         <Edit3 className="h-4 w-4 mr-2" />
                         Edit Details
                       </Button>
-                      <Button variant="outline" size="icon" className="sm:w-auto">
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" size="icon" className="sm:w-auto">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => setIsEditing(true)}>
+                            <Edit3 className="h-4 w-4 mr-2" />
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>
+                            <Eye className="h-4 w-4 mr-2" />
+                            View Full Details
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => handleDelete(currentBusiness.id)}
+                            className="text-red-600 dark:text-red-400"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   ) : (
                     <div className="flex flex-col sm:flex-row w-full sm:w-auto gap-2">
@@ -429,7 +502,7 @@ const CompanyDetails = () => {
             </Card>
 
             {/* Business Information Card */}
-            <Card className="bg-white dark:bg-gray-800 shadow-xl border-0">
+            <Card className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm border border-white/20 dark:border-gray-700/30 shadow-xl">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
                   <Building className="h-5 w-5 text-blue-600" />
@@ -445,7 +518,7 @@ const CompanyDetails = () => {
                         id="companyName"
                         value={currentBusiness.name}
                         onChange={(e) => handleInputChange('name', e.target.value)}
-                        className="h-11"
+                        className="h-11 bg-white dark:bg-gray-900"
                       />
                     ) : (
                       <p className="text-gray-900 dark:text-gray-100 font-medium py-2">{currentBusiness.name}</p>
@@ -459,7 +532,7 @@ const CompanyDetails = () => {
                         id="regNumber"
                         value={currentBusiness.registrationNumber}
                         onChange={(e) => handleInputChange('registrationNumber', e.target.value)}
-                        className="h-11"
+                        className="h-11 bg-white dark:bg-gray-900"
                       />
                     ) : (
                       <p className="text-gray-900 dark:text-gray-100 font-medium py-2">{currentBusiness.registrationNumber}</p>
@@ -473,7 +546,7 @@ const CompanyDetails = () => {
                         id="address"
                         value={currentBusiness.address}
                         onChange={(e) => handleInputChange('address', e.target.value)}
-                        className="min-h-[80px]"
+                        className="min-h-[80px] bg-white dark:bg-gray-900"
                         rows={3}
                       />
                     ) : (
@@ -491,7 +564,7 @@ const CompanyDetails = () => {
                         id="phone"
                         value={currentBusiness.phone}
                         onChange={(e) => handleInputChange('phone', e.target.value)}
-                        className="h-11"
+                        className="h-11 bg-white dark:bg-gray-900"
                       />
                     ) : (
                       <div className="flex items-center gap-2 py-2">
@@ -509,7 +582,7 @@ const CompanyDetails = () => {
                         type="email"
                         value={currentBusiness.email}
                         onChange={(e) => handleInputChange('email', e.target.value)}
-                        className="h-11"
+                        className="h-11 bg-white dark:bg-gray-900"
                       />
                     ) : (
                       <div className="flex items-center gap-2 py-2">
@@ -526,7 +599,7 @@ const CompanyDetails = () => {
                         id="website"
                         value={currentBusiness.website}
                         onChange={(e) => handleInputChange('website', e.target.value)}
-                        className="h-11"
+                        className="h-11 bg-white dark:bg-gray-900"
                       />
                     ) : (
                       <div className="flex items-center gap-2 py-2">
@@ -543,7 +616,7 @@ const CompanyDetails = () => {
                         id="established"
                         value={currentBusiness.established}
                         onChange={(e) => handleInputChange('established', e.target.value)}
-                        className="h-11"
+                        className="h-11 bg-white dark:bg-gray-900"
                       />
                     ) : (
                       <div className="flex items-center gap-2 py-2">
@@ -560,7 +633,7 @@ const CompanyDetails = () => {
                         id="description"
                         value={currentBusiness.description}
                         onChange={(e) => handleInputChange('description', e.target.value)}
-                        className="min-h-[100px]"
+                        className="min-h-[100px] bg-white dark:bg-gray-900"
                         rows={4}
                       />
                     ) : (
@@ -573,7 +646,7 @@ const CompanyDetails = () => {
 
             {/* Business Stats */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-              <Card className="bg-white dark:bg-gray-800 shadow-xl border-0 overflow-hidden">
+              <Card className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm border border-white/20 dark:border-gray-700/30 shadow-xl overflow-hidden">
                 <div className="h-1 bg-gradient-to-r from-blue-500 to-blue-600" />
                 <CardContent className="p-6 text-center">
                   <div className="flex items-center justify-center mb-4">
@@ -590,7 +663,7 @@ const CompanyDetails = () => {
                 </CardContent>
               </Card>
 
-              <Card className="bg-white dark:bg-gray-800 shadow-xl border-0 overflow-hidden">
+              <Card className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm border border-white/20 dark:border-gray-700/30 shadow-xl overflow-hidden">
                 <div className="h-1 bg-gradient-to-r from-green-500 to-green-600" />
                 <CardContent className="p-6 text-center">
                   <div className="flex items-center justify-center mb-4">
@@ -606,7 +679,7 @@ const CompanyDetails = () => {
                 </CardContent>
               </Card>
 
-              <Card className="bg-white dark:bg-gray-800 shadow-xl border-0 overflow-hidden sm:col-span-2 lg:col-span-1">
+              <Card className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm border border-white/20 dark:border-gray-700/30 shadow-xl overflow-hidden sm:col-span-2 lg:col-span-1">
                 <div className="h-1 bg-gradient-to-r from-purple-500 to-purple-600" />
                 <CardContent className="p-6 text-center">
                   <div className="flex items-center justify-center mb-4">
