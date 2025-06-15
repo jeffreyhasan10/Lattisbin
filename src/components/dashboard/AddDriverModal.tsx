@@ -22,9 +22,12 @@ import {
 } from "@/components/ui/select";
 import { Plus, User, Phone, Mail, MapPin, Car, CreditCard, FileText, Calendar } from "lucide-react";
 import { toast } from "sonner";
+import { useOrders } from "@/contexts/OrderContext";
 
 const AddDriverModal = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const { addDriver } = useOrders();
+  
   const [formData, setFormData] = useState({
     // Personal Information
     fullName: "",
@@ -67,18 +70,33 @@ const AddDriverModal = () => {
       return;
     }
 
-    // Simulate API call
-    setTimeout(() => {
-      toast.success(`Driver ${formData.fullName} added successfully!`);
-      setIsOpen(false);
-      // Reset form
-      setFormData({
-        fullName: "", icNumber: "", email: "", phone: "", address: "", dateOfBirth: "",
-        licenseNumber: "", licenseClass: "", licenseExpiry: "", vehicleType: "", plateNumber: "",
-        vehicleModel: "", vehicleYear: "", vehicleCapacity: "", joinDate: "", employmentType: "",
-        salary: "", emergencyContact: "", emergencyPhone: "", experience: "", notes: ""
-      });
-    }, 1000);
+    // Create new driver
+    const newDriver = {
+      name: formData.fullName,
+      phone: formData.phone,
+      vehicle: `${formData.vehicleModel} ${formData.plateNumber}`,
+      status: 'active' as const,
+      location: "Available",
+      email: formData.email,
+      icNumber: formData.icNumber,
+      joinDate: formData.joinDate || new Date().toISOString().split('T')[0],
+      loginCredentials: {
+        username: formData.fullName.toLowerCase().replace(/\s+/g, '.'),
+        password: `driver${Math.floor(Math.random() * 1000)}`
+      }
+    };
+
+    addDriver(newDriver);
+    toast.success(`Driver ${formData.fullName} added successfully! Login: ${newDriver.loginCredentials.username} / ${newDriver.loginCredentials.password}`);
+    
+    setIsOpen(false);
+    // Reset form
+    setFormData({
+      fullName: "", icNumber: "", email: "", phone: "", address: "", dateOfBirth: "",
+      licenseNumber: "", licenseClass: "", licenseExpiry: "", vehicleType: "", plateNumber: "",
+      vehicleModel: "", vehicleYear: "", vehicleCapacity: "", joinDate: "", employmentType: "",
+      salary: "", emergencyContact: "", emergencyPhone: "", experience: "", notes: ""
+    });
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -156,37 +174,6 @@ const AddDriverModal = () => {
                   required
                 />
               </div>
-              <div>
-                <Label htmlFor="dateOfBirth">Date of Birth</Label>
-                <Input
-                  id="dateOfBirth"
-                  type="date"
-                  value={formData.dateOfBirth}
-                  onChange={(e) => handleInputChange("dateOfBirth", e.target.value)}
-                  className="rounded-lg"
-                />
-              </div>
-              <div>
-                <Label htmlFor="emergencyContact">Emergency Contact</Label>
-                <Input
-                  id="emergencyContact"
-                  value={formData.emergencyContact}
-                  onChange={(e) => handleInputChange("emergencyContact", e.target.value)}
-                  placeholder="Emergency contact name"
-                  className="rounded-lg"
-                />
-              </div>
-            </div>
-            <div>
-              <Label htmlFor="address">Address</Label>
-              <Textarea
-                id="address"
-                value={formData.address}
-                onChange={(e) => handleInputChange("address", e.target.value)}
-                placeholder="Enter full address"
-                rows={2}
-                className="rounded-lg"
-              />
             </div>
           </div>
 
@@ -241,31 +228,7 @@ const AddDriverModal = () => {
               <Car className="h-5 w-5 text-blue-600" />
               Vehicle Information
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="vehicleType">Vehicle Type</Label>
-                <Select onValueChange={(value) => handleInputChange("vehicleType", value)}>
-                  <SelectTrigger className="rounded-lg">
-                    <SelectValue placeholder="Select type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="truck">Truck</SelectItem>
-                    <SelectItem value="lorry">Lorry</SelectItem>
-                    <SelectItem value="van">Van</SelectItem>
-                    <SelectItem value="pickup">Pickup Truck</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="plateNumber">Plate Number</Label>
-                <Input
-                  id="plateNumber"
-                  value={formData.plateNumber}
-                  onChange={(e) => handleInputChange("plateNumber", e.target.value)}
-                  placeholder="WBM 1234"
-                  className="rounded-lg"
-                />
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="vehicleModel">Vehicle Model</Label>
                 <Input
@@ -277,96 +240,16 @@ const AddDriverModal = () => {
                 />
               </div>
               <div>
-                <Label htmlFor="vehicleYear">Year</Label>
+                <Label htmlFor="plateNumber">Plate Number</Label>
                 <Input
-                  id="vehicleYear"
-                  type="number"
-                  value={formData.vehicleYear}
-                  onChange={(e) => handleInputChange("vehicleYear", e.target.value)}
-                  placeholder="2020"
-                  className="rounded-lg"
-                />
-              </div>
-              <div>
-                <Label htmlFor="vehicleCapacity">Capacity</Label>
-                <Input
-                  id="vehicleCapacity"
-                  value={formData.vehicleCapacity}
-                  onChange={(e) => handleInputChange("vehicleCapacity", e.target.value)}
-                  placeholder="3 tons"
-                  className="rounded-lg"
-                />
-              </div>
-              <div>
-                <Label htmlFor="experience">Experience (Years)</Label>
-                <Input
-                  id="experience"
-                  type="number"
-                  value={formData.experience}
-                  onChange={(e) => handleInputChange("experience", e.target.value)}
-                  placeholder="5"
+                  id="plateNumber"
+                  value={formData.plateNumber}
+                  onChange={(e) => handleInputChange("plateNumber", e.target.value)}
+                  placeholder="WBM 1234"
                   className="rounded-lg"
                 />
               </div>
             </div>
-          </div>
-
-          {/* Employment Details */}
-          <div className="bg-purple-50/50 rounded-xl p-6 space-y-4">
-            <h3 className="font-semibold text-lg text-gray-900 flex items-center gap-2">
-              <FileText className="h-5 w-5 text-blue-600" />
-              Employment Details
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="joinDate">Join Date</Label>
-                <Input
-                  id="joinDate"
-                  type="date"
-                  value={formData.joinDate}
-                  onChange={(e) => handleInputChange("joinDate", e.target.value)}
-                  className="rounded-lg"
-                />
-              </div>
-              <div>
-                <Label htmlFor="employmentType">Employment Type</Label>
-                <Select onValueChange={(value) => handleInputChange("employmentType", value)}>
-                  <SelectTrigger className="rounded-lg">
-                    <SelectValue placeholder="Select type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="full-time">Full Time</SelectItem>
-                    <SelectItem value="part-time">Part Time</SelectItem>
-                    <SelectItem value="contract">Contract</SelectItem>
-                    <SelectItem value="freelance">Freelance</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="salary">Monthly Salary (RM)</Label>
-                <Input
-                  id="salary"
-                  type="number"
-                  value={formData.salary}
-                  onChange={(e) => handleInputChange("salary", e.target.value)}
-                  placeholder="3000"
-                  className="rounded-lg"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Additional Notes */}
-          <div>
-            <Label htmlFor="notes">Additional Notes</Label>
-            <Textarea
-              id="notes"
-              value={formData.notes}
-              onChange={(e) => handleInputChange("notes", e.target.value)}
-              placeholder="Any additional information about the driver"
-              rows={3}
-              className="rounded-lg"
-            />
           </div>
 
           <DialogFooter className="flex gap-3 pt-6">

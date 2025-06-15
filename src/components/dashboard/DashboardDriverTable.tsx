@@ -4,48 +4,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Users, Eye, Phone, MapPin } from "lucide-react";
+import { Truck, Eye, Star, Phone, MapPin } from "lucide-react";
+import { useOrders } from "@/contexts/OrderContext";
 import AddDriverModal from "./AddDriverModal";
 
 const DashboardDriverTable: React.FC = () => {
-  const drivers = [
-    {
-      id: "D001",
-      name: "Ahmad Rahman",
-      phone: "+60 12-345 6789",
-      vehicle: "Lorry WMD1234",
-      status: "active",
-      location: "KLCC, KL",
-      orders: 8,
-      rating: 4.8
-    },
-    {
-      id: "D002", 
-      name: "Lim Wei Ming",
-      phone: "+60 16-789 0123",
-      vehicle: "Truck ABC5678",
-      status: "active",
-      location: "Petaling Jaya",
-      orders: 6,
-      rating: 4.6
-    },
-    {
-      id: "D003",
-      name: "Raj Kumar",
-      phone: "+60 19-456 7890",
-      vehicle: "Van DEF9012",
-      status: "maintenance",
-      location: "Service Center",
-      orders: 0,
-      rating: 4.9
-    }
-  ];
+  const { drivers } = useOrders();
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case "active": return "bg-green-100 text-green-800 border-green-200";
       case "maintenance": return "bg-yellow-100 text-yellow-800 border-yellow-200";
-      case "offline": return "bg-red-100 text-red-800 border-red-200";
+      case "offline": return "bg-gray-100 text-gray-800 border-gray-200";
       default: return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
@@ -59,14 +29,14 @@ const DashboardDriverTable: React.FC = () => {
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-gray-900">
-            <Users className="h-5 w-5 text-blue-600" />
-            Driver Management
+            <Truck className="h-5 w-5 text-blue-600" />
+            Driver Management ({drivers.length})
           </CardTitle>
           <div className="flex gap-2">
             <AddDriverModal />
             <Button 
               variant="outline" 
-              size="sm" 
+              size="sm"
               className="bg-white/80 backdrop-blur-sm border-white/30 hover:bg-white/90"
             >
               View All
@@ -79,13 +49,13 @@ const DashboardDriverTable: React.FC = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Driver</TableHead>
+                <TableHead>Driver Info</TableHead>
                 <TableHead className="hidden sm:table-cell">Contact</TableHead>
                 <TableHead className="hidden md:table-cell">Vehicle</TableHead>
-                <TableHead>Status</TableHead>
                 <TableHead className="hidden lg:table-cell">Location</TableHead>
-                <TableHead className="hidden md:table-cell">Orders</TableHead>
-                <TableHead className="hidden lg:table-cell">Rating</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="hidden md:table-cell">Performance</TableHead>
+                <TableHead className="hidden lg:table-cell">Earnings</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -96,21 +66,24 @@ const DashboardDriverTable: React.FC = () => {
                     <div>
                       <div className="font-medium text-gray-900">{driver.name}</div>
                       <div className="text-sm text-gray-500">{driver.id}</div>
+                      {driver.icNumber && (
+                        <div className="text-xs text-gray-400">IC: {driver.icNumber}</div>
+                      )}
                     </div>
                   </TableCell>
                   <TableCell className="hidden sm:table-cell">
-                    <div className="flex items-center gap-1 text-sm text-gray-600">
-                      <Phone className="h-3 w-3" />
-                      {driver.phone}
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-1 text-sm">
+                        <Phone className="h-3 w-3" />
+                        {driver.phone}
+                      </div>
+                      {driver.email && (
+                        <div className="text-xs text-gray-500">{driver.email}</div>
+                      )}
                     </div>
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
                     <div className="text-sm font-medium">{driver.vehicle}</div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge className={`${getStatusColor(driver.status)} capitalize border`}>
-                      {driver.status}
-                    </Badge>
                   </TableCell>
                   <TableCell className="hidden lg:table-cell">
                     <div className="flex items-center gap-1 text-sm text-gray-600">
@@ -118,13 +91,25 @@ const DashboardDriverTable: React.FC = () => {
                       {driver.location}
                     </div>
                   </TableCell>
+                  <TableCell>
+                    <Badge className={`${getStatusColor(driver.status)} capitalize border`}>
+                      {driver.status}
+                    </Badge>
+                  </TableCell>
                   <TableCell className="hidden md:table-cell">
-                    <div className="text-sm font-medium">{driver.orders}</div>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-1">
+                        <Star className="h-3 w-3 text-yellow-500" />
+                        <span className="text-sm font-medium">{driver.rating}</span>
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {driver.completedOrders || 0} orders
+                      </div>
+                    </div>
                   </TableCell>
                   <TableCell className="hidden lg:table-cell">
-                    <div className="flex items-center gap-1">
-                      <span className="text-sm font-medium">{driver.rating}</span>
-                      <span className="text-yellow-500">★</span>
+                    <div className="font-bold text-green-600">
+                      RM {(driver.totalEarnings || 0).toFixed(2)}
                     </div>
                   </TableCell>
                   <TableCell>

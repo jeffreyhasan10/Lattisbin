@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -46,6 +45,7 @@ const AddOrderModal: React.FC = () => {
     const newOrder = {
       ...formData,
       amount: parseFloat(formData.amount) || 0,
+      status: 'pending' as const,
       nearestBin: {
         name: "Central Collection Point",
         distance: "2.5 km",

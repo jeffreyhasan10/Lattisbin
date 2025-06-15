@@ -1,7 +1,9 @@
+
 import React from "react";
+import DashboardOverview from "@/components/dashboard/DashboardOverview";
 
 const Dashboard = () => {
-  return <></>;
+  return <DashboardOverview />;
 };
 
 export default Dashboard;

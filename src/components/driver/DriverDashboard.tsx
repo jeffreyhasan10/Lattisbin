@@ -1,602 +1,393 @@
 
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import {
-  MapPin,
-  Clock,
+import { Button } from "@/components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { 
+  Package, 
+  Clock, 
+  MapPin, 
+  CheckCircle, 
+  XCircle, 
+  Play, 
   DollarSign,
-  Package,
-  Navigation,
-  Phone,
-  CheckCircle,
-  AlertCircle,
-  Truck,
-  Route,
-  Timer,
-  CreditCard,
-  FileText,
-  Calendar,
   User,
-  Trash2,
-  Play,
-  Square,
-  Bell,
-  X,
+  Phone,
+  Calendar
 } from "lucide-react";
 import { toast } from "sonner";
-import { useOrders, OrderType } from "@/contexts/OrderContext";
+import { useOrders } from "@/contexts/OrderContext";
 
-// Assuming current driver ID - in a real app this would come from auth
-const CURRENT_DRIVER_ID = "DRV001";
-
-const DriverDashboard = () => {
-  const navigate = useNavigate();
-  const [currentTime, setCurrentTime] = useState(new Date());
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      message: "New order assigned for today - ABC Construction",
-      type: "order",
-      time: "2 minutes ago",
-      orderId: "ORD001"
-    }
-  ]);
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState<OrderType | null>(null);
-  const [orderDetails, setOrderDetails] = useState(false);
-
-  const { orders, startOrder, completeOrder } = useOrders();
-
-  // Get orders assigned to current driver
-  const driverOrders = orders.filter(order => order.assignedDriverId === CURRENT_DRIVER_ID);
+const DriverDashboard: React.FC = () => {
+  const { orders, startOrder, completeOrder, cancelOrder, updatePaymentStatus } = useOrders();
+  const [driverSession, setDriverSession] = useState<any>(null);
+  const [driverOrders, setDriverOrders] = useState<any[]>([]);
+  const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [driverNotes, setDriverNotes] = useState("");
+  const [cancelReason, setCancelReason] = useState("");
+  const [paymentAmount, setPaymentAmount] = useState("");
 
   useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
+    const session = localStorage.getItem("driverSession");
+    if (session) {
+      const parsedSession = JSON.parse(session);
+      setDriverSession(parsedSession);
+      
+      // Filter orders for this driver
+      const myOrders = orders.filter(order => 
+        order.assignedDriverId === parsedSession.driverId ||
+        (order.assignedDriverName === parsedSession.name && 
+         ['assigned', 'in-progress', 'completed'].includes(order.status))
+      );
+      setDriverOrders(myOrders);
+    }
+  }, [orders]);
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "completed": return "bg-green-100 text-green-800 border-green-200";
+      case "in-progress": return "bg-blue-100 text-blue-800 border-blue-200";
+      case "assigned": return "bg-purple-100 text-purple-800 border-purple-200";
+      case "cancelled": return "bg-red-100 text-red-800 border-red-200";
+      default: return "bg-gray-100 text-gray-800 border-gray-200";
+    }
+  };
+
+  const getPaymentStatusColor = (status: string) => {
+    switch (status) {
+      case "paid": return "bg-green-100 text-green-800 border-green-200";
+      case "pending": return "bg-yellow-100 text-yellow-800 border-yellow-200";
+      case "overdue": return "bg-red-100 text-red-800 border-red-200";
+      default: return "bg-gray-100 text-gray-800 border-gray-200";
+    }
+  };
 
   const handleStartOrder = (orderId: string) => {
     startOrder(orderId);
     toast.success("Order started successfully!");
   };
 
-  const handleFinishOrder = (orderId: string) => {
-    completeOrder(orderId, "Order completed successfully");
+  const handleCompleteOrder = (orderId: string) => {
+    completeOrder(orderId, driverNotes);
+    setDriverNotes("");
+    setSelectedOrder(null);
     toast.success("Order completed successfully!");
   };
 
-  const handleNavigateToLocation = (location: string, coordinates?: any) => {
-    if (coordinates) {
-      window.open(`https://www.google.com/maps?q=${coordinates.lat},${coordinates.lng}`, '_blank');
+  const handleCancelOrder = (orderId: string) => {
+    if (!cancelReason.trim()) {
+      toast.error("Please provide a reason for cancellation");
+      return;
     }
-    toast.success(`Navigating to ${location}`);
+    cancelOrder(orderId, cancelReason);
+    setCancelReason("");
+    setSelectedOrder(null);
+    toast.success("Order cancelled");
   };
 
-  const handleFindNearestBin = (binLocation: any) => {
-    if (binLocation.coordinates) {
-      window.open(`https://www.google.com/maps?q=${binLocation.coordinates.lat},${binLocation.coordinates.lng}`, '_blank');
+  const handlePaymentComplete = (orderId: string) => {
+    const amount = parseFloat(paymentAmount);
+    if (!amount || amount <= 0) {
+      toast.error("Please enter a valid payment amount");
+      return;
     }
-    toast.success(`Navigating to nearest bin: ${binLocation.name}`);
+    
+    updatePaymentStatus(orderId, {
+      status: 'paid',
+      amount: amount,
+      date: new Date().toISOString().split('T')[0]
+    });
+    
+    setPaymentAmount("");
+    setSelectedOrder(null);
+    toast.success("Payment recorded successfully!");
   };
 
-  const dismissNotification = (id: number) => {
-    setNotifications(prev => prev.filter(n => n.id !== id));
-  };
+  if (!driverSession) {
+    return (
+      <div className="p-6">
+        <Card>
+          <CardContent className="p-8 text-center">
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">Not Logged In</h2>
+            <p className="text-gray-600">Please log in to access your dashboard.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "assigned": return "bg-blue-50 text-blue-700 border-blue-200";
-      case "in-progress": return "bg-orange-50 text-orange-700 border-orange-200";
-      case "completed": return "bg-emerald-50 text-emerald-700 border-emerald-200";
-      default: return "bg-gray-50 text-gray-700 border-gray-200";
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "assigned": return <Clock className="h-4 w-4" />;
-      case "in-progress": return <AlertCircle className="h-4 w-4" />;
-      case "completed": return <CheckCircle className="h-4 w-4" />;
-      default: return <FileText className="h-4 w-4" />;
-    }
-  };
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case "high": return "bg-red-50 border-red-200 text-red-700";
-      case "medium": return "bg-amber-50 border-amber-200 text-amber-700";
-      case "low": return "bg-green-50 border-green-200 text-green-700";
-      default: return "bg-gray-50 border-gray-200 text-gray-700";
-    }
-  };
-
-  const todayStats = {
-    totalOrders: driverOrders.length,
-    activeOrders: driverOrders.filter(o => o.status === "in-progress").length,
-    completedOrders: driverOrders.filter(o => o.status === "completed").length,
-    totalEarnings: driverOrders
-      .filter(order => order.status === "completed")
-      .reduce((sum, order) => sum + order.amount, 0)
-  };
-
-  // Filter orders for active display (assigned and in-progress)
-  const activeOrders = driverOrders.filter(order => 
-    order.status === "assigned" || order.status === "in-progress"
-  );
-
-  const completedOrders = driverOrders.filter(order => order.status === "completed");
+  const todayOrders = driverOrders.filter(order => order.date === new Date().toISOString().split('T')[0]);
+  const completedToday = todayOrders.filter(order => order.status === 'completed').length;
+  const totalEarnings = driverOrders
+    .filter(order => order.paymentStatus === 'paid')
+    .reduce((sum, order) => sum + (order.paidAmount || order.amount), 0);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-4 lg:p-6">
-      {/* Notifications Panel */}
-      {notifications.length > 0 && (
-        <Card className="mb-6 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 shadow-lg">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-semibold text-blue-800 flex items-center gap-2">
-                <Bell className="h-5 w-5" />
-                Notifications ({notifications.length})
-              </h3>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowNotifications(!showNotifications)}
-                className="text-blue-600 hover:bg-blue-100"
-              >
-                {showNotifications ? "Hide" : "Show"}
-              </Button>
+    <div className="p-4 lg:p-6 space-y-6">
+      {/* Driver Info Header */}
+      <Card className="bg-gradient-to-r from-green-500 to-emerald-600 text-white">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <User className="h-6 w-6" />
+            Welcome, {driverSession.name}
+          </CardTitle>
+          <div className="flex items-center gap-4 text-green-100">
+            <div className="flex items-center gap-1">
+              <Phone className="h-4 w-4" />
+              {driverSession.phone}
             </div>
-            {showNotifications && (
-              <div className="space-y-2">
-                {notifications.map((notification) => (
-                  <div key={notification.id} className="bg-white rounded-lg p-3 border border-blue-200 flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-800">{notification.message}</p>
-                      <p className="text-xs text-gray-500">{notification.time}</p>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        onClick={() => navigate('/driver/orders')}
-                        className="bg-blue-600 hover:bg-blue-700 text-white"
-                      >
-                        View Orders
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => dismissNotification(notification.id)}
-                        className="text-gray-500 hover:bg-gray-100"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Header Section */}
-      <Card className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-800 border-0 shadow-xl mb-6">
-        <CardContent className="p-8">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 text-white">
-            <div>
-              <h1 className="text-4xl lg:text-5xl font-bold mb-3">
-                Driver Dashboard
-              </h1>
-              <p className="text-blue-100 text-lg mb-4">
-                Welcome back! Here's your daily overview and active orders.
-              </p>
-              <div className="flex items-center gap-4 text-sm text-blue-200">
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
-                  <span>{currentTime.toLocaleDateString('en-US', { 
-                    weekday: 'long', 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                  })}</span>
-                </div>
-                <span className="text-blue-300">•</span>
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4" />
-                  <span>{currentTime.toLocaleTimeString()}</span>
-                </div>
-              </div>
-            </div>
-            
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 min-w-64">
-              <div className="text-center">
-                <p className="text-3xl font-bold mb-2">{todayStats.totalOrders}</p>
-                <p className="text-blue-100 font-medium">Total Orders Today</p>
-              </div>
+            <div className="flex items-center gap-1">
+              <Calendar className="h-4 w-4" />
+              {new Date().toLocaleDateString()}
             </div>
           </div>
-        </CardContent>
+        </CardHeader>
       </Card>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        {[
-          { 
-            label: "Active Orders", 
-            value: todayStats.activeOrders, 
-            color: "from-orange-500 to-red-600",
-            icon: <AlertCircle className="h-6 w-6 text-white" />
-          },
-          { 
-            label: "Completed", 
-            value: todayStats.completedOrders, 
-            color: "from-emerald-500 to-green-600",
-            icon: <CheckCircle className="h-6 w-6 text-white" />
-          },
-          { 
-            label: "Total Orders", 
-            value: todayStats.totalOrders, 
-            color: "from-blue-500 to-cyan-600",
-            icon: <Package className="h-6 w-6 text-white" />
-          },
-          { 
-            label: "Earnings", 
-            value: `RM ${todayStats.totalEarnings.toFixed(2)}`, 
-            color: "from-purple-500 to-violet-600",
-            icon: <DollarSign className="h-6 w-6 text-white" />
-          }
-        ].map((stat, index) => (
-          <Card key={index} className={`bg-gradient-to-r ${stat.color} border-0 shadow-lg hover:shadow-xl transition-all duration-300`}>
-            <CardContent className="p-5 text-white">
-              <div className="flex items-center justify-between mb-3">
-                <div className="bg-white/20 p-2 rounded-lg">
-                  {stat.icon}
-                </div>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <Package className="h-8 w-8 text-blue-600" />
+              <div>
+                <p className="text-2xl font-bold">{driverOrders.length}</p>
+                <p className="text-sm text-gray-600">Total Orders</p>
               </div>
-              <div className="text-2xl font-bold mb-1">{stat.value}</div>
-              <div className="text-sm opacity-90 font-medium">{stat.label}</div>
-            </CardContent>
-          </Card>
-        ))}
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <CheckCircle className="h-8 w-8 text-green-600" />
+              <div>
+                <p className="text-2xl font-bold">{completedToday}</p>
+                <p className="text-sm text-gray-600">Completed Today</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <Clock className="h-8 w-8 text-orange-600" />
+              <div>
+                <p className="text-2xl font-bold">
+                  {driverOrders.filter(o => ['assigned', 'in-progress'].includes(o.status)).length}
+                </p>
+                <p className="text-sm text-gray-600">Active Orders</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <DollarSign className="h-8 w-8 text-green-600" />
+              <div>
+                <p className="text-2xl font-bold">RM {totalEarnings.toFixed(2)}</p>
+                <p className="text-sm text-gray-600">Total Earnings</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Active Orders */}
-      <Card className="shadow-lg border-gray-200 mb-6">
-        <CardHeader className="bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-200">
-          <CardTitle className="text-xl font-bold text-gray-800 flex items-center gap-3">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Truck className="h-5 w-5 text-blue-600" />
-            </div>
-            Today's Orders ({activeOrders.length})
+      {/* Orders Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Package className="h-5 w-5" />
+            My Orders ({driverOrders.length})
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-6">
-          {activeOrders.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Package className="h-8 w-8 text-gray-400" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-700 mb-2">No Active Orders</h3>
-              <p className="text-gray-500">You have no orders assigned for today.</p>
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {activeOrders.map((order) => (
-                <Card key={order.id} className="border border-gray-200 hover:shadow-md transition-all duration-200">
-                  <CardContent className="p-6">
-                    <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
-                      <div className="flex-1">
-                        <div className="flex items-start justify-between mb-4">
-                          <div className="flex items-center gap-3">
-                            <div className="p-3 bg-blue-50 rounded-xl border border-blue-100">
-                              <Package className="h-5 w-5 text-blue-600" />
-                            </div>
-                            <div>
-                              <h3 className="text-lg font-bold text-gray-900">{order.customer}</h3>
-                              <p className="text-sm text-blue-600 font-medium">#{order.id}</p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Badge className={`border ${getPriorityColor(order.priority)} font-medium px-2 py-1`}>
-                              {order.priority.toUpperCase()}
-                            </Badge>
-                            <Badge className={`border ${getStatusColor(order.status)} font-medium flex items-center gap-1 px-2 py-1`}>
-                              {getStatusIcon(order.status)}
-                              {order.status.replace('-', ' ').toUpperCase()}
-                            </Badge>
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-                          <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                            <MapPin className="h-4 w-4 text-blue-500 mt-0.5" />
-                            <div>
-                              <p className="font-medium text-gray-700 text-sm">Pickup Location</p>
-                              <p className="text-gray-600 text-sm">{order.pickupLocation}</p>
-                            </div>
-                          </div>
-                          <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                            <Clock className="h-4 w-4 text-purple-500 mt-0.5" />
-                            <div>
-                              <p className="font-medium text-gray-700 text-sm">Scheduled Time</p>
-                              <p className="text-gray-600 text-sm">{order.time}</p>
-                            </div>
-                          </div>
-                          <div className="flex items-start gap-3 p-3 bg-gradient-to-r from-emerald-50 to-green-50 rounded-lg border border-emerald-100">
-                            <DollarSign className="h-4 w-4 text-emerald-600 mt-0.5" />
-                            <div>
-                              <p className="font-medium text-gray-700 text-sm">Amount</p>
-                              <p className="text-emerald-600 font-bold text-sm">RM {order.amount.toFixed(2)}</p>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-lg p-4 mb-4">
-                          <div className="flex items-center justify-between mb-2">
-                            <h4 className="font-medium text-purple-700 flex items-center gap-2">
-                              <Trash2 className="h-4 w-4" />
-                              Nearest Collection Point
-                            </h4>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleFindNearestBin(order.nearestBin)}
-                              className="border-purple-200 text-purple-600 hover:bg-purple-50"
-                            >
-                              <Navigation className="h-3 w-3 mr-1" />
-                              Navigate
-                            </Button>
-                          </div>
-                          <div className="text-sm">
-                            <p className="text-gray-700 font-medium">{order.nearestBin.name}</p>
-                            <p className="text-gray-600">{order.nearestBin.location}</p>
-                            <p className="text-purple-600 font-medium">{order.nearestBin.distance} away</p>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-4 text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
-                          <span className="flex items-center gap-2">
-                            <Route className="h-4 w-4 text-blue-500" />
-                            <span className="font-medium">{order.distance}</span>
-                          </span>
-                          <span className="flex items-center gap-2">
-                            <Timer className="h-4 w-4 text-orange-500" />
-                            <span className="font-medium">{order.estimatedDuration}</span>
-                          </span>
-                          {order.startedTime && (
-                            <span className="flex items-center gap-2">
-                              <Play className="h-4 w-4 text-green-500" />
-                              <span className="font-medium">Started at {order.startedTime}</span>
-                            </span>
-                          )}
-                        </div>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Order Info</TableHead>
+                  <TableHead className="hidden sm:table-cell">Customer</TableHead>
+                  <TableHead className="hidden md:table-cell">Location</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="hidden lg:table-cell">Payment</TableHead>
+                  <TableHead className="hidden lg:table-cell">Amount</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {driverOrders.map((order) => (
+                  <TableRow key={order.id}>
+                    <TableCell>
+                      <div>
+                        <div className="font-medium">{order.id}</div>
+                        <div className="text-sm text-gray-500">{order.date} - {order.time}</div>
                       </div>
-
-                      <div className="flex flex-col gap-2 min-w-48">
-                        <Button
-                          onClick={() => {
-                            setSelectedOrder(order);
-                            setOrderDetails(true);
-                          }}
-                          variant="outline"
-                          className="w-full border-blue-200 text-blue-600 hover:bg-blue-50"
-                        >
-                          <FileText className="h-4 w-4 mr-2" />
-                          View Details
-                        </Button>
-                        
-                        <Button
-                          onClick={() => handleNavigateToLocation(order.location)}
-                          variant="outline"
-                          className="w-full border-emerald-200 text-emerald-600 hover:bg-emerald-50"
-                        >
-                          <Navigation className="h-4 w-4 mr-2" />
-                          Navigate
-                        </Button>
-                        
-                        <Button
-                          onClick={() => window.open(`tel:${order.customerPhone}`)}
-                          variant="outline"
-                          className="w-full border-purple-200 text-purple-600 hover:bg-purple-50"
-                        >
-                          <Phone className="h-4 w-4 mr-2" />
-                          Call Customer
-                        </Button>
-
-                        {order.status === "assigned" ? (
-                          <Button
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell">
+                      <div>
+                        <div className="font-medium">{order.customer}</div>
+                        <div className="text-xs text-gray-500">{order.customerPhone}</div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      <div className="flex items-center gap-1 text-sm">
+                        <MapPin className="h-3 w-3" />
+                        {order.location}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={`${getStatusColor(order.status)} capitalize border`}>
+                        {order.status.replace('-', ' ')}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="hidden lg:table-cell">
+                      <Badge className={`${getPaymentStatusColor(order.paymentStatus)} capitalize border`}>
+                        {order.paymentStatus}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="hidden lg:table-cell">
+                      <div className="font-bold text-green-600">RM {order.amount.toFixed(2)}</div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-1">
+                        {order.status === 'assigned' && (
+                          <Button 
+                            size="sm" 
                             onClick={() => handleStartOrder(order.id)}
-                            className="w-full bg-green-600 hover:bg-green-700 text-white font-medium"
+                            className="bg-blue-600 hover:bg-blue-700 text-white"
                           >
-                            <Play className="h-4 w-4 mr-2" />
-                            Start Order
-                          </Button>
-                        ) : (
-                          <Button
-                            onClick={() => handleFinishOrder(order.id)}
-                            className="w-full bg-red-600 hover:bg-red-700 text-white font-medium"
-                          >
-                            <Square className="h-4 w-4 mr-2" />
-                            Finish Order
+                            <Play className="h-4 w-4" />
                           </Button>
                         )}
+                        
+                        {order.status === 'in-progress' && (
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button 
+                                size="sm" 
+                                onClick={() => setSelectedOrder(order)}
+                                className="bg-green-600 hover:bg-green-700 text-white"
+                              >
+                                <CheckCircle className="h-4 w-4" />
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>Complete Order {order.id}</DialogTitle>
+                              </DialogHeader>
+                              <div className="space-y-4">
+                                <div>
+                                  <label className="text-sm font-medium">Driver Notes</label>
+                                  <Textarea
+                                    value={driverNotes}
+                                    onChange={(e) => setDriverNotes(e.target.value)}
+                                    placeholder="Add any notes about the completion..."
+                                    rows={3}
+                                  />
+                                </div>
+                                <Button 
+                                  onClick={() => handleCompleteOrder(order.id)}
+                                  className="w-full bg-green-600 hover:bg-green-700"
+                                >
+                                  Complete Order
+                                </Button>
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                        )}
+                        
+                        {order.status === 'completed' && order.paymentStatus === 'pending' && (
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button 
+                                size="sm" 
+                                onClick={() => setSelectedOrder(order)}
+                                className="bg-green-600 hover:bg-green-700 text-white"
+                              >
+                                <DollarSign className="h-4 w-4" />
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>Record Payment - Order {order.id}</DialogTitle>
+                              </DialogHeader>
+                              <div className="space-y-4">
+                                <div>
+                                  <label className="text-sm font-medium">Payment Amount (RM)</label>
+                                  <Input
+                                    type="number"
+                                    step="0.01"
+                                    value={paymentAmount}
+                                    onChange={(e) => setPaymentAmount(e.target.value)}
+                                    placeholder={`Expected: ${order.amount.toFixed(2)}`}
+                                  />
+                                </div>
+                                <Button 
+                                  onClick={() => handlePaymentComplete(order.id)}
+                                  className="w-full bg-green-600 hover:bg-green-700"
+                                >
+                                  Record Payment
+                                </Button>
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                        )}
+                        
+                        {['assigned', 'in-progress'].includes(order.status) && (
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => setSelectedOrder(order)}
+                                className="border-red-200 text-red-600 hover:bg-red-50"
+                              >
+                                <XCircle className="h-4 w-4" />
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>Cancel Order {order.id}</DialogTitle>
+                              </DialogHeader>
+                              <div className="space-y-4">
+                                <div>
+                                  <label className="text-sm font-medium">Reason for Cancellation</label>
+                                  <Textarea
+                                    value={cancelReason}
+                                    onChange={(e) => setCancelReason(e.target.value)}
+                                    placeholder="Please provide a reason for cancelling this order..."
+                                    rows={3}
+                                    required
+                                  />
+                                </div>
+                                <Button 
+                                  onClick={() => handleCancelOrder(order.id)}
+                                  className="w-full bg-red-600 hover:bg-red-700"
+                                >
+                                  Cancel Order
+                                </Button>
+                              </div>
+                            </Dialog>
+                          </Dialog>
+                        )}
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Completed Orders */}
-      {completedOrders.length > 0 && (
-        <Card className="shadow-lg border-gray-200 mb-6">
-          <CardHeader className="bg-gradient-to-r from-emerald-50 to-green-50 border-b border-emerald-200">
-            <CardTitle className="text-xl font-bold text-gray-800 flex items-center gap-3">
-              <div className="p-2 bg-emerald-100 rounded-lg">
-                <CheckCircle className="h-5 w-5 text-emerald-600" />
-              </div>
-              Completed Orders ({completedOrders.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-6">
-            <div className="space-y-4">
-              {completedOrders.map((order) => (
-                <Card key={order.id} className="border border-emerald-200 bg-emerald-50/30">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className="p-2 bg-emerald-100 rounded-lg">
-                          <CheckCircle className="h-4 w-4 text-emerald-600" />
-                        </div>
-                        <div>
-                          <h4 className="font-semibold text-gray-800">{order.customer}</h4>
-                          <p className="text-sm text-gray-600">#{order.id} • Completed at {order.completedTime}</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-bold text-emerald-600">RM {order.amount.toFixed(2)}</p>
-                        <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 border">
-                          Completed
-                        </Badge>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Quick Actions */}
-      <Card className="shadow-lg border-gray-200">
-        <CardHeader className="bg-gradient-to-r from-gray-50 to-slate-50 border-b border-gray-200">
-          <CardTitle className="text-xl font-bold text-gray-800">Quick Actions</CardTitle>
-        </CardHeader>
-        <CardContent className="p-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Button 
-              onClick={() => navigate('/driver/orders')}
-              className="h-16 bg-blue-600 hover:bg-blue-700 text-white flex flex-col items-center justify-center gap-2"
-            >
-              <Package className="h-5 w-5" />
-              <span className="text-sm font-medium">My Orders</span>
-            </Button>
-            <Button 
-              onClick={() => navigate('/driver/calendar')}
-              variant="outline"
-              className="h-16 border-emerald-200 text-emerald-600 hover:bg-emerald-50 flex flex-col items-center justify-center gap-2"
-            >
-              <Calendar className="h-5 w-5" />
-              <span className="text-sm font-medium">Schedule</span>
-            </Button>
-            <Button 
-              onClick={() => navigate('/driver/payments')}
-              variant="outline"
-              className="h-16 border-purple-200 text-purple-600 hover:bg-purple-50 flex flex-col items-center justify-center gap-2"
-            >
-              <DollarSign className="h-5 w-5" />
-              <span className="text-sm font-medium">Payments</span>
-            </Button>
-            <Button 
-              onClick={() => navigate('/driver/profile')}
-              variant="outline"
-              className="h-16 border-orange-200 text-orange-600 hover:bg-orange-50 flex flex-col items-center justify-center gap-2"
-            >
-              <User className="h-5 w-5" />
-              <span className="text-sm font-medium">Profile</span>
-            </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
         </CardContent>
       </Card>
-
-      {/* Order Details Dialog */}
-      <Dialog open={orderDetails} onOpenChange={setOrderDetails}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-3">
-              <div className="p-2 bg-blue-50 rounded-lg">
-                <FileText className="h-5 w-5 text-blue-600" />
-              </div>
-              Order Details - #{selectedOrder?.id}
-            </DialogTitle>
-          </DialogHeader>
-          
-          {selectedOrder && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-gray-600">Customer</p>
-                  <p className="font-medium">{selectedOrder.customer}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Phone</p>
-                  <p className="font-medium">{selectedOrder.customerPhone}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Pickup Location</p>
-                  <p className="font-medium">{selectedOrder.pickupLocation}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Scheduled Time</p>
-                  <p className="font-medium">{selectedOrder.time}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Waste Type</p>
-                  <p className="font-medium">{selectedOrder.wasteType}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Amount</p>
-                  <p className="font-bold text-emerald-600">RM {selectedOrder.amount.toFixed(2)}</p>
-                </div>
-              </div>
-
-              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                <h4 className="font-medium text-purple-700 mb-3 flex items-center gap-2">
-                  <Trash2 className="h-4 w-4" />
-                  Collection Point Details
-                </h4>
-                <div className="space-y-2 text-sm">
-                  <p><span className="font-medium">Name:</span> {selectedOrder.nearestBin.name}</p>
-                  <p><span className="font-medium">Location:</span> {selectedOrder.nearestBin.location}</p>
-                  <p><span className="font-medium">Distance:</span> {selectedOrder.nearestBin.distance}</p>
-                </div>
-                <Button 
-                  onClick={() => handleFindNearestBin(selectedOrder.nearestBin)}
-                  className="w-full mt-3 bg-purple-600 hover:bg-purple-700 text-white"
-                >
-                  <Navigation className="h-4 w-4 mr-2" />
-                  Navigate to Collection Point
-                </Button>
-              </div>
-
-              <div className="flex gap-3 pt-4 border-t border-gray-200">
-                <Button
-                  onClick={() => handleNavigateToLocation(selectedOrder.location)}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
-                >
-                  <Navigation className="h-4 w-4 mr-2" />
-                  Navigate to Customer
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => window.open(`tel:${selectedOrder.customerPhone}`)}
-                  className="flex-1 border-emerald-200 text-emerald-600 hover:bg-emerald-50"
-                >
-                  <Phone className="h-4 w-4 mr-2" />
-                  Call Customer
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 export interface OrderType {
@@ -33,6 +32,8 @@ export interface OrderType {
   completedTime?: string;
   cancelledTime?: string;
   cancelReason?: string;
+  paidAmount?: number;
+  paidDate?: string;
 }
 
 export interface DriverType {
@@ -44,6 +45,15 @@ export interface DriverType {
   location: string;
   orders: number;
   rating: number;
+  email?: string;
+  icNumber?: string;
+  joinDate?: string;
+  totalEarnings?: number;
+  completedOrders?: number;
+  loginCredentials?: {
+    username: string;
+    password: string;
+  };
 }
 
 interface OrderContextType {
@@ -57,6 +67,10 @@ interface OrderContextType {
   startOrder: (orderId: string) => void;
   completeOrder: (orderId: string, driverNotes?: string) => void;
   cancelOrder: (orderId: string, reason: string) => void;
+  addDriver: (driver: Omit<DriverType, 'id'>) => void;
+  updateDriver: (driverId: string, updates: Partial<DriverType>) => void;
+  updatePaymentStatus: (orderId: string, paymentData: { status: 'paid' | 'pending' | 'overdue'; amount?: number; date?: string }) => void;
+  getDriverByCredentials: (name: string, icNumber: string, phone: string) => DriverType | null;
 }
 
 const OrderContext = createContext<OrderContextType | undefined>(undefined);
@@ -159,7 +173,7 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({ children }) => {
     }
   ]);
 
-  const [drivers] = useState<DriverType[]>([
+  const [drivers, setDrivers] = useState<DriverType[]>([
     {
       id: "DRV001",
       name: "Ahmad Rahman",
@@ -168,7 +182,16 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({ children }) => {
       status: "active",
       location: "KLCC, KL",
       orders: 2,
-      rating: 4.8
+      rating: 4.8,
+      email: "ahmad.rahman@lattisbin.com",
+      icNumber: "920815-14-5678",
+      joinDate: "2023-01-15",
+      totalEarnings: 2500.00,
+      completedOrders: 45,
+      loginCredentials: {
+        username: "ahmad.rahman",
+        password: "driver123"
+      }
     },
     {
       id: "DRV002",
@@ -178,7 +201,16 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({ children }) => {
       status: "active",
       location: "Petaling Jaya",
       orders: 1,
-      rating: 4.6
+      rating: 4.6,
+      email: "lim.weiming@lattisbin.com",
+      icNumber: "880422-05-1234",
+      joinDate: "2023-03-10",
+      totalEarnings: 1800.00,
+      completedOrders: 32,
+      loginCredentials: {
+        username: "lim.weiming",
+        password: "driver456"
+      }
     },
     {
       id: "DRV003",
@@ -188,7 +220,16 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({ children }) => {
       status: "maintenance",
       location: "Service Center",
       orders: 0,
-      rating: 4.9
+      rating: 4.9,
+      email: "raj.kumar@lattisbin.com",
+      icNumber: "750905-11-2345",
+      joinDate: "2022-11-05",
+      totalEarnings: 3200.00,
+      completedOrders: 67,
+      loginCredentials: {
+        username: "raj.kumar",
+        password: "driver789"
+      }
     }
   ]);
 
@@ -269,6 +310,64 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({ children }) => {
     ));
   };
 
+  // New driver management functions
+  const addDriver = (driverData: Omit<DriverType, 'id'>) => {
+    const newDriver: DriverType = {
+      id: `DRV${String(Date.now()).slice(-6)}`,
+      ...driverData,
+      orders: 0,
+      rating: 5.0,
+      totalEarnings: 0,
+      completedOrders: 0
+    };
+    setDrivers(prev => [...prev, newDriver]);
+  };
+
+  const updateDriver = (driverId: string, updates: Partial<DriverType>) => {
+    setDrivers(prev => prev.map(driver => 
+      driver.id === driverId 
+        ? { ...driver, ...updates }
+        : driver
+    ));
+  };
+
+  const updatePaymentStatus = (orderId: string, paymentData: { status: 'paid' | 'pending' | 'overdue'; amount?: number; date?: string }) => {
+    setOrders(prev => prev.map(order => 
+      order.id === orderId 
+        ? { 
+            ...order, 
+            paymentStatus: paymentData.status,
+            paidAmount: paymentData.amount || order.paidAmount,
+            paidDate: paymentData.date || order.paidDate
+          }
+        : order
+    ));
+
+    // Update driver earnings if payment is completed
+    if (paymentData.status === 'paid') {
+      const order = orders.find(o => o.id === orderId);
+      if (order && order.assignedDriverId) {
+        setDrivers(prev => prev.map(driver => 
+          driver.id === order.assignedDriverId 
+            ? { 
+                ...driver, 
+                totalEarnings: (driver.totalEarnings || 0) + (paymentData.amount || order.amount),
+                completedOrders: (driver.completedOrders || 0) + 1
+              }
+            : driver
+        ));
+      }
+    }
+  };
+
+  const getDriverByCredentials = (name: string, icNumber: string, phone: string) => {
+    return drivers.find(driver => 
+      driver.name === name && 
+      driver.icNumber === icNumber && 
+      driver.phone.replace(/[^0-9]/g, '') === phone.replace(/[^0-9]/g, '')
+    ) || null;
+  };
+
   const value: OrderContextType = {
     orders,
     drivers,
@@ -279,7 +378,11 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({ children }) => {
     getUnassignedOrders,
     startOrder,
     completeOrder,
-    cancelOrder
+    cancelOrder,
+    addDriver,
+    updateDriver,
+    updatePaymentStatus,
+    getDriverByCredentials
   };
 
   return (

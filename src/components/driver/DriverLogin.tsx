@@ -7,9 +7,11 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Truck, User, Phone, CreditCard } from "lucide-react";
 import { toast } from "sonner";
+import { useOrders } from "@/contexts/OrderContext";
 
 const DriverLogin = () => {
   const navigate = useNavigate();
+  const { getDriverByCredentials } = useOrders();
   const [credentials, setCredentials] = useState({
     driverName: "",
     icNumber: "",
@@ -24,30 +26,23 @@ const DriverLogin = () => {
     setTimeout(() => {
       setIsLoading(false);
       
-      if (credentials.driverName === "Ahmad Rahman" && 
-          credentials.icNumber === "920815-14-5678" && 
-          credentials.phoneNumber === "012-3456789") {
-        toast.success("Login successful! Welcome Ahmad Rahman");
+      const driver = getDriverByCredentials(
+        credentials.driverName, 
+        credentials.icNumber, 
+        credentials.phoneNumber
+      );
+      
+      if (driver) {
+        toast.success(`Login successful! Welcome ${driver.name}`);
         localStorage.setItem("driverSession", JSON.stringify({
-          name: "Ahmad Rahman",
-          ic: "920815-14-5678",
-          phone: "012-3456789",
-          driverId: "DRV001"
-        }));
-        navigate("/driver/dashboard");
-      } else if (credentials.driverName === "Lim Wei Ming" && 
-                 credentials.icNumber === "880422-05-1234" && 
-                 credentials.phoneNumber === "017-8901234") {
-        toast.success("Login successful! Welcome Lim Wei Ming");
-        localStorage.setItem("driverSession", JSON.stringify({
-          name: "Lim Wei Ming",
-          ic: "880422-05-1234",
-          phone: "017-8901234",
-          driverId: "DRV002"
+          name: driver.name,
+          ic: driver.icNumber,
+          phone: driver.phone,
+          driverId: driver.id
         }));
         navigate("/driver/dashboard");
       } else {
-        toast.error("Invalid credentials. Try Ahmad Rahman / 920815-14-5678 / 012-3456789");
+        toast.error("Invalid credentials. Please check your details or contact admin.");
       }
     }, 1000);
   };
@@ -127,8 +122,8 @@ const DriverLogin = () => {
           <div className="mt-6 p-4 bg-green-50 rounded-md border border-green-200">
             <p className="text-sm text-green-800 font-medium">Demo Credentials:</p>
             <div className="text-xs text-green-600 mt-1 space-y-1">
-              <p>Ahmad Rahman / 920815-14-5678 / 012-3456789</p>
-              <p>Lim Wei Ming / 880422-05-1234 / 017-8901234</p>
+              <p>Ahmad Rahman / 920815-14-5678 / +60 12-345 6789</p>
+              <p>Lim Wei Ming / 880422-05-1234 / +60 16-789 0123</p>
             </div>
           </div>
           
