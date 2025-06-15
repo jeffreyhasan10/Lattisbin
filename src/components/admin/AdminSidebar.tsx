@@ -1,7 +1,7 @@
+
 import React from "react";
 import { useLocation, NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Icons } from "@/components/ui/icons";
 import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard,
@@ -21,14 +21,14 @@ import {
   Printer,
   Settings,
   Upload,
-  Activity
+  Activity,
+  ArrowRight,
+  TrendingUp
 } from "lucide-react";
 
 interface AdminSidebarProps {
   collapsed: boolean;
 }
-
-const NavigationIcon = Icons.arrowRight;
 
 const AdminSidebar: React.FC<AdminSidebarProps> = ({ collapsed }) => {
   const location = useLocation();
@@ -104,7 +104,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ collapsed }) => {
     {
       id: "delivery-orders",
       label: "Delivery Orders",
-      icon: NavigationIcon,
+      icon: ArrowRight,
       href: "/admin/delivery-orders"
     },
     {
