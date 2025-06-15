@@ -19,7 +19,7 @@ const AddDriverModal: React.FC = () => {
     icNumber: "",
     vehicle: "",
     location: "",
-    status: "active" as const
+    status: "active" as "active" | "maintenance" | "offline"
   });
 
   const handleSubmit = (e: React.FormEvent) => {

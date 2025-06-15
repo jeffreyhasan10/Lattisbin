@@ -1,9 +1,9 @@
 
 import React from "react";
-import DashboardOverview from "@/components/dashboard/DashboardOverview";
+import AdminDashboard from "@/components/dashboard/AdminDashboard";
 
 const Dashboard = () => {
-  return <DashboardOverview />;
+  return <AdminDashboard />;
 };
 
 export default Dashboard;
