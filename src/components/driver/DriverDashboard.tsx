@@ -30,24 +30,9 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-const DriverDashboard = () => {
-  const navigate = useNavigate();
-  const [currentTime, setCurrentTime] = useState(new Date());
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      message: "New order assigned for today - ABC Construction",
-      type: "order",
-      time: "2 minutes ago",
-      orderId: "JOB001"
-    }
-  ]);
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState<any>(null);
-  const [orderDetails, setOrderDetails] = useState(false);
-
-  // Mock data for today's orders
-  const todaysOrders = [
+// Create a shared context for order and payment state
+const useDriverData = () => {
+  const [orders, setOrders] = useState([
     {
       id: "JOB001",
       customer: "ABC Construction Sdn Bhd",
@@ -75,13 +60,12 @@ const DriverDashboard = () => {
       location: "Petaling Jaya, Selangor",
       pickupLocation: "Block A Parking Area",
       time: "02:30 PM",
-      status: "in-progress",
+      status: "assigned",
       amount: 280.00,
       priority: "medium",
       wasteType: "Household Waste",
       distance: "8.2 km",
       estimatedDuration: "30 min",
-      startedAt: "02:15 PM",
       binLocation: {
         name: "PJ Community Center Bin",
         address: "Jalan 14/20, Petaling Jaya",
@@ -89,9 +73,8 @@ const DriverDashboard = () => {
         coordinates: { lat: 3.1073, lng: 101.6067 }
       }
     }
-  ];
+  ]);
 
-  const [orders, setOrders] = useState(todaysOrders);
   const [completedOrders, setCompletedOrders] = useState([
     {
       id: "JOB003",
@@ -101,6 +84,53 @@ const DriverDashboard = () => {
       paymentStatus: "collected"
     }
   ]);
+
+  const [payments, setPayments] = useState([
+    {
+      id: "PAY001",
+      orderId: "JOB003",
+      customerName: "Green Valley Resort",
+      amount: 450.00,
+      paymentType: "Cash",
+      timestamp: "2024-01-15 10:20",
+      status: "completed"
+    }
+  ]);
+
+  return {
+    orders,
+    setOrders,
+    completedOrders,
+    setCompletedOrders,
+    payments,
+    setPayments
+  };
+};
+
+const DriverDashboard = () => {
+  const navigate = useNavigate();
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [notifications, setNotifications] = useState([
+    {
+      id: 1,
+      message: "New order assigned for today - ABC Construction",
+      type: "order",
+      time: "2 minutes ago",
+      orderId: "JOB001"
+    }
+  ]);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [orderDetails, setOrderDetails] = useState(false);
+
+  const {
+    orders,
+    setOrders,
+    completedOrders,
+    setCompletedOrders,
+    payments,
+    setPayments
+  } = useDriverData();
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -127,22 +157,47 @@ const DriverDashboard = () => {
         completedAt: new Date().toLocaleTimeString(),
         paymentStatus: "pending"
       }]);
-      toast.success("Order completed successfully!");
+      toast.success("Order completed successfully! You can now collect payment.");
     }
   };
 
   const handleCollectPayment = (orderId: string) => {
-    setCompletedOrders(prev => prev.map(order =>
-      order.id === orderId
-        ? { ...order, paymentStatus: "collected" }
-        : order
-    ));
-    toast.success("Payment collected successfully!");
+    const completedOrder = completedOrders.find(o => o.id === orderId);
+    if (completedOrder) {
+      // Update completed order payment status
+      setCompletedOrders(prev => prev.map(order =>
+        order.id === orderId
+          ? { ...order, paymentStatus: "collected" }
+          : order
+      ));
+
+      // Add to payments record
+      const newPayment = {
+        id: `PAY${String(payments.length + 1).padStart(3, '0')}`,
+        orderId: orderId,
+        customerName: completedOrder.customer,
+        amount: completedOrder.amount,
+        paymentType: "Cash",
+        timestamp: new Date().toLocaleString(),
+        status: "completed"
+      };
+      setPayments(prev => [...prev, newPayment]);
+
+      toast.success("Payment collected successfully!");
+      
+      // Navigate to payments page to record details
+      navigate('/driver/payments', { 
+        state: { 
+          orderId: orderId,
+          amount: completedOrder.amount,
+          customerName: completedOrder.customer
+        } 
+      });
+    }
   };
 
   const handleNavigateToLocation = (location: string, coordinates?: any) => {
     if (coordinates) {
-      // In a real app, this would open the device's map app
       window.open(`https://www.google.com/maps?q=${coordinates.lat},${coordinates.lng}`, '_blank');
     }
     toast.success(`Navigating to ${location}`);
@@ -190,7 +245,9 @@ const DriverDashboard = () => {
     totalOrders: orders.length + completedOrders.length,
     activeOrders: orders.filter(o => o.status === "in-progress").length,
     completedOrders: completedOrders.length,
-    totalEarnings: completedOrders.reduce((sum, order) => sum + order.amount, 0)
+    totalEarnings: completedOrders
+      .filter(order => order.paymentStatus === "collected")
+      .reduce((sum, order) => sum + order.amount, 0)
   };
 
   return (

@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,13 +14,13 @@ import { toast } from "sonner";
 const DriverPayments = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const orderId = location.state?.orderId;
+  const incomingPaymentData = location.state;
 
   const [paymentData, setPaymentData] = useState({
-    orderId: orderId || "",
+    orderId: incomingPaymentData?.orderId || "",
     paymentType: "",
-    amountReceived: "",
-    customerName: "",
+    amountReceived: incomingPaymentData?.amount?.toString() || "",
+    customerName: incomingPaymentData?.customerName || "",
     reference: "",
     notes: ""
   });
@@ -35,20 +35,19 @@ const DriverPayments = () => {
     { value: "terms", label: "Terms (Credit)", icon: "📝" }
   ];
 
-  // Recent payments for display
-  const [recentPayments] = useState([
+  const [recentPayments, setRecentPayments] = useState([
     {
       id: "PAY001",
-      orderId: "JOB001",
-      customerName: "ABC Construction Sdn Bhd",
-      amount: 350.00,
+      orderId: "JOB003",
+      customerName: "Green Valley Resort",
+      amount: 450.00,
       paymentType: "Cash",
-      timestamp: "2024-01-15 14:30",
+      timestamp: "2024-01-15 10:20",
       status: "completed"
     },
     {
       id: "PAY002", 
-      orderId: "JOB003",
+      orderId: "JOB004",
       customerName: "Sunshine Apartments",
       amount: 280.00,
       paymentType: "Cheque",
@@ -58,13 +57,27 @@ const DriverPayments = () => {
     {
       id: "PAY003",
       orderId: "JOB005",
-      customerName: "Green Valley Resort",
-      amount: 450.00,
+      customerName: "ABC Construction",
+      amount: 350.00,
       paymentType: "Online Transfer",
       timestamp: "2024-01-15 09:20",
       status: "completed"
     }
   ]);
+
+  // Auto-populate form if coming from dashboard
+  useEffect(() => {
+    if (incomingPaymentData) {
+      setPaymentData(prev => ({
+        ...prev,
+        orderId: incomingPaymentData.orderId || "",
+        amountReceived: incomingPaymentData.amount?.toString() || "",
+        customerName: incomingPaymentData.customerName || "",
+        paymentType: "cash" // Default to cash
+      }));
+      toast.info("Payment form pre-filled from completed order");
+    }
+  }, [incomingPaymentData]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,7 +87,18 @@ const DriverPayments = () => {
       return;
     }
 
-    // Simulate payment recording
+    // Create new payment record
+    const newPayment = {
+      id: `PAY${String(recentPayments.length + 1).padStart(3, '0')}`,
+      orderId: paymentData.orderId,
+      customerName: paymentData.customerName,
+      amount: parseFloat(paymentData.amountReceived),
+      paymentType: paymentTypes.find(t => t.value === paymentData.paymentType)?.label || paymentData.paymentType,
+      timestamp: new Date().toLocaleString(),
+      status: "completed"
+    };
+
+    setRecentPayments(prev => [newPayment, ...prev]);
     toast.success(`Payment of RM${paymentData.amountReceived} recorded successfully!`);
     
     // Reset form
@@ -87,6 +111,11 @@ const DriverPayments = () => {
       notes: ""
     });
     setPaymentProof(null);
+
+    // Navigate back to dashboard after successful payment recording
+    setTimeout(() => {
+      navigate('/driver/dashboard');
+    }, 2000);
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -103,7 +132,7 @@ const DriverPayments = () => {
     <div className="min-h-screen bg-gray-50 p-4 lg:p-6">
       {/* Breadcrumbs */}
       <div className="bg-white border border-gray-200 rounded-xl mb-4 shadow-sm">
-        <div className="px-4 py-3">
+        <div className="px-4 py-3 flex items-center justify-between">
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
@@ -113,8 +142,34 @@ const DriverPayments = () => {
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate('/driver/dashboard')}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Dashboard
+          </Button>
         </div>
       </div>
+
+      {/* Show pre-fill notification */}
+      {incomingPaymentData && (
+        <Card className="mb-6 border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 shadow-sm">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <CheckCircle className="h-5 w-5 text-green-600" />
+              <div>
+                <p className="font-medium text-green-800">Payment Ready for Collection</p>
+                <p className="text-sm text-green-700">
+                  Order #{incomingPaymentData.orderId} completed - RM{incomingPaymentData.amount} from {incomingPaymentData.customerName}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Header Card */}
       <Card className="bg-gradient-to-br from-emerald-500 to-green-600 border-0 shadow-lg mb-6">
