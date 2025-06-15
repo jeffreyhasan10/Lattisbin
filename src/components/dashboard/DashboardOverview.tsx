@@ -7,14 +7,15 @@ import DashboardActivityFeed from "./DashboardActivityFeed";
 import DashboardPerformanceMetrics from "./DashboardPerformanceMetrics";
 import DashboardDriverTable from "./DashboardDriverTable";
 import DashboardOrderTable from "./DashboardOrderTable";
-import DriveBookingManagement from "./DriveBookingManagement";
+import LorryManagement from "./LorryManagement";
+import RentableLorries from "./RentableLorries";
 
 const DashboardOverview: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [searchTerm, setSearchTerm] = useState("");
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-indigo-50/20">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-7xl mx-auto p-6 space-y-8">
         <DashboardHeader
           selectedDate={selectedDate}
@@ -25,36 +26,42 @@ const DashboardOverview: React.FC = () => {
 
         <DashboardStatsCards />
 
-        <div className="bg-white/60 backdrop-blur-sm rounded-3xl border border-white/30 shadow-xl p-8">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-lg p-8">
           <Tabs defaultValue="overview" className="space-y-8">
-            <TabsList className="grid w-full grid-cols-5 lg:w-[600px] bg-white/70 backdrop-blur-sm p-2 rounded-2xl shadow-lg border border-white/20">
+            <TabsList className="grid w-full grid-cols-6 lg:w-[720px] bg-gray-100 dark:bg-gray-700 p-2 rounded-xl shadow-sm border border-gray-200 dark:border-gray-600">
               <TabsTrigger 
                 value="overview" 
-                className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-lg data-[state=active]:border data-[state=active]:border-white/40 transition-all duration-300 font-medium"
+                className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-gray-600 data-[state=active]:shadow-md data-[state=active]:border data-[state=active]:border-gray-200 dark:data-[state=active]:border-gray-500 transition-all duration-300 font-medium text-gray-700 dark:text-gray-300 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white"
               >
                 Overview
               </TabsTrigger>
               <TabsTrigger 
                 value="drivers"
-                className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-lg data-[state=active]:border data-[state=active]:border-white/40 transition-all duration-300 font-medium"
+                className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-gray-600 data-[state=active]:shadow-md data-[state=active]:border data-[state=active]:border-gray-200 dark:data-[state=active]:border-gray-500 transition-all duration-300 font-medium text-gray-700 dark:text-gray-300 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white"
               >
                 Drivers
               </TabsTrigger>
               <TabsTrigger 
                 value="orders"
-                className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-lg data-[state=active]:border data-[state=active]:border-white/40 transition-all duration-300 font-medium"
+                className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-gray-600 data-[state=active]:shadow-md data-[state=active]:border data-[state=active]:border-gray-200 dark:data-[state=active]:border-gray-500 transition-all duration-300 font-medium text-gray-700 dark:text-gray-300 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white"
               >
                 Orders
               </TabsTrigger>
               <TabsTrigger 
-                value="drive-booking"
-                className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-lg data-[state=active]:border data-[state=active]:border-white/40 transition-all duration-300 font-medium"
+                value="lorries"
+                className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-gray-600 data-[state=active]:shadow-md data-[state=active]:border data-[state=active]:border-gray-200 dark:data-[state=active]:border-gray-500 transition-all duration-300 font-medium text-gray-700 dark:text-gray-300 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white"
               >
-                Drive Booking
+                Lorries
+              </TabsTrigger>
+              <TabsTrigger 
+                value="rentable-lorries"
+                className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-gray-600 data-[state=active]:shadow-md data-[state=active]:border data-[state=active]:border-gray-200 dark:data-[state=active]:border-gray-500 transition-all duration-300 font-medium text-gray-700 dark:text-gray-300 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white"
+              >
+                Rentable
               </TabsTrigger>
               <TabsTrigger 
                 value="performance"
-                className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-lg data-[state=active]:border data-[state=active]:border-white/40 transition-all duration-300 font-medium"
+                className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-gray-600 data-[state=active]:shadow-md data-[state=active]:border data-[state=active]:border-gray-200 dark:data-[state=active]:border-gray-500 transition-all duration-300 font-medium text-gray-700 dark:text-gray-300 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white"
               >
                 Performance
               </TabsTrigger>
@@ -75,8 +82,16 @@ const DashboardOverview: React.FC = () => {
               <DashboardOrderTable />
             </TabsContent>
 
-            <TabsContent value="drive-booking" className="space-y-8 mt-8">
-              <DriveBookingManagement />
+            <TabsContent value="lorries" className="space-y-8 mt-8">
+              <div className="bg-gray-50 dark:bg-gray-900 rounded-xl p-6 -m-6">
+                <LorryManagement />
+              </div>
+            </TabsContent>
+
+            <TabsContent value="rentable-lorries" className="space-y-8 mt-8">
+              <div className="bg-gray-50 dark:bg-gray-900 rounded-xl p-6 -m-6">
+                <RentableLorries />
+              </div>
             </TabsContent>
 
             <TabsContent value="performance" className="space-y-8 mt-8">

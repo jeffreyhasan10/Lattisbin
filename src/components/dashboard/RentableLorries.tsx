@@ -219,10 +219,10 @@ const RentableLorries = () => {
   ];
 
   return (
-    <div className="p-6 space-y-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Rentable Lorries</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Rentable Lorries</h1>
           <p className="text-gray-600 dark:text-gray-400 mt-1">Manage your lorry fleet and rentals</p>
         </div>
         <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white">

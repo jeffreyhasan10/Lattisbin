@@ -207,25 +207,25 @@ const LorryManagement: React.FC = () => {
 
   return (
     <motion.div
-      className="space-y-6 p-4"
+      className="space-y-6"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
     >
       <motion.div
-        className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6"
+        className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
         variants={itemVariants}
       >
         <div>
-          <h2 className="text-2xl font-bold text-gray-800 font-display tracking-tight">
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 font-display tracking-tight">
             Lorry Fleet Management
           </h2>
-          <p className="text-gray-500 mt-1">
+          <p className="text-gray-500 dark:text-gray-400 mt-1">
             Monitor and manage your lorry fleet and documents
           </p>
         </div>
         <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-          <Button className="bg-primary hover:bg-primary/90 text-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 flex items-center gap-2">
+          <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 flex items-center gap-2">
             <Plus className="h-4 w-4" /> Add Lorry
           </Button>
         </motion.div>
@@ -240,7 +240,7 @@ const LorryManagement: React.FC = () => {
             title: "All Lorries",
             subtitle: "Total fleet",
             count: DUMMY_LORRIES.length,
-            color: "primary",
+            color: "blue-500",
             tab: "all",
           },
           {
@@ -267,15 +267,15 @@ const LorryManagement: React.FC = () => {
             <Card
               className={`border-l-4 ${
                 activeTab === card.tab ? `border-l-${card.color}` : "border-l-transparent"
-              } cursor-pointer transition-all duration-300 hover:shadow-md bg-white rounded-lg overflow-hidden`}
+              } cursor-pointer transition-all duration-300 hover:shadow-md bg-white dark:bg-gray-800 rounded-lg overflow-hidden border-gray-200 dark:border-gray-700`}
               onClick={() => setActiveTab(card.tab)}
             >
               <CardContent className="p-4 flex items-center justify-between">
                 <div>
-                  <CardTitle className="text-lg text-gray-800 font-display">
+                  <CardTitle className="text-lg text-gray-800 dark:text-gray-100 font-display">
                     {card.title}
                   </CardTitle>
-                  <p className="text-sm text-gray-500">{card.subtitle}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{card.subtitle}</p>
                 </div>
                 <div
                   className={`h-12 w-12 rounded-lg bg-${card.color}/10 flex items-center justify-center shadow-sm`}
@@ -289,7 +289,7 @@ const LorryManagement: React.FC = () => {
       </motion.div>
 
       <motion.div
-        className="flex flex-col md:flex-row gap-4 mb-6"
+        className="flex flex-col md:flex-row gap-4"
         variants={itemVariants}
       >
         <motion.div
@@ -300,7 +300,7 @@ const LorryManagement: React.FC = () => {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
             placeholder="Search lorries..."
-            className="pl-10 border-gray-200 focus:ring-2 focus:ring-primary/30 rounded-lg shadow-sm transition-all duration-200"
+            className="pl-10 border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-blue-500/30 rounded-lg shadow-sm transition-all duration-200 bg-white dark:bg-gray-800"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -308,13 +308,13 @@ const LorryManagement: React.FC = () => {
 
         <div className="flex flex-wrap gap-2">
           <Select value={filterValue} onValueChange={setFilterValue}>
-            <SelectTrigger className="w-[160px] border-gray-200 hover:border-primary/30 rounded-lg shadow-sm transition-colors">
+            <SelectTrigger className="w-[160px] border-gray-200 dark:border-gray-700 hover:border-blue-500/30 rounded-lg shadow-sm transition-colors bg-white dark:bg-gray-800">
               <div className="flex items-center gap-2">
-                <Filter className="h-4 w-4 text-primary" />
+                <Filter className="h-4 w-4 text-blue-600" />
                 <SelectValue placeholder="Filter" />
               </div>
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
               <SelectItem value="all">All Statuses</SelectItem>
               <SelectItem value="active">Active</SelectItem>
               <SelectItem value="maintenance">Maintenance</SelectItem>
@@ -324,9 +324,9 @@ const LorryManagement: React.FC = () => {
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Button
               variant="outline"
-              className="flex items-center gap-2 border-gray-200 hover:bg-gray-100 rounded-lg shadow-sm transition-colors"
+              className="flex items-center gap-2 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg shadow-sm transition-colors bg-white dark:bg-gray-800"
             >
-              <Calendar className="h-4 w-4 text-primary" />
+              <Calendar className="h-4 w-4 text-blue-600" />
               <span>Apr 2025</span>
             </Button>
           </motion.div>
@@ -334,15 +334,15 @@ const LorryManagement: React.FC = () => {
       </motion.div>
 
       <motion.div variants={itemVariants}>
-        <Card className="border-gray-100 shadow-md overflow-hidden bg-white transition-all duration-300 hover:shadow-lg rounded-xl">
-          <CardHeader className="bg-gradient-to-r from-primary/90 to-primary/70 pb-3 pt-4">
+        <Card className="border-gray-200 dark:border-gray-700 shadow-md overflow-hidden bg-white dark:bg-gray-800 transition-all duration-300 hover:shadow-lg rounded-xl">
+          <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 pb-3 pt-4">
             <CardTitle className="text-white text-xl font-display flex items-center gap-2">
               <Truck className="h-5 w-5" />
               Lorry Fleet Directory
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="flex items-center justify-between p-4 border-b border-gray-100">
+            <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-700">
               <motion.div
                 className="flex items-center gap-2"
                 initial={{ opacity: 0 }}
@@ -351,7 +351,7 @@ const LorryManagement: React.FC = () => {
               >
                 <Badge
                   variant="outline"
-                  className="bg-primary/5 border-primary/20 text-primary"
+                  className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400"
                 >
                   {filteredLorries.length} Vehicles
                 </Badge>
@@ -360,7 +360,7 @@ const LorryManagement: React.FC = () => {
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-gray-50/80 hover:bg-gray-50/80">
+                  <TableRow className="bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-50 dark:hover:bg-gray-800/50">
                     {[
                       { key: "lorryNumber", label: "Lorry Number" },
                       { key: "model", label: "Model & Tonnage" },
@@ -402,7 +402,7 @@ const LorryManagement: React.FC = () => {
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: -20 }}
                           transition={{ duration: 0.3, delay: index * 0.1 }}
-                          className="group hover:bg-gray-50/80"
+                          className="group hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
                         >
                           <TableCell className="font-medium text-gray-800">
                             {lorry.lorryNumber}
@@ -474,8 +474,8 @@ const LorryManagement: React.FC = () => {
                         transition={{ duration: 0.3 }}
                       >
                         <TableCell colSpan={8} className="text-center py-8">
-                          <div className="flex flex-col items-center justify-center text-gray-500">
-                            <Truck className="h-16 w-16 text-gray-300 mb-3" />
+                          <div className="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
+                            <Truck className="h-16 w-16 text-gray-300 dark:text-gray-600 mb-3" />
                             <p>No lorries found matching your criteria.</p>
                             <p className="text-sm mt-1">Try changing your search or filter settings.</p>
                           </div>
