@@ -47,16 +47,48 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
+// Define the order interface to ensure consistent typing
+interface OrderType {
+  id: string;
+  customer: string;
+  customerPhone: string;
+  location: string;
+  pickupLocation: string;
+  time: string;
+  date: string;
+  status: string;
+  amount: number;
+  priority: string;
+  wasteType: string;
+  lorryType: string;
+  distance: string;
+  estimatedDuration: string;
+  notes: string;
+  paymentStatus: string;
+  nearestBin: {
+    name: string;
+    distance: string;
+    location: string;
+    capacity: string;
+    type: string;
+  };
+  driverNotes?: string;
+  startedTime?: string;
+  completedTime?: string;
+  cancelledTime?: string;
+  cancelReason?: string;
+}
+
 const DriverOrders = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [activeTab, setActiveTab] = useState("all");
-  const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [selectedOrder, setSelectedOrder] = useState<OrderType | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   
-  // State for orders
-  const [orders, setOrders] = useState([
+  // State for orders with proper typing
+  const [orders, setOrders] = useState<OrderType[]>([
     {
       id: "JOB001",
       customer: "ABC Construction Sdn Bhd",
@@ -165,11 +197,16 @@ const DriverOrders = () => {
     }
   ]);
 
-  // Order management functions
+  // Order management functions with proper typing
   const handleStartOrder = (orderId: string) => {
     setOrders(prev => prev.map(order => 
       order.id === orderId 
-        ? { ...order, status: "in-progress", startedTime: new Date().toLocaleTimeString() }
+        ? { 
+            ...order, 
+            status: "in-progress", 
+            startedTime: new Date().toLocaleTimeString(),
+            driverNotes: order.driverNotes || "Order started"
+          }
         : order
     ));
     toast.success("Order started successfully!");
@@ -178,7 +215,12 @@ const DriverOrders = () => {
   const handleFinishOrder = (orderId: string) => {
     setOrders(prev => prev.map(order => 
       order.id === orderId 
-        ? { ...order, status: "completed", completedTime: new Date().toLocaleTimeString() }
+        ? { 
+            ...order, 
+            status: "completed", 
+            completedTime: new Date().toLocaleTimeString(),
+            driverNotes: order.driverNotes || "Order completed successfully"
+          }
         : order
     ));
     toast.success("Order completed successfully!");
@@ -241,7 +283,7 @@ const DriverOrders = () => {
     cancelled: orders.filter(o => o.status === "cancelled").length,
   };
 
-  const handleViewOrder = (order: any) => {
+  const handleViewOrder = (order: OrderType) => {
     setSelectedOrder(order);
     setIsDetailsOpen(true);
   };
