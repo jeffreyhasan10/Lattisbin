@@ -40,6 +40,23 @@ export interface Driver {
   icNumber?: string;
   completedOrders?: number;
   totalEarnings?: number;
+  
+  // Enhanced driver profile fields
+  address?: string;
+  emergencyContact?: string;
+  emergencyPhone?: string;
+  employeeId?: string;
+  dateJoined?: string;
+  position?: string;
+  department?: string;
+  vehicleRegistration?: string;
+  licenseNumber?: string;
+  licenseClass?: string;
+  licenseExpiry?: string;
+  insuranceNumber?: string;
+  insuranceExpiry?: string;
+  baseSalary?: number;
+  commissionRate?: number;
 }
 
 export interface MaintenanceSchedule {

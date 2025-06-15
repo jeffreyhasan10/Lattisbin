@@ -1,5 +1,4 @@
-
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,6 +9,7 @@ import AddDriverModal from "./AddDriverModal";
 
 const DashboardDriverTable: React.FC = () => {
   const { drivers } = useOrders();
+  const [isAddDriverModalOpen, setIsAddDriverModalOpen] = useState(false);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -33,7 +33,9 @@ const DashboardDriverTable: React.FC = () => {
             Driver Management ({drivers.length})
           </CardTitle>
           <div className="flex gap-2">
-            <AddDriverModal />
+            <Button onClick={() => setIsAddDriverModalOpen(true)} size="sm">
+              Add Driver
+            </Button>
             <Button 
               variant="outline" 
               size="sm"
@@ -128,6 +130,11 @@ const DashboardDriverTable: React.FC = () => {
           </Table>
         </div>
       </CardContent>
+      
+      <AddDriverModal 
+        isOpen={isAddDriverModalOpen} 
+        onClose={() => setIsAddDriverModalOpen(false)} 
+      />
     </Card>
   );
 };

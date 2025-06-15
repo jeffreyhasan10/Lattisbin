@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +11,7 @@ import AddDriverModal from "./AddDriverModal";
 const AdminDriverManagement: React.FC = () => {
   const { drivers, orders } = useOrders();
   const [searchTerm, setSearchTerm] = useState("");
+  const [isAddDriverModalOpen, setIsAddDriverModalOpen] = useState(false);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -56,7 +56,9 @@ const AdminDriverManagement: React.FC = () => {
           <p className="text-gray-600 mt-1">Monitor and manage all drivers with real-time status</p>
         </div>
         <div className="flex gap-2">
-          <AddDriverModal />
+          <Button onClick={() => setIsAddDriverModalOpen(true)}>
+            Add Driver
+          </Button>
           <Button variant="outline" className="bg-white/80 backdrop-blur-sm">
             <Filter className="h-4 w-4 mr-2" />
             Filter
@@ -255,6 +257,11 @@ const AdminDriverManagement: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+
+      <AddDriverModal 
+        isOpen={isAddDriverModalOpen} 
+        onClose={() => setIsAddDriverModalOpen(false)} 
+      />
     </div>
   );
 };

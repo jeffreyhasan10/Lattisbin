@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import AddOrderModal from "./AddOrderModal";
 
 const DashboardOrderTable: React.FC = () => {
   const { orders, drivers, assignOrderToDriver } = useOrders();
+  const [isAddOrderModalOpen, setIsAddOrderModalOpen] = useState(false);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -56,7 +57,9 @@ const DashboardOrderTable: React.FC = () => {
             Order Management ({orders.length})
           </CardTitle>
           <div className="flex gap-2">
-            <AddOrderModal />
+            <Button onClick={() => setIsAddOrderModalOpen(true)} size="sm">
+              Add Order
+            </Button>
             <Button 
               variant="outline" 
               size="sm"
@@ -170,6 +173,11 @@ const DashboardOrderTable: React.FC = () => {
           </Table>
         </div>
       </CardContent>
+      
+      <AddOrderModal 
+        isOpen={isAddOrderModalOpen} 
+        onClose={() => setIsAddOrderModalOpen(false)} 
+      />
     </Card>
   );
 };
