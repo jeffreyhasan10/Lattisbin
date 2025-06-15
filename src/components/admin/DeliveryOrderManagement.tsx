@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { FileText, Plus, MapPin, QrCode, Camera, User, Clock, Route, CheckCircle, AlertTriangle, Navigation, Smartphone, Weight, signature, Zap, Shield, Eye, Phone, MessageSquare } from "lucide-react";
+import { FileText, Plus, MapPin, QrCode, Camera, User, Clock, Route, CheckCircle, AlertTriangle, Navigation, Smartphone, Weight, Edit, Zap, Shield, Eye, Phone, MessageSquare } from "lucide-react";
 import SmartDeliveryEngine from "@/utils/smartDeliveryEngine";
 import ExceptionHandler from "@/utils/exceptionHandler";
 
@@ -470,7 +470,7 @@ const DeliveryOrderManagement: React.FC = () => {
                             setShowSignatureModal(true);
                           }}
                         >
-                          <signature className="h-3 w-3" />
+                          <Edit className="h-3 w-3" />
                         </Button>
                       )}
                     </div>
@@ -597,7 +597,7 @@ const DeliveryOrderManagement: React.FC = () => {
           </DialogHeader>
           <div className="space-y-4">
             <div className="p-4 border-2 border-dashed border-gray-300 rounded-lg text-center h-40">
-              <signature className="h-12 w-12 mx-auto text-gray-400 mb-2" />
+              <Edit className="h-12 w-12 mx-auto text-gray-400 mb-2" />
               <p className="text-sm text-gray-600">Customer signature area</p>
             </div>
             <div className="flex justify-end gap-2">
