@@ -194,6 +194,7 @@ const AppLayout: React.FC = () => {
         { tab: "customers", label: "Customers", icon: Users, badge: "New", description: "View customer details", status: "in-use" },
         { tab: "bins", label: "Bins", icon: Package2, description: "Manage bin inventory", status: "maintenance" },
         { tab: "lorries", label: "Lorries", icon: Truck, description: "View lorry details", status: "available" },
+        { tab: "drivers", label: "Drivers", icon: UserCheck, description: "Manage driver accounts", status: "available" },
       ],
     },
     {

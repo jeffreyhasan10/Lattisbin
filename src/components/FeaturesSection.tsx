@@ -1,4 +1,3 @@
-
 import {
   Users,
   LayoutDashboard,
@@ -84,12 +83,6 @@ const FeaturesSection = () => {
       title: "Driver Dashboard",
       description: "Optimized for mobility with delivery schedules, navigation, collection confirmations, and payment receipt.",
       image: "./assets/lattis2.jpg"
-    },
-    {
-      id: "client",
-      title: "Client Dashboard",
-      description: "Easy order placement, bin tracking, invoice management, and service history in a user-friendly interface.",
-      image: "./assets/lattis2.jpg"
     }
   ];
 
@@ -135,7 +128,7 @@ const FeaturesSection = () => {
           <h3 className="text-2xl font-semibold mb-8 text-center">Dashboard for Every Role</h3>
           
           <Tabs defaultValue="admin" className="w-full">
-            <TabsList className="grid grid-cols-3 mb-8">
+            <TabsList className="grid grid-cols-2 mb-8">
               {dashboardRoles.map((role) => (
                 <TabsTrigger key={role.id} value={role.id} className="text-base">
                   {role.title}
@@ -193,29 +186,6 @@ const FeaturesSection = () => {
                               <BookOpenCheck size={14} />
                             </div>
                             <span>Digital proof of service</span>
-                          </li>
-                        </>
-                      )}
-                      
-                      {role.id === "client" && (
-                        <>
-                          <li className="flex items-center">
-                            <div className="w-6 h-6 bg-simatex-purple/10 rounded-full flex items-center justify-center text-simatex-purple mr-3">
-                              <Repeat size={14} />
-                            </div>
-                            <span>Service scheduling</span>
-                          </li>
-                          <li className="flex items-center">
-                            <div className="w-6 h-6 bg-simatex-purple/10 rounded-full flex items-center justify-center text-simatex-purple mr-3">
-                              <FileText size={14} />
-                            </div>
-                            <span>Invoice management</span>
-                          </li>
-                          <li className="flex items-center">
-                            <div className="w-6 h-6 bg-simatex-purple/10 rounded-full flex items-center justify-center text-simatex-purple mr-3">
-                              <Sigma size={14} />
-                            </div>
-                            <span>Usage reports</span>
                           </li>
                         </>
                       )}

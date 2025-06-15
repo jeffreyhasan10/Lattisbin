@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -134,16 +133,23 @@ const NotificationCenter = () => {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="relative">
-          <Bell className="h-4 w-4 mr-2" />
-          Notifications
-          {unreadCount > 0 && (
-            <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center bg-red-500 text-white text-xs">
-              {unreadCount}
-            </Badge>
-          )}
-        </Button>
-      </DialogTrigger>
+  <Button
+    variant="outline"
+    size="sm"
+    className="relative inline-flex items-center text-black hover:bg-transparent hover:text-black"
+  >
+    <Bell className="h-4 w-4 mr-2" />
+    Notifications
+    {unreadCount > 0 && (
+      <Badge 
+        className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 inline-flex items-center justify-center bg-red-500 text-white text-xs pointer-events-none"
+      >
+        {unreadCount}
+      </Badge>
+    )}
+  </Button>
+</DialogTrigger>
+
       <DialogContent className="max-w-2xl h-[600px]">
         <DialogHeader>
           <div className="flex items-center justify-between">
