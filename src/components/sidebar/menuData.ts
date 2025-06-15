@@ -34,6 +34,7 @@ export const menuItems = [
     items: [
       { tab: "company", label: "Company Details", icon: Building2 },
       { tab: "drivers", label: "Driver Management", icon: UserCheck, badge: "New" },
+      { tab: "driver-details", label: "Driver Details", icon: UserCheck },
       { tab: "customers", label: "Customers", icon: Users, badge: "New" },
       { tab: "bins", label: "Bins", icon: Package2 },
       { tab: "lorries", label: "Lorries", icon: Truck },
