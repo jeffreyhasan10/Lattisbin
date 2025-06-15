@@ -186,12 +186,12 @@ const SidebarComponent: React.FC<SidebarProps> = ({
               {!collapsed && (
                 <ChevronDown 
                   className={`h-4 w-4 transition-transform duration-200 ${
-                    expandedGroups[group.group] ? 'rotate-180' : ''
+                    expandedGroups[group.group as keyof typeof expandedGroups] ? 'rotate-180' : ''
                   }`} 
                 />
               )}
             </SidebarGroupLabel>
-            {(collapsed || expandedGroups[group.group]) && (
+            {(collapsed || expandedGroups[group.group as keyof typeof expandedGroups]) && (
               <SidebarGroupContent>
                 <SidebarMenu>
                   {group.items.map((item) => (
