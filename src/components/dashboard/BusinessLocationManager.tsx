@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { MapPin, Plus, Edit, Trash2, Navigation } from "lucide-react";
 import { toast } from "sonner";
 
-interface Location {
+interface BusinessLocation {
   id: string;
   address: string;
   state: string;
@@ -26,8 +26,8 @@ interface BusinessLocationManagerProps {
   isOpen: boolean;
   onClose: () => void;
   businessId: string;
-  locations: Location[];
-  onLocationsUpdate: (locations: Location[]) => void;
+  locations: BusinessLocation[];
+  onLocationsUpdate: (locations: BusinessLocation[]) => void;
 }
 
 const BusinessLocationManager: React.FC<BusinessLocationManagerProps> = ({
@@ -62,7 +62,7 @@ const BusinessLocationManager: React.FC<BusinessLocationManagerProps> = ({
       return;
     }
 
-    const location: Location = {
+    const location: BusinessLocation = {
       id: `LOC${Date.now()}`,
       ...newLocation,
       isPrimary: locations.length === 0, // First location is primary

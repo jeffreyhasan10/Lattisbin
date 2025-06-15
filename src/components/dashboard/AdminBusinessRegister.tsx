@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -46,15 +45,15 @@ interface Business {
 
 interface BusinessLocation {
   id: string;
-  locationType: "Headquarters" | "Branch" | "Warehouse" | "Service Point";
   address: string;
-  city: string;
   state: string;
+  city: string;
   postcode: string;
-  coordinates?: string;
-  contactPerson: string;
-  phone: string;
-  isActive: boolean;
+  gpsCoordinates: string;
+  isPrimary: boolean;
+  locationType: "Headquarters" | "Branch" | "Warehouse" | "Service Center";
+  contactPerson?: string;
+  contactPhone?: string;
 }
 
 const AdminBusinessRegister: React.FC = () => {
@@ -595,7 +594,10 @@ const AdminBusinessRegister: React.FC = () => {
           </DialogHeader>
           {selectedBusinessId && (
             <BusinessLocationManager
+              isOpen={showLocationModal}
+              onClose={() => setShowLocationModal(false)}
               businessId={selectedBusinessId}
+              locations={[]} // Start with empty array for now
               onLocationsUpdate={handleLocationUpdate}
             />
           )}
