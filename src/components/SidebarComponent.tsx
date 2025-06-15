@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -97,6 +96,7 @@ const SidebarComponent: React.FC<SidebarProps> = ({
         { tab: "customers", label: "Customers", icon: Users, badge: "New" },
         { tab: "bins", label: "Bins", icon: Package2 },
         { tab: "lorries", label: "Lorries", icon: Truck },
+        { tab: "drivers", label: "Driver Management", icon: UserCheck, badge: "New" },
       ],
     },
     {
@@ -218,6 +218,8 @@ const SidebarComponent: React.FC<SidebarProps> = ({
                                           ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
                                           : item.tab === "bookings"
                                           ? "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300"
+                                          : item.tab === "drivers"
+                                          ? "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300"
                                           : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300"
                                       }`}
                                     >
