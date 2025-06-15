@@ -19,6 +19,7 @@ import {
   Download
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
 import DataTable from "@/components/dashboard/DataTable";
 
 interface Lorry {
@@ -76,9 +77,10 @@ const LORRY_DATA: Lorry[] = [
 const RentableLorries = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [lorries] = useState(LORRY_DATA);
+  const [lorries, setLorries] = useState(LORRY_DATA);
+  const { toast } = useToast();
 
-  const filteredLorries = useMemo(() => {
+  const filteredLorries = useMemo(() =>  {
     return lorries.filter(lorry => {
       const matchesSearch = lorry.plateNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            lorry.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -111,6 +113,53 @@ const RentableLorries = () => {
     } else {
       return <Badge className="bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300">Low</Badge>;
     }
+  };
+
+  const handleView = (lorry: Lorry) => {
+    console.log("Viewing lorry:", lorry);
+    toast({
+      title: "Lorry Details",
+      description: `Viewing details for ${lorry.plateNumber}`,
+    });
+  };
+
+  const handleEdit = (lorry: Lorry) => {
+    console.log("Editing lorry:", lorry);
+    toast({
+      title: "Edit Lorry",
+      description: `Opening edit form for ${lorry.plateNumber}`,
+    });
+  };
+
+  const handleSettings = (lorry: Lorry) => {
+    console.log("Opening settings for lorry:", lorry);
+    toast({
+      title: "Lorry Settings",
+      description: `Opening settings for ${lorry.plateNumber}`,
+    });
+  };
+
+  const handleAddLorry = () => {
+    console.log("Adding new lorry");
+    toast({
+      title: "Add Lorry",
+      description: "Opening form to add a new lorry",
+    });
+  };
+
+  const handleExport = () => {
+    console.log("Exporting lorry data");
+    toast({
+      title: "Export Started",
+      description: "Lorry data is being exported...",
+    });
+    
+    setTimeout(() => {
+      toast({
+        title: "Export Complete",
+        description: "Lorry data has been exported successfully.",
+      });
+    }, 2000);
   };
 
   const columns = [
@@ -202,15 +251,15 @@ const RentableLorries = () => {
       header: "Actions",
       render: (lorry: Lorry) => (
         <div className="flex gap-2">
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={() => handleView(lorry)}>
             <Eye className="h-4 w-4 mr-1" />
             View
           </Button>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={() => handleEdit(lorry)}>
             <Edit className="h-4 w-4 mr-1" />
             Edit
           </Button>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={() => handleSettings(lorry)}>
             <Settings className="h-4 w-4" />
           </Button>
         </div>
@@ -225,7 +274,10 @@ const RentableLorries = () => {
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Rentable Lorries</h1>
           <p className="text-gray-600 dark:text-gray-400 mt-1">Manage your lorry fleet and rentals</p>
         </div>
-        <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white">
+        <Button 
+          onClick={handleAddLorry}
+          className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+        >
           <Plus className="h-4 w-4 mr-2" />
           Add Lorry
         </Button>
@@ -256,7 +308,7 @@ const RentableLorries = () => {
                   <SelectItem value="maintenance">Maintenance</SelectItem>
                 </SelectContent>
               </Select>
-              <Button variant="outline" size="sm" className="border-gray-200 dark:border-gray-700">
+              <Button variant="outline" size="sm" onClick={handleExport} className="border-gray-200 dark:border-gray-700">
                 <Download className="h-4 w-4 mr-2" />
                 Export
               </Button>

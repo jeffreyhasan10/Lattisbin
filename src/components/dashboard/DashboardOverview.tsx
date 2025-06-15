@@ -15,7 +15,7 @@ const DashboardOverview: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-[1400px] mx-auto p-4 lg:p-6 space-y-6">
         <DashboardHeader
           selectedDate={selectedDate}
@@ -26,9 +26,9 @@ const DashboardOverview: React.FC = () => {
 
         <DashboardStatsCards />
 
-        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-3xl border border-gray-200/50 dark:border-gray-700/50 shadow-xl overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-lg overflow-hidden">
           <Tabs defaultValue="overview" className="w-full">
-            <div className="border-b border-gray-200/50 dark:border-gray-700/50 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
+            <div className="border-b border-gray-200/50 dark:border-gray-700/50 bg-white dark:bg-gray-800">
               <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 h-auto p-2 bg-transparent gap-1">
                 <TabsTrigger 
                   value="overview" 
@@ -88,15 +88,11 @@ const DashboardOverview: React.FC = () => {
               </TabsContent>
 
               <TabsContent value="lorries" className="space-y-6 mt-0">
-                <div className="bg-gradient-to-br from-gray-50/50 to-gray-100/50 dark:from-gray-900/50 dark:to-gray-800/50 rounded-2xl p-6 -m-6">
-                  <LorryManagement />
-                </div>
+                <LorryManagement />
               </TabsContent>
 
               <TabsContent value="rentable-lorries" className="space-y-6 mt-0">
-                <div className="bg-gradient-to-br from-gray-50/50 to-gray-100/50 dark:from-gray-900/50 dark:to-gray-800/50 rounded-2xl p-6 -m-6">
-                  <RentableLorries />
-                </div>
+                <RentableLorries />
               </TabsContent>
 
               <TabsContent value="performance" className="space-y-6 mt-0">

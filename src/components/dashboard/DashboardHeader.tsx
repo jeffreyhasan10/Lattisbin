@@ -7,6 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { CalendarIcon, Search, Download } from "lucide-react";
 import { format } from "date-fns";
 import NotificationCenter from "./NotificationCenter";
+import { useToast } from "@/hooks/use-toast";
 
 interface DashboardHeaderProps {
   selectedDate: Date | undefined;
@@ -21,8 +22,22 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   searchTerm,
   onSearchChange,
 }) => {
+  const { toast } = useToast();
+
   const handleExport = () => {
     console.log("Exporting dashboard data...");
+    toast({
+      title: "Export Started",
+      description: "Dashboard data is being exported. You'll receive it shortly.",
+    });
+    
+    // Simulate export process
+    setTimeout(() => {
+      toast({
+        title: "Export Complete",
+        description: "Dashboard data has been exported successfully.",
+      });
+    }, 2000);
   };
 
   return (

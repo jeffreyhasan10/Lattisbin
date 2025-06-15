@@ -13,9 +13,11 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { TrendingUp, Target, Clock, Award, Fuel, CheckCircle, Eye, BarChart3, ArrowUp, ArrowDown } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const DashboardPerformanceMetrics: React.FC = () => {
   const [selectedMetric, setSelectedMetric] = useState<any>(null);
+  const { toast } = useToast();
 
   const performanceData = [
     {
@@ -142,11 +144,21 @@ const DashboardPerformanceMetrics: React.FC = () => {
 
   const handleViewReport = () => {
     console.log("View full performance report clicked");
-    // Add navigation logic here
+    toast({
+      title: "Generating Report",
+      description: "Full performance report is being generated.",
+    });
+    
+    setTimeout(() => {
+      toast({
+        title: "Report Ready",
+        description: "Performance report has been generated successfully.",
+      });
+    }, 2000);
   };
 
   return (
-    <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border-gray-200/50 dark:border-gray-700/50 shadow-lg hover:shadow-xl transition-all duration-300">
+    <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-300 w-full overflow-hidden">
       <CardHeader className="pb-4 border-b border-gray-100 dark:border-gray-700/50">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
@@ -170,22 +182,22 @@ const DashboardPerformanceMetrics: React.FC = () => {
         </div>
       </CardHeader>
       <CardContent className="p-4 lg:p-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 max-w-full">
           {performanceData.map((metric) => {
             const Icon = metric.icon;
             const isPositiveTrend = metric.trend.startsWith('+');
             return (
-              <div key={metric.id} className="p-4 lg:p-5 border border-gray-200/50 dark:border-gray-700/50 rounded-xl bg-gradient-to-br from-gray-50/30 to-gray-100/30 dark:from-gray-800/30 dark:to-gray-900/30 hover:from-gray-50/50 hover:to-gray-100/50 dark:hover:from-gray-700/30 dark:hover:to-gray-800/30 transition-all duration-300 group">
+              <div key={metric.id} className="p-4 border border-gray-200/50 dark:border-gray-700/50 rounded-xl bg-gradient-to-br from-gray-50/30 to-gray-100/30 dark:from-gray-800/30 dark:to-gray-900/30 hover:from-gray-50/50 hover:to-gray-100/50 dark:hover:from-gray-700/30 dark:hover:to-gray-800/30 transition-all duration-300 group min-w-0">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 min-w-0 flex-1">
                     <div className={`p-2 rounded-lg bg-gradient-to-br ${getStatusColor(metric.status).includes('green') ? 'from-green-100 to-green-200 dark:from-green-900/20 dark:to-green-800/20' : 
                       getStatusColor(metric.status).includes('blue') ? 'from-blue-100 to-blue-200 dark:from-blue-900/20 dark:to-blue-800/20' :
                       getStatusColor(metric.status).includes('yellow') ? 'from-yellow-100 to-yellow-200 dark:from-yellow-900/20 dark:to-yellow-800/20' :
                       'from-red-100 to-red-200 dark:from-red-900/20 dark:to-red-800/20'}`}>
                       <Icon className={`h-4 w-4 ${getStatusColor(metric.status)}`} />
                     </div>
-                    <div className="flex-1">
-                      <span className="font-medium text-sm text-gray-900 dark:text-gray-100 block">
+                    <div className="min-w-0 flex-1">
+                      <span className="font-medium text-sm text-gray-900 dark:text-gray-100 block truncate">
                         {metric.title}
                       </span>
                       <Badge className={`${getStatusBadge(metric.status)} text-xs mt-1`}>
@@ -198,7 +210,7 @@ const DashboardPerformanceMetrics: React.FC = () => {
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="h-8 w-8 p-0 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 opacity-0 group-hover:opacity-100 transition-all"
+                        className="h-8 w-8 p-0 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 opacity-0 group-hover:opacity-100 transition-all flex-shrink-0"
                         onClick={() => handleViewDetails(metric)}
                       >
                         <Eye className="h-3 w-3" />
@@ -242,7 +254,7 @@ const DashboardPerformanceMetrics: React.FC = () => {
                 
                 <div className="mb-4">
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-gray-100">
+                    <span className="text-2xl font-bold text-gray-900 dark:text-gray-100 truncate">
                       {metric.value}%
                     </span>
                     <div className={`flex items-center gap-1 text-sm font-medium px-2 py-1 rounded-full ${
