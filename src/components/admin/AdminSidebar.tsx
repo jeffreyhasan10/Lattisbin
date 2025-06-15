@@ -1,181 +1,202 @@
-
-import React, { useState } from "react";
-import { NavLink, useLocation } from "react-router-dom";
-import { 
-  Building2, Users, Package, Truck, UserCheck, Upload, 
-  FileText, DollarSign, Receipt, BarChart3, Settings, 
-  CalendarRange, MapPin, Shield, CreditCard, RefreshCw,
-  PieChart, Printer, TrendingUp, Activity, Bell
-} from "lucide-react";
+import React from "react";
+import { useLocation, NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
-import { Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
+import { Icons } from "@/components/ui/icons";
+import { Button } from "@/components/ui/button";
+import {
+  LayoutDashboard,
+  Building2,
+  Users,
+  Package,
+  Truck,
+  UserCheck,
+  FileText,
+  DollarSign,
+  Receipt,
+  BarChart3,
+  CalendarRange,
+  MapPin,
+  RefreshCw,
+  CreditCard,
+  Printer,
+  Settings,
+  Upload,
+  Activity
+} from "lucide-react";
 
 interface AdminSidebarProps {
   collapsed: boolean;
 }
 
+const NavigationIcon = Icons.arrowRight;
+
 const AdminSidebar: React.FC<AdminSidebarProps> = ({ collapsed }) => {
   const location = useLocation();
-  const [notifications] = useState(3);
+  const currentPath = location.pathname;
 
   const menuItems = [
-    { 
-      path: "/admin/dashboard", 
-      label: "Overview", 
-      icon: Activity,
-      badge: null
+    {
+      id: "dashboard",
+      label: "Dashboard",
+      icon: LayoutDashboard,
+      href: "/admin/dashboard"
     },
-    { 
-      path: "/admin/business", 
-      label: "Business Registration", 
+    {
+      id: "business",
+      label: "Business Registration",
       icon: Building2,
-      badge: "12"
+      href: "/admin/business"
     },
-    { 
-      path: "/admin/customers", 
-      label: "Customer Management", 
+    {
+      id: "customers",
+      label: "Customer Management",
       icon: Users,
-      badge: "245"
+      href: "/admin/customers"
     },
-    { 
-      path: "/admin/inventory", 
-      label: "Inventory Management", 
+    {
+      id: "inventory",
+      label: "Inventory Management",
       icon: Package,
-      badge: "156"
+      href: "/admin/inventory"
     },
-    { 
-      path: "/admin/fleet", 
-      label: "Fleet Management", 
-      icon: Truck,
-      badge: "8"
-    },
-    { 
-      path: "/admin/external-lorries", 
-      label: "External Lorries", 
-      icon: MapPin,
-      badge: "15"
-    },
-    { 
-      path: "/admin/waste", 
-      label: "Waste Management", 
-      icon: Upload,
-      badge: "25"
-    },
-    { 
-      path: "/admin/drivers", 
-      label: "Driver Management", 
+    {
+      id: "drivers",
+      label: "Driver Management",
       icon: UserCheck,
-      badge: "12"
+      href: "/admin/drivers"
     },
-    { 
-      path: "/admin/bookings", 
-      label: "Booking System", 
-      icon: CalendarRange,
-      badge: "34"
+    {
+      id: "driver-monitoring",
+      label: "Live Driver Monitoring",
+      icon: Activity,
+      href: "/admin/driver-monitoring"
     },
-    { 
-      path: "/admin/orders", 
-      label: "Order Management", 
+    {
+      id: "orders",
+      label: "Order Management",
       icon: FileText,
-      badge: "89"
+      href: "/admin/orders"
     },
-    { 
-      path: "/admin/invoicing", 
-      label: "Invoicing System", 
+    {
+      id: "fleet",
+      label: "Fleet Management",
+      icon: Truck,
+      href: "/admin/fleet"
+    },
+    {
+      id: "external-lorries",
+      label: "External Lorries",
+      icon: MapPin,
+      href: "/admin/external-lorries"
+    },
+    {
+      id: "waste",
+      label: "Waste Management",
+      icon: Upload,
+      href: "/admin/waste"
+    },
+    {
+      id: "bookings",
+      label: "Booking System",
+      icon: CalendarRange,
+      href: "/admin/bookings"
+    },
+    {
+      id: "delivery-orders",
+      label: "Delivery Orders",
+      icon: NavigationIcon,
+      href: "/admin/delivery-orders"
+    },
+    {
+      id: "invoicing",
+      label: "Invoicing System",
       icon: Receipt,
-      badge: "67"
+      href: "/admin/invoicing"
     },
-    { 
-      path: "/admin/commission", 
-      label: "Commission Management", 
+    {
+      id: "commission",
+      label: "Commission Management",
       icon: DollarSign,
-      badge: null
+      href: "/admin/commission"
     },
-    { 
-      path: "/admin/refunds", 
-      label: "Refunds & Cancellations", 
+    {
+      id: "refunds",
+      label: "Refunds & Cancellations",
       icon: RefreshCw,
-      badge: "5"
+      href: "/admin/refunds"
     },
-    { 
-      path: "/admin/expenses", 
-      label: "Expense Management", 
+    {
+      id: "expenses",
+      label: "Expense Management",
       icon: CreditCard,
-      badge: null
+      href: "/admin/expenses"
     },
-    { 
-      path: "/admin/reports", 
-      label: "Reports & Analytics", 
+    {
+      id: "reports",
+      label: "Reports & Analytics",
       icon: BarChart3,
-      badge: null
+      href: "/admin/reports"
     },
-    { 
-      path: "/admin/printing", 
-      label: "Printing System", 
+    {
+      id: "performance-analytics",
+      label: "Performance Analytics",
+      icon: TrendingUp,
+      href: "/admin/performance-analytics"
+    },
+    {
+      id: "printing",
+      label: "Printing System",
       icon: Printer,
-      badge: null
+      href: "/admin/printing"
     },
-    { 
-      path: "/admin/settings", 
-      label: "Settings", 
+    {
+      id: "settings",
+      label: "Settings",
       icon: Settings,
-      badge: null
+      href: "/admin/settings"
     }
   ];
 
-  return (
-    <Sidebar className={cn("border-r bg-white shadow-sm", collapsed ? "w-16" : "w-64")}>
-      <SidebarHeader className="p-4 border-b border-gray-200/20 bg-gradient-to-r from-blue-500/10 to-indigo-500/10">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-md">
-            <Shield className="h-6 w-6 text-white" />
-          </div>
-          {!collapsed && (
-            <div>
-              <h1 className="text-xl font-bold text-gray-900 tracking-tight">
-                Admin<span className="text-blue-600">Panel</span>
-              </h1>
-              <p className="text-xs text-gray-500">Waste Management System</p>
-            </div>
-          )}
-        </div>
-      </SidebarHeader>
+  const isActive = (href: string) => {
+    return currentPath.startsWith(href);
+  };
 
-      <SidebarContent className="p-2">
-        <SidebarMenu>
+  return (
+    <div
+      className={cn(
+        "flex flex-col w-64 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 h-full fixed top-0 left-0 z-50",
+        collapsed ? "w-16" : "w-64"
+      )}
+    >
+      <div className="flex items-center justify-center h-16 border-b border-gray-200 dark:border-gray-700">
+        <span className="text-lg font-semibold">Admin Panel</span>
+      </div>
+      <nav className="flex-1 py-4">
+        <ul>
           {menuItems.map((item) => (
-            <SidebarMenuItem key={item.path}>
-              <SidebarMenuButton asChild>
-                <NavLink
-                  to={item.path}
-                  className={({ isActive }) =>
-                    cn(
-                      "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all hover:bg-blue-50",
-                      isActive
-                        ? "bg-blue-100 text-blue-700 shadow-sm"
-                        : "text-gray-700 hover:text-blue-600"
-                    )
-                  }
-                >
-                  <item.icon className="h-5 w-5 flex-shrink-0" />
-                  {!collapsed && (
-                    <>
-                      <span className="flex-1">{item.label}</span>
-                      {item.badge && (
-                        <Badge variant="secondary" className="text-xs">
-                          {item.badge}
-                        </Badge>
-                      )}
-                    </>
-                  )}
-                </NavLink>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+            <li key={item.id}>
+              <NavLink
+                to={item.href}
+                className={({ isActive }) =>
+                  cn(
+                    "flex items-center px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200",
+                    isActive && "bg-gray-100 dark:bg-gray-700 text-blue-600 dark:text-blue-500 font-bold"
+                  )
+                }
+              >
+                <item.icon className="w-4 h-4 mr-2" />
+                <span>{item.label}</span>
+              </NavLink>
+            </li>
           ))}
-        </SidebarMenu>
-      </SidebarContent>
-    </Sidebar>
+        </ul>
+      </nav>
+      <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+        <Button variant="outline" className="w-full">
+          Logout
+        </Button>
+      </div>
+    </div>
   );
 };
 

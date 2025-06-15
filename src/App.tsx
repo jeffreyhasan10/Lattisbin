@@ -1,4 +1,3 @@
-
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
@@ -32,6 +31,8 @@ import DriverPayments from "./components/driver/DriverPayments";
 import DriverExpenses from "./components/driver/DriverExpenses";
 import DriverLorries from "./components/driver/DriverLorries";
 import DriverProfile from "./components/driver/DriverProfile";
+import DriverMonitoring from "./components/admin/DriverMonitoring";
+import PerformanceAnalytics from "./components/admin/PerformanceAnalytics";
 import { OrderProvider } from "./contexts/OrderContext";
 
 const queryClient = new QueryClient();
@@ -69,6 +70,8 @@ function App() {
                   <Route path="expenses" element={<ExpenseManagement />} />
                   <Route path="reports" element={<ReportsAnalytics />} />
                   <Route path="printing" element={<PrintingSystem />} />
+                  <Route path="driver-monitoring" element={<DriverMonitoring />} />
+                  <Route path="performance-analytics" element={<PerformanceAnalytics />} />
                   <Route path="settings" element={<div className="p-8 text-center"><h2 className="text-2xl font-bold">System Settings</h2><p className="text-gray-600">Coming Soon</p></div>} />
                 </Route>
                 
