@@ -128,7 +128,7 @@ const DashboardActivityFeed: React.FC = () => {
   });
 
   return (
-    <Card className="h-full bg-white border-gray-200">
+    <Card className="h-full bg-white/50 backdrop-blur-sm border-white/20 shadow-lg">
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-gray-900">
@@ -139,7 +139,7 @@ const DashboardActivityFeed: React.FC = () => {
             <select 
               value={filter} 
               onChange={(e) => setFilter(e.target.value)}
-              className="text-sm border border-gray-300 rounded-lg px-3 py-1 text-gray-700 bg-white"
+              className="text-sm border border-white/30 rounded-lg px-3 py-1 text-gray-700 bg-white/80 backdrop-blur-sm"
             >
               <option value="all">All</option>
               <option value="collection">Collections</option>
@@ -147,7 +147,7 @@ const DashboardActivityFeed: React.FC = () => {
               <option value="maintenance">Maintenance</option>
               <option value="payment">Payments</option>
             </select>
-            <Button variant="outline" size="sm" className="text-gray-700 border-gray-300">
+            <Button variant="outline" size="sm" className="text-gray-700 border-white/30 bg-white/80 backdrop-blur-sm hover:bg-white/90">
               View All
             </Button>
           </div>
@@ -159,7 +159,7 @@ const DashboardActivityFeed: React.FC = () => {
             {filteredActivities.map((activity) => (
               <div
                 key={activity.id}
-                className="flex items-start gap-4 p-4 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer border border-transparent hover:border-gray-200 group"
+                className="flex items-start gap-4 p-4 rounded-lg hover:bg-white/30 transition-colors cursor-pointer border border-transparent hover:border-white/40 group backdrop-blur-sm"
               >
                 <div className="mt-1">
                   {getActivityIcon(activity.type)}
@@ -217,7 +217,7 @@ const DashboardActivityFeed: React.FC = () => {
                       <Eye className="h-4 w-4" />
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="max-w-lg">
+                  <DialogContent className="max-w-lg bg-white/95 backdrop-blur-sm border-white/20">
                     <DialogHeader>
                       <DialogTitle className="flex items-center gap-2 text-gray-900">
                         {getActivityIcon(activity.type)}
@@ -249,7 +249,7 @@ const DashboardActivityFeed: React.FC = () => {
                               {Object.entries(selectedActivity.details).map(([key, value]) => (
                                 <div key={key}>
                                   <span className="text-gray-600 capitalize">{key.replace(/([A-Z])/g, ' $1')}: </span>
-                                  <span className="text-gray-900 font-medium">{value}</span>
+                                  <span className="text-gray-900 font-medium">{String(value)}</span>
                                 </div>
                               ))}
                             </div>
