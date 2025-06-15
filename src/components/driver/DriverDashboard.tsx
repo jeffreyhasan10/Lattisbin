@@ -30,9 +30,50 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
+// Define the order interface with all properties
+interface Order {
+  id: string;
+  customer: string;
+  customerPhone: string;
+  location: string;
+  pickupLocation: string;
+  time: string;
+  status: "assigned" | "in-progress" | "completed";
+  amount: number;
+  priority: string;
+  wasteType: string;
+  distance: string;
+  estimatedDuration: string;
+  startedAt?: string; // Optional property for when order is started
+  binLocation: {
+    name: string;
+    address: string;
+    distance: string;
+    coordinates: { lat: number; lng: number };
+  };
+}
+
+interface CompletedOrder {
+  id: string;
+  customer: string;
+  amount: number;
+  completedAt: string;
+  paymentStatus: "pending" | "collected";
+}
+
+interface Payment {
+  id: string;
+  orderId: string;
+  customerName: string;
+  amount: number;
+  paymentType: string;
+  timestamp: string;
+  status: string;
+}
+
 // Create a shared context for order and payment state
 const useDriverData = () => {
-  const [orders, setOrders] = useState([
+  const [orders, setOrders] = useState<Order[]>([
     {
       id: "JOB001",
       customer: "ABC Construction Sdn Bhd",
@@ -75,7 +116,7 @@ const useDriverData = () => {
     }
   ]);
 
-  const [completedOrders, setCompletedOrders] = useState([
+  const [completedOrders, setCompletedOrders] = useState<CompletedOrder[]>([
     {
       id: "JOB003",
       customer: "Green Valley Resort",
@@ -85,7 +126,7 @@ const useDriverData = () => {
     }
   ]);
 
-  const [payments, setPayments] = useState([
+  const [payments, setPayments] = useState<Payment[]>([
     {
       id: "PAY001",
       orderId: "JOB003",
@@ -120,7 +161,7 @@ const DriverDashboard = () => {
     }
   ]);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [orderDetails, setOrderDetails] = useState(false);
 
   const {
@@ -140,7 +181,7 @@ const DriverDashboard = () => {
   const handleStartOrder = (orderId: string) => {
     setOrders(prev => prev.map(order => 
       order.id === orderId 
-        ? { ...order, status: "in-progress", startedAt: new Date().toLocaleTimeString() }
+        ? { ...order, status: "in-progress" as const, startedAt: new Date().toLocaleTimeString() }
         : order
     ));
     toast.success("Order started successfully!");
@@ -155,7 +196,7 @@ const DriverDashboard = () => {
         customer: order.customer,
         amount: order.amount,
         completedAt: new Date().toLocaleTimeString(),
-        paymentStatus: "pending"
+        paymentStatus: "pending" as const
       }]);
       toast.success("Order completed successfully! You can now collect payment.");
     }
@@ -167,12 +208,12 @@ const DriverDashboard = () => {
       // Update completed order payment status
       setCompletedOrders(prev => prev.map(order =>
         order.id === orderId
-          ? { ...order, paymentStatus: "collected" }
+          ? { ...order, paymentStatus: "collected" as const }
           : order
       ));
 
       // Add to payments record
-      const newPayment = {
+      const newPayment: Payment = {
         id: `PAY${String(payments.length + 1).padStart(3, '0')}`,
         orderId: orderId,
         customerName: completedOrder.customer,
@@ -342,7 +383,6 @@ const DriverDashboard = () => {
         </CardContent>
       </Card>
 
-      {/* Quick Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         {[
           { 
@@ -455,7 +495,6 @@ const DriverDashboard = () => {
                           </div>
                         </div>
 
-                        {/* Bin Location */}
                         <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-lg p-4 mb-4">
                           <div className="flex items-center justify-between mb-2">
                             <h4 className="font-medium text-purple-700 flex items-center gap-2">
@@ -555,7 +594,6 @@ const DriverDashboard = () => {
         </CardContent>
       </Card>
 
-      {/* Completed Orders */}
       {completedOrders.length > 0 && (
         <Card className="shadow-lg border-gray-200 mb-6">
           <CardHeader className="bg-gradient-to-r from-emerald-50 to-green-50 border-b border-emerald-200">
@@ -609,7 +647,6 @@ const DriverDashboard = () => {
         </Card>
       )}
 
-      {/* Quick Actions */}
       <Card className="shadow-lg border-gray-200">
         <CardHeader className="bg-gradient-to-r from-gray-50 to-slate-50 border-b border-gray-200">
           <CardTitle className="text-xl font-bold text-gray-800">Quick Actions</CardTitle>
@@ -651,7 +688,6 @@ const DriverDashboard = () => {
         </CardContent>
       </Card>
 
-      {/* Order Details Modal */}
       <Dialog open={orderDetails} onOpenChange={setOrderDetails}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>

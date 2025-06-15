@@ -18,6 +18,7 @@ import DriverPayments from "./components/driver/DriverPayments";
 import DriverExpenses from "./components/driver/DriverExpenses";
 import DriverLorries from "./components/driver/DriverLorries";
 import DriverProfile from "./components/driver/DriverProfile";
+import DriverCalendar from "./components/driver/DriverCalendar";
 
 // Admin Dashboard Components
 import DashboardOverview from "./components/dashboard/DashboardOverview";
@@ -69,6 +70,7 @@ const App = () => (
             <Route path="/driver/expenses" element={<DriverExpenses />} />
             <Route path="/driver/lorries" element={<DriverLorries />} />
             <Route path="/driver/profile" element={<DriverProfile />} />
+            <Route path="/driver/calendar" element={<DriverCalendar />} />
           </Route>
           
           {/* Admin Dashboard Routes */}
