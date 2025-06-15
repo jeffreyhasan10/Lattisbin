@@ -376,7 +376,7 @@ const DriverDashboard: React.FC = () => {
                                   Cancel Order
                                 </Button>
                               </div>
-                            </Dialog>
+                            </DialogContent>
                           </Dialog>
                         )}
                       </div>
