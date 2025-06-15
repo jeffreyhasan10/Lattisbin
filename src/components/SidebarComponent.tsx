@@ -182,61 +182,63 @@ const SidebarComponent: React.FC<SidebarProps> = ({
               className="flex items-center justify-between text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 px-3 py-2 cursor-pointer"
               onClick={() => toggleGroup(group.group)}
             >
-              <span>{group.label}</span>
+              <span>{collapsed ? '•' : group.label}</span>
               {!collapsed && (
-                <div>
-                  <ChevronDown className="h-4 w-4" />
-                </div>
+                <ChevronDown 
+                  className={`h-4 w-4 transition-transform duration-200 ${
+                    expandedGroups[group.group] ? 'rotate-180' : ''
+                  }`} 
+                />
               )}
             </SidebarGroupLabel>
-            {expandedGroups[group.group] && (
-              <div>
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    {group.items.map((item) => (
-                      <SidebarMenuItem key={item.tab}>
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <div>
-                                <SidebarMenuButton
-                                  isActive={activeTab === item.tab}
-                                  onClick={() => handleTabChange(item.tab)}
-                                  className={`rounded-lg py-2 transition-all duration-300 hover:bg-blue-500/5 ${
-                                    activeTab === item.tab
-                                      ? "bg-blue-500/10 text-blue-600 dark:text-blue-400"
-                                      : "text-gray-700 dark:text-gray-300"
-                                  }`}
-                                  aria-label={item.label}
-                                >
-                                  <item.icon className="h-5 w-5" />
-                                  {!collapsed && <span className="font-medium text-sm">{item.label}</span>}
-                                  {!collapsed && item.badge && (
-                                    <Badge
-                                      className={`ml-auto text-xs px-1.5 py-0.5 ${
-                                        item.tab === "waste"
-                                          ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
-                                          : item.tab === "bookings"
-                                          ? "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300"
-                                          : item.tab === "drivers"
-                                          ? "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300"
-                                          : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300"
-                                      }`}
-                                    >
-                                      {item.badge}
-                                    </Badge>
-                                  )}
-                                </SidebarMenuButton>
-                              </div>
-                            </TooltipTrigger>
-                            {collapsed && <TooltipContent>{item.label}</TooltipContent>}
-                          </Tooltip>
-                        </TooltipProvider>
-                      </SidebarMenuItem>
-                    ))}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </div>
+            {(collapsed || expandedGroups[group.group]) && (
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {group.items.map((item) => (
+                    <SidebarMenuItem key={item.tab}>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div>
+                              <SidebarMenuButton
+                                isActive={activeTab === item.tab}
+                                onClick={() => handleTabChange(item.tab)}
+                                className={`rounded-lg py-2 transition-all duration-300 hover:bg-blue-500/5 ${
+                                  activeTab === item.tab
+                                    ? "bg-blue-500/10 text-blue-600 dark:text-blue-400"
+                                    : "text-gray-700 dark:text-gray-300"
+                                }`}
+                                aria-label={item.label}
+                              >
+                                <item.icon className="h-5 w-5" />
+                                {!collapsed && <span className="font-medium text-sm">{item.label}</span>}
+                                {!collapsed && item.badge && (
+                                  <Badge
+                                    className={`ml-auto text-xs px-1.5 py-0.5 ${
+                                      item.tab === "waste"
+                                        ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
+                                        : item.tab === "bookings"
+                                        ? "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300"
+                                        : item.tab === "drivers"
+                                        ? "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300"
+                                        : item.tab === "customers"
+                                        ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300"
+                                        : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300"
+                                    }`}
+                                  >
+                                    {item.badge}
+                                  </Badge>
+                                )}
+                              </SidebarMenuButton>
+                            </div>
+                          </TooltipTrigger>
+                          {collapsed && <TooltipContent>{item.label}</TooltipContent>}
+                        </Tooltip>
+                      </TooltipProvider>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
             )}
           </SidebarGroup>
         ))}
