@@ -43,10 +43,10 @@ const DashboardDriverTable: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "active": return "bg-green-100 text-green-800";
-      case "maintenance": return "bg-yellow-100 text-yellow-800";
-      case "offline": return "bg-red-100 text-red-800";
-      default: return "bg-gray-100 text-gray-800";
+      case "active": return "bg-green-100 text-green-800 border-green-200";
+      case "maintenance": return "bg-yellow-100 text-yellow-800 border-yellow-200";
+      case "offline": return "bg-red-100 text-red-800 border-red-200";
+      default: return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
 
@@ -55,16 +55,20 @@ const DashboardDriverTable: React.FC = () => {
   };
 
   return (
-    <Card>
+    <Card className="bg-white/60 backdrop-blur-sm border border-white/30 shadow-lg">
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-gray-900">
             <Users className="h-5 w-5 text-blue-600" />
             Driver Management
           </CardTitle>
           <div className="flex gap-2">
             <AddDriverModal />
-            <Button variant="outline" size="sm">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="bg-white/80 backdrop-blur-sm border-white/30 hover:bg-white/90"
+            >
               View All
             </Button>
           </div>
@@ -87,7 +91,7 @@ const DashboardDriverTable: React.FC = () => {
             </TableHeader>
             <TableBody>
               {drivers.map((driver) => (
-                <TableRow key={driver.id}>
+                <TableRow key={driver.id} className="hover:bg-white/50 transition-colors">
                   <TableCell>
                     <div>
                       <div className="font-medium text-gray-900">{driver.name}</div>
@@ -104,7 +108,7 @@ const DashboardDriverTable: React.FC = () => {
                     <div className="text-sm font-medium">{driver.vehicle}</div>
                   </TableCell>
                   <TableCell>
-                    <Badge className={`${getStatusColor(driver.status)} capitalize`}>
+                    <Badge className={`${getStatusColor(driver.status)} capitalize border`}>
                       {driver.status}
                     </Badge>
                   </TableCell>
@@ -128,6 +132,7 @@ const DashboardDriverTable: React.FC = () => {
                       size="sm" 
                       variant="outline"
                       onClick={() => handleViewDriver(driver.id)}
+                      className="bg-white/80 backdrop-blur-sm border-white/30 hover:bg-white/90"
                     >
                       <Eye className="h-4 w-4" />
                     </Button>
