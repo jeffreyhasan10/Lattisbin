@@ -1,362 +1,272 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import SmartAssignmentEngine, { Driver, Order as SmartOrder, AssignmentResult } from "@/utils/smartAssignmentEngine";
-import RouteOptimizationEngine, { Location, OptimizedRoute } from "@/utils/routeOptimizationEngine";
-import DynamicPricingEngine, { PricingFactors } from "@/utils/dynamicPricingEngine";
-import MaintenanceScheduler, { Vehicle, MaintenanceAlert } from "@/utils/maintenanceScheduler";
-import mobileIntegrationService from "@/services/mobileIntegrationService";
+import { Order, Driver as DriverType, MaintenanceSchedule } from "@/data/dummyData";
+import { SmartAssignmentEngine } from "@/utils/smartAssignmentEngine";
+import { RouteOptimizationEngine } from "@/utils/routeOptimizationEngine";
+import { DynamicPricingEngine } from "@/utils/dynamicPricingEngine";
+import { MaintenanceScheduler } from "@/utils/maintenanceScheduler";
+import { mobileIntegrationService } from "@/services/mobileIntegrationService";
 
-interface Order {
+// Define the Order type
+export interface Order {
   id: string;
-  customer: string;
-  customerPhone: string;
-  location: string;
-  pickupLocation?: string;
-  time: string;
-  date: string;
-  amount: number;
-  status: 'pending' | 'assigned' | 'in-progress' | 'completed' | 'cancelled';
-  priority: 'high' | 'medium' | 'low';
-  assignedDriverId?: string;
-  assignedDriverName?: string;
-  assignedDate?: string;
-  wasteType: string;
-  lorryType?: string;
-  distance?: string;
-  estimatedDuration?: string;
-  notes?: string;
-  paymentStatus: 'pending' | 'paid' | 'overdue';
-  nearestBin?: {
-    name: string;
-    distance: string;
-    location: string;
-    capacity: string;
-    type: string;
-  };
-  coordinates?: { lat: number; lng: number };
-  estimatedWeight?: number;
+  customerName: string;
+  pickupAddress: string;
+  deliveryAddress: string;
+  status: "pending" | "assigned" | "in-progress" | "completed" | "cancelled";
+  binType: "Recycling" | "Waste" | "Compost";
+  scheduledDate: string;
+  price: number;
+  driverName: string;
+  estimatedDuration: number;
+  priority: "low" | "medium" | "high";
 }
 
-interface Driver {
+// Define the Driver type
+export interface Driver {
   id: string;
   name: string;
-  phone: string;
-  email?: string;
-  vehicle: string;
-  status: 'active' | 'offline' | 'maintenance';
-  location: string;
-  coordinates?: { lat: number; lng: number };
+  status: "active" | "inactive" | "on-break";
+  currentLocation: string;
+  totalDeliveries: number;
   rating: number;
-  completedOrders?: number;
-  totalEarnings?: number;
-  icNumber?: string;
-  capacity?: number;
-  currentLoad?: number;
-  expertise?: string[];
+  phone: string;
+  email: string;
+  vehicle: string;
+}
+
+// Define the MaintenanceSchedule type
+export interface MaintenanceSchedule {
+  id: string;
+  vehicleId: string;
+  type: string;
+  scheduledDate: string;
+  estimatedCost: number;
+  priority: "low" | "medium" | "high" | "critical";
+  status: "scheduled" | "in-progress" | "completed" | "overdue";
+  description: string;
+  technician: string;
+  estimatedDuration: number;
 }
 
 interface OrderContextType {
   orders: Order[];
-  drivers: Driver[];
-  vehicles: Vehicle[];
-  maintenanceAlerts: MaintenanceAlert[];
-  optimizedRoutes: OptimizedRoute[];
-  addOrder: (order: Omit<Order, 'id'>) => void;
-  addDriver: (driver: Omit<Driver, 'id'>) => void;
-  assignOrderToDriver: (orderId: string, driverId: string, driverName: string) => void;
-  updateOrderStatus: (orderId: string, status: Order['status']) => void;
-  smartAssignOrder: (orderId: string) => AssignmentResult | null;
-  optimizeDriverRoutes: () => void;
-  calculateDynamicPrice: (factors: PricingFactors) => number;
-  generateMaintenanceAlerts: () => void;
+  drivers: DriverType[];
+  maintenanceSchedules: MaintenanceSchedule[];
+  addOrder: (order: Omit<Order, "id">) => void;
+  updateOrder: (id: string, updates: Partial<Order>) => void;
+  deleteOrder: (id: string) => void;
+  addDriver: (driver: Omit<DriverType, "id">) => void;
+  updateDriver: (id: string, updates: Partial<DriverType>) => void;
+  deleteDriver: (id: string) => void;
+  assignOrderToDriver: (orderId: string, driverId: string) => void;
+  optimizeRoutes: (driverId: string) => any;
+  calculateDynamicPrice: (order: Order) => number;
+  scheduleMaintenanceAlert: (vehicleId: string) => void;
+  scanQRCode: (qrData: string) => Promise<any>;
+  capturePhoto: (file: File) => Promise<string>;
+  syncOfflineData: () => Promise<void>;
+  getDriverByCredentials: (username: string, password: string) => DriverType | null;
+  startOrder: (orderId: string, driverId: string) => void;
+  completeOrder: (orderId: string) => void;
+  cancelOrder: (orderId: string, reason: string) => void;
+  updatePaymentStatus: (orderId: string, status: string) => void;
 }
 
 const OrderContext = createContext<OrderContextType | undefined>(undefined);
 
 export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [orders, setOrders] = useState<Order[]>([
-    {
-      id: "ORD001",
-      customer: "Ahmad Building Supplies",
-      customerPhone: "+60123456789",
-      location: "Jalan Ampang, Kuala Lumpur",
-      time: "09:30 AM",
-      date: "2024-03-15",
-      amount: 250.00,
-      status: "pending",
-      priority: "high",
-      wasteType: "Construction Debris",
-      paymentStatus: "pending",
-      coordinates: { lat: 3.1598, lng: 101.7131 },
-      estimatedWeight: 500,
-      nearestBin: {
-        name: "Central Collection Point",
-        distance: "2.5 km",
-        location: "Industrial Area",
-        capacity: "75%",
-        type: "General Waste"
-      }
-    },
-    {
-      id: "ORD002",
-      customer: "Sarah Lim",
-      customerPhone: "+60198765432",
-      location: "Taman Desa, Kuala Lumpur",
-      time: "02:00 PM",
-      date: "2024-03-15",
-      amount: 180.00,
-      status: "assigned",
-      priority: "medium",
-      assignedDriverId: "DRV001",
-      assignedDriverName: "John Doe",
-      assignedDate: "2024-03-15",
-      wasteType: "Household Waste",
-      paymentStatus: "paid",
-      coordinates: { lat: 3.0833, lng: 101.6833 },
-      estimatedWeight: 150
-    }
-  ]);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [drivers, setDrivers] = useState<DriverType[]>([]);
+  const [maintenanceSchedules, setMaintenanceSchedules] = useState<MaintenanceSchedule[]>([]);
 
-  const [drivers, setDrivers] = useState<Driver[]>([
-    {
-      id: "DRV001",
-      name: "John Doe",
-      phone: "+60123456789",
-      email: "john.doe@lattisbin.com",
-      vehicle: "Isuzu NPR 3.5T",
-      status: "active",
-      location: "Kuala Lumpur",
-      coordinates: { lat: 3.1390, lng: 101.6869 },
-      rating: 4.8,
-      completedOrders: 156,
-      totalEarnings: 15600.00,
-      icNumber: "123456-78-9012",
-      capacity: 3500,
-      currentLoad: 0,
-      expertise: ["Construction Debris", "Household Waste"]
-    },
-    {
-      id: "DRV002",
-      name: "Ali Hassan",
-      phone: "+60198765432",
-      email: "ali.hassan@lattisbin.com",
-      vehicle: "Mitsubishi Canter 5T",
-      status: "active",
-      location: "Petaling Jaya",
-      coordinates: { lat: 3.1073, lng: 101.6415 },
-      rating: 4.6,
-      completedOrders: 89,
-      totalEarnings: 8900.00,
-      icNumber: "987654-32-1098",
-      capacity: 5000,
-      currentLoad: 1200,
-      expertise: ["Commercial Waste", "Recyclable Materials"]
-    }
-  ]);
-
-  const [vehicles, setVehicles] = useState<Vehicle[]>([
-    {
-      id: "VEH001",
-      model: "Isuzu NPR 75",
-      registration: "WA 1234 A",
-      mileage: 45000,
-      lastMaintenance: "2024-01-15",
-      maintenanceInterval: 5000,
-      timeBasedInterval: 6,
-      alerts: []
-    },
-    {
-      id: "VEH002",
-      model: "Mitsubishi Canter",
-      registration: "WA 5678 B",
-      mileage: 52000,
-      lastMaintenance: "2024-02-01",
-      maintenanceInterval: 5000,
-      timeBasedInterval: 6,
-      alerts: []
-    }
-  ]);
-
-  const [maintenanceAlerts, setMaintenanceAlerts] = useState<MaintenanceAlert[]>([]);
-  const [optimizedRoutes, setOptimizedRoutes] = useState<OptimizedRoute[]>([]);
-
-  // Initialize engines
-  const smartAssignmentEngine = new SmartAssignmentEngine();
-  const routeOptimizationEngine = new RouteOptimizationEngine();
-  const dynamicPricingEngine = new DynamicPricingEngine();
-  const maintenanceScheduler = new MaintenanceScheduler();
-
-  // Initialize mobile service
+  // Initialize with dummy data
   useEffect(() => {
-    mobileIntegrationService.initialize();
+    const dummyOrders: Order[] = [
+      {
+        id: "1",
+        customerName: "John Doe",
+        pickupAddress: "123 Main St",
+        deliveryAddress: "456 Oak Ave",
+        status: "pending",
+        binType: "Recycling",
+        scheduledDate: "2024-06-15",
+        price: 50,
+        driverName: "",
+        estimatedDuration: 60,
+        priority: "medium"
+      },
+      {
+        id: "2", 
+        customerName: "Jane Smith",
+        pickupAddress: "789 Pine Rd",
+        deliveryAddress: "321 Elm St",
+        status: "assigned",
+        binType: "Waste",
+        scheduledDate: "2024-06-16",
+        price: 75,
+        driverName: "Mike Johnson",
+        estimatedDuration: 90,
+        priority: "high"
+      }
+    ];
+
+    const dummyDrivers: DriverType[] = [
+      {
+        id: "1",
+        name: "Mike Johnson",
+        status: "active",
+        currentLocation: "Downtown",
+        totalDeliveries: 245,
+        rating: 4.8,
+        phone: "+1234567890",
+        email: "mike@example.com",
+        vehicle: "Truck-001"
+      },
+      {
+        id: "2",
+        name: "Sarah Wilson", 
+        status: "active",
+        currentLocation: "Uptown",
+        totalDeliveries: 180,
+        rating: 4.9,
+        phone: "+1234567891",
+        email: "sarah@example.com",
+        vehicle: "Truck-002"
+      }
+    ];
+
+    setOrders(dummyOrders);
+    setDrivers(dummyDrivers);
   }, []);
 
-  // Generate maintenance alerts on component mount and when vehicles change
-  useEffect(() => {
-    generateMaintenanceAlerts();
-  }, [vehicles]);
-
-  const addOrder = (orderData: Omit<Order, 'id'>) => {
+  const addOrder = (order: Omit<Order, "id">) => {
     const newOrder: Order = {
-      ...orderData,
-      id: `ORD${(orders.length + 1).toString().padStart(3, '0')}`
+      ...order,
+      id: Date.now().toString(),
     };
     setOrders(prev => [...prev, newOrder]);
   };
 
-  const addDriver = (driverData: Omit<Driver, 'id'>) => {
-    const newDriver: Driver = {
-      ...driverData,
-      id: `DRV${(drivers.length + 1).toString().padStart(3, '0')}`,
-      completedOrders: 0,
-      totalEarnings: 0,
-      capacity: 3500,
-      currentLoad: 0,
-      expertise: ["General Waste"]
+  const updateOrder = (id: string, updates: Partial<Order>) => {
+    setOrders(prev => 
+      prev.map(order => 
+        order.id === id ? { ...order, ...updates } : order
+      )
+    );
+  };
+
+  const deleteOrder = (id: string) => {
+    setOrders(prev => prev.filter(order => order.id !== id));
+  };
+
+  const addDriver = (driver: Omit<DriverType, "id">) => {
+    const newDriver: DriverType = {
+      ...driver,
+      id: Date.now().toString(),
     };
     setDrivers(prev => [...prev, newDriver]);
   };
 
-  const assignOrderToDriver = (orderId: string, driverId: string, driverName: string) => {
-    setOrders(prev => prev.map(order => 
-      order.id === orderId 
-        ? { 
-            ...order, 
-            status: 'assigned' as const,
-            assignedDriverId: driverId,
-            assignedDriverName: driverName,
-            assignedDate: new Date().toISOString().split('T')[0]
-          }
-        : order
-    ));
-  };
-
-  const updateOrderStatus = (orderId: string, status: Order['status']) => {
-    setOrders(prev => prev.map(order => 
-      order.id === orderId ? { ...order, status } : order
-    ));
-  };
-
-  const smartAssignOrder = (orderId: string): AssignmentResult | null => {
-    const order = orders.find(o => o.id === orderId);
-    if (!order || !order.coordinates) return null;
-
-    const smartOrder: SmartOrder = {
-      id: order.id,
-      location: order.coordinates,
-      wasteType: order.wasteType,
-      estimatedWeight: order.estimatedWeight || 100,
-      priority: order.priority,
-      timeWindow: { start: "08:00", end: "18:00" }
-    };
-
-    const smartDrivers: SmartAssignmentEngine.Driver[] = drivers
-      .filter(d => d.status === 'active' && d.coordinates)
-      .map(d => ({
-        id: d.id,
-        name: d.name,
-        location: d.coordinates!,
-        status: d.status,
-        rating: d.rating,
-        vehicle: d.vehicle,
-        capacity: d.capacity || 3500,
-        currentLoad: d.currentLoad || 0,
-        expertise: d.expertise || ["General Waste"]
-      }));
-
-    const assignment = smartAssignmentEngine.findBestDriverForOrder(smartDrivers, smartOrder);
-    
-    if (assignment) {
-      assignOrderToDriver(orderId, assignment.driverId, 
-        drivers.find(d => d.id === assignment.driverId)?.name || "Unknown Driver"
-      );
-    }
-
-    return assignment;
-  };
-
-  const optimizeDriverRoutes = () => {
-    const activeDriversWithOrders = drivers
-      .filter(d => d.status === 'active' && d.coordinates)
-      .map(driver => {
-        const driverOrders = orders.filter(o => 
-          o.assignedDriverId === driver.id && 
-          o.status === 'assigned' && 
-          o.coordinates
-        );
-
-        const locations: Location[] = driverOrders.map(order => ({
-          id: order.id,
-          lat: order.coordinates!.lat,
-          lng: order.coordinates!.lng,
-          address: order.location,
-          serviceTime: 30, // 30 minutes average service time
-          priority: order.priority === 'high' ? 8 : order.priority === 'medium' ? 5 : 3
-        }));
-
-        return {
-          driverId: driver.id,
-          currentLocation: {
-            id: `driver-${driver.id}`,
-            lat: driver.coordinates!.lat,
-            lng: driver.coordinates!.lng,
-            address: driver.location,
-            serviceTime: 0,
-            priority: 10
-          },
-          locations
-        };
-      })
-      .filter(driver => driver.locations.length > 0);
-
-    const constraints = {
-      maxDistance: 100, // 100km max per route
-      maxTime: 480, // 8 hours max
-      vehicleCapacity: 5000, // 5 tons
-      fuelEfficiency: 8, // 8km per liter
-      fuelPrice: 2.5 // RM 2.50 per liter
-    };
-
-    const routes = activeDriversWithOrders.map(driver => 
-      routeOptimizationEngine.optimizeRoute(
-        driver.driverId,
-        driver.locations,
-        constraints,
-        driver.currentLocation
+  const updateDriver = (id: string, updates: Partial<DriverType>) => {
+    setDrivers(prev => 
+      prev.map(driver => 
+        driver.id === id ? { ...driver, ...updates } : driver
       )
     );
-
-    setOptimizedRoutes(routes);
   };
 
-  const calculateDynamicPrice = (factors: PricingFactors): number => {
-    const currentDemandData = {
-      currentOrders: orders.filter(o => o.status === 'pending').length,
-      averageOrders: 5 // Historical average
-    };
-
-    const result = dynamicPricingEngine.calculatePrice(factors, undefined, currentDemandData);
-    return result.finalPrice;
+  const deleteDriver = (id: string) => {
+    setDrivers(prev => prev.filter(driver => driver.id !== id));
   };
 
-  const generateMaintenanceAlerts = () => {
-    const alerts = maintenanceScheduler.generateMaintenanceAlerts(vehicles);
-    setMaintenanceAlerts(alerts);
+  const assignOrderToDriver = (orderId: string, driverId: string) => {
+    const driver = drivers.find(d => d.id === driverId);
+    if (driver) {
+      updateOrder(orderId, { 
+        status: "assigned", 
+        driverName: driver.name 
+      });
+    }
+  };
+
+  const optimizeRoutes = (driverId: string) => {
+    const driverOrders = orders.filter(o => 
+      o.status === "assigned" && 
+      drivers.find(d => d.id === driverId)?.name === o.driverName
+    );
+    return RouteOptimizationEngine.optimizeRoute(driverOrders);
+  };
+
+  const calculateDynamicPrice = (order: Order): number => {
+    return DynamicPricingEngine.calculatePrice({
+      basePrice: order.price,
+      distance: 10, // Mock distance
+      demandMultiplier: 1.2,
+      timeOfDay: new Date().getHours(),
+      binType: order.binType,
+      urgency: order.priority === 'high' ? 'urgent' : 'normal'
+    });
+  };
+
+  const scheduleMaintenanceAlert = (vehicleId: string) => {
+    const schedule = MaintenanceScheduler.scheduleNextMaintenance(vehicleId, new Date());
+    setMaintenanceSchedules(prev => [...prev, schedule]);
+  };
+
+  const scanQRCode = async (qrData: string) => {
+    return await mobileIntegrationService.processQRScan(qrData);
+  };
+
+  const capturePhoto = async (file: File): Promise<string> => {
+    return await mobileIntegrationService.capturePhoto(file);
+  };
+
+  const syncOfflineData = async () => {
+    await mobileIntegrationService.syncOfflineData();
+  };
+
+  const getDriverByCredentials = (username: string, password: string): DriverType | null => {
+    return drivers.find(d => d.email === username) || null;
+  };
+
+  const startOrder = (orderId: string, driverId: string) => {
+    updateOrder(orderId, { status: "in-progress" });
+  };
+
+  const completeOrder = (orderId: string) => {
+    updateOrder(orderId, { status: "completed" });
+  };
+
+  const cancelOrder = (orderId: string, reason: string) => {
+    updateOrder(orderId, { status: "cancelled" });
+  };
+
+  const updatePaymentStatus = (orderId: string, status: string) => {
+    updateOrder(orderId, { status: status as any });
   };
 
   const value: OrderContextType = {
     orders,
     drivers,
-    vehicles,
-    maintenanceAlerts,
-    optimizedRoutes,
+    maintenanceSchedules,
     addOrder,
+    updateOrder,
+    deleteOrder,
     addDriver,
+    updateDriver,
+    deleteDriver,
     assignOrderToDriver,
-    updateOrderStatus,
-    smartAssignOrder,
-    optimizeDriverRoutes,
+    optimizeRoutes,
     calculateDynamicPrice,
-    generateMaintenanceAlerts
+    scheduleMaintenanceAlert,
+    scanQRCode,
+    capturePhoto,
+    syncOfflineData,
+    getDriverByCredentials,
+    startOrder,
+    completeOrder,
+    cancelOrder,
+    updatePaymentStatus,
   };
 
   return (
@@ -369,7 +279,7 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 export const useOrders = () => {
   const context = useContext(OrderContext);
   if (context === undefined) {
-    throw new Error('useOrders must be used within an OrderProvider');
+    throw new Error("useOrders must be used within an OrderProvider");
   }
   return context;
 };
