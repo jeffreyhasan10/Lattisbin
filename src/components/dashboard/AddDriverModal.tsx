@@ -1,173 +1,153 @@
 
 import React, { useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { UserPlus } from "lucide-react";
-import { toast } from "sonner";
 import { useOrders } from "@/contexts/OrderContext";
 
-const AddDriverModal: React.FC = () => {
+interface AddDriverModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const AddDriverModal: React.FC<AddDriverModalProps> = ({ isOpen, onClose }) => {
   const { addDriver } = useOrders();
-  const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
     email: "",
-    icNumber: "",
     vehicle: "",
+    status: "active" as "active" | "inactive" | "on-break" | "maintenance" | "offline",
     location: "",
-    status: "active" as "active" | "maintenance" | "offline"
+    icNumber: "",
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name || !formData.phone || !formData.icNumber) {
-      toast.error("Please fill in all required fields");
-      return;
-    }
-
-    const username = formData.name.toLowerCase().replace(/\s+/g, '.');
-    const password = `driver${Math.random().toString(36).slice(-6)}`;
-
     const newDriver = {
       name: formData.name,
       phone: formData.phone,
-      vehicle: formData.vehicle || "Not Assigned",
+      email: formData.email,
+      vehicle: formData.vehicle,
       status: formData.status,
-      location: formData.location || "Not Set",
-      email: formData.email || "",
+      currentLocation: formData.location,
+      location: formData.location,
       icNumber: formData.icNumber,
-      joinDate: new Date().toISOString().split('T')[0],
-      orders: 0,
+      totalDeliveries: 0,
       rating: 5.0,
-      totalEarnings: 0,
       completedOrders: 0,
-      loginCredentials: {
-        username,
-        password
-      }
+      totalEarnings: 0,
     };
 
     addDriver(newDriver);
-    toast.success(`Driver added successfully! Username: ${username}, Password: ${password}`);
+    onClose();
     
+    // Reset form
     setFormData({
       name: "",
       phone: "",
       email: "",
-      icNumber: "",
       vehicle: "",
+      status: "active",
       location: "",
-      status: "active"
+      icNumber: "",
     });
-    setOpen(false);
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="bg-green-600 hover:bg-green-700 text-white">
-          <UserPlus className="h-4 w-4 mr-2" />
-          Add Driver
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Add New Driver</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="name">Full Name *</Label>
+            <div className="space-y-2">
+              <Label htmlFor="name">Name</Label>
               <Input
                 id="name"
                 value={formData.name}
-                onChange={(e) => setFormData(prev => ({...prev, name: e.target.value}))}
-                placeholder="Enter full name"
+                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                 required
               />
             </div>
-            <div>
-              <Label htmlFor="icNumber">IC Number *</Label>
+            <div className="space-y-2">
+              <Label htmlFor="phone">Phone</Label>
               <Input
-                id="icNumber"
-                value={formData.icNumber}
-                onChange={(e) => setFormData(prev => ({...prev, icNumber: e.target.value}))}
-                placeholder="YYMMDD-PB-XXXX"
+                id="phone"
+                value={formData.phone}
+                onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
                 required
               />
             </div>
           </div>
           
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="phone">Phone Number *</Label>
-              <Input
-                id="phone"
-                value={formData.phone}
-                onChange={(e) => setFormData(prev => ({...prev, phone: e.target.value}))}
-                placeholder="+60 12-345 6789"
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData(prev => ({...prev, email: e.target.value}))}
-                placeholder="driver@company.com"
-              />
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              value={formData.email}
+              onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+              required
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="vehicle">Vehicle</Label>
               <Input
                 id="vehicle"
                 value={formData.vehicle}
-                onChange={(e) => setFormData(prev => ({...prev, vehicle: e.target.value}))}
-                placeholder="Lorry ABC1234"
+                onChange={(e) => setFormData(prev => ({ ...prev, vehicle: e.target.value }))}
+                required
               />
             </div>
-            <div>
+            <div className="space-y-2">
+              <Label htmlFor="status">Status</Label>
+              <Select value={formData.status} onValueChange={(value: any) => setFormData(prev => ({ ...prev, status: value }))}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                  <SelectItem value="on-break">On Break</SelectItem>
+                  <SelectItem value="maintenance">Maintenance</SelectItem>
+                  <SelectItem value="offline">Offline</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
               <Label htmlFor="location">Location</Label>
               <Input
                 id="location"
                 value={formData.location}
-                onChange={(e) => setFormData(prev => ({...prev, location: e.target.value}))}
-                placeholder="Kuala Lumpur"
+                onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="icNumber">IC Number</Label>
+              <Input
+                id="icNumber"
+                value={formData.icNumber}
+                onChange={(e) => setFormData(prev => ({ ...prev, icNumber: e.target.value }))}
               />
             </div>
           </div>
 
-          <div>
-            <Label htmlFor="status">Status</Label>
-            <Select value={formData.status} onValueChange={(value: "active" | "maintenance" | "offline") => setFormData(prev => ({...prev, status: value}))}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="maintenance">Maintenance</SelectItem>
-                <SelectItem value="offline">Offline</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="flex justify-end gap-2 pt-4">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+          <div className="flex justify-end space-x-2 pt-4">
+            <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
-            <Button type="submit" className="bg-green-600 hover:bg-green-700">
-              Add Driver
-            </Button>
+            <Button type="submit">Add Driver</Button>
           </div>
         </form>
       </DialogContent>
