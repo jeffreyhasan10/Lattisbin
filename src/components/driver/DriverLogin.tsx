@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -28,8 +27,7 @@ const DriverLogin = () => {
       
       const driver = getDriverByCredentials(
         credentials.driverName, 
-        credentials.icNumber, 
-        credentials.phoneNumber
+        credentials.icNumber
       );
       
       if (driver) {

@@ -1,52 +1,11 @@
+
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { Order, Driver as DriverType, MaintenanceSchedule } from "@/data/dummyData";
-import { SmartAssignmentEngine } from "@/utils/smartAssignmentEngine";
-import { RouteOptimizationEngine } from "@/utils/routeOptimizationEngine";
-import { DynamicPricingEngine } from "@/utils/dynamicPricingEngine";
+import SmartAssignmentEngine from "@/utils/smartAssignmentEngine";
+import RouteOptimizationEngine from "@/utils/routeOptimizationEngine";
+import DynamicPricingEngine from "@/utils/dynamicPricingEngine";
 import { MaintenanceScheduler } from "@/utils/maintenanceScheduler";
-import { mobileIntegrationService } from "@/services/mobileIntegrationService";
-
-// Define the Order type
-export interface Order {
-  id: string;
-  customerName: string;
-  pickupAddress: string;
-  deliveryAddress: string;
-  status: "pending" | "assigned" | "in-progress" | "completed" | "cancelled";
-  binType: "Recycling" | "Waste" | "Compost";
-  scheduledDate: string;
-  price: number;
-  driverName: string;
-  estimatedDuration: number;
-  priority: "low" | "medium" | "high";
-}
-
-// Define the Driver type
-export interface Driver {
-  id: string;
-  name: string;
-  status: "active" | "inactive" | "on-break";
-  currentLocation: string;
-  totalDeliveries: number;
-  rating: number;
-  phone: string;
-  email: string;
-  vehicle: string;
-}
-
-// Define the MaintenanceSchedule type
-export interface MaintenanceSchedule {
-  id: string;
-  vehicleId: string;
-  type: string;
-  scheduledDate: string;
-  estimatedCost: number;
-  priority: "low" | "medium" | "high" | "critical";
-  status: "scheduled" | "in-progress" | "completed" | "overdue";
-  description: string;
-  technician: string;
-  estimatedDuration: number;
-}
+import mobileIntegrationService from "@/services/mobileIntegrationService";
 
 interface OrderContextType {
   orders: Order[];
@@ -66,7 +25,7 @@ interface OrderContextType {
   capturePhoto: (file: File) => Promise<string>;
   syncOfflineData: () => Promise<void>;
   getDriverByCredentials: (username: string, password: string) => DriverType | null;
-  startOrder: (orderId: string, driverId: string) => void;
+  startOrder: (orderId: string) => void;
   completeOrder: (orderId: string) => void;
   cancelOrder: (orderId: string, reason: string) => void;
   updatePaymentStatus: (orderId: string, status: string) => void;
@@ -93,7 +52,19 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         price: 50,
         driverName: "",
         estimatedDuration: 60,
-        priority: "medium"
+        priority: "medium",
+        customer: "John Doe",
+        customerPhone: "+60123456789",
+        location: "Kuala Lumpur",
+        date: "2024-06-15",
+        time: "09:00",
+        wasteType: "Recycling",
+        lorryType: "Small",
+        assignedDriverName: "",
+        assignedDriverId: "",
+        assignedDate: "",
+        paymentStatus: "pending",
+        amount: 50
       },
       {
         id: "2", 
@@ -106,7 +77,19 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         price: 75,
         driverName: "Mike Johnson",
         estimatedDuration: 90,
-        priority: "high"
+        priority: "high",
+        customer: "Jane Smith",
+        customerPhone: "+60123456790",
+        location: "Petaling Jaya",
+        date: "2024-06-16",
+        time: "10:00",
+        wasteType: "Waste",
+        lorryType: "Medium",
+        assignedDriverName: "Mike Johnson",
+        assignedDriverId: "1",
+        assignedDate: "2024-06-15",
+        paymentStatus: "pending",
+        amount: 75
       }
     ];
 
@@ -120,7 +103,11 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         rating: 4.8,
         phone: "+1234567890",
         email: "mike@example.com",
-        vehicle: "Truck-001"
+        vehicle: "Truck-001",
+        location: "Downtown",
+        icNumber: "920815-14-5678",
+        completedOrders: 245,
+        totalEarnings: 5000
       },
       {
         id: "2",
@@ -131,7 +118,11 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         rating: 4.9,
         phone: "+1234567891",
         email: "sarah@example.com",
-        vehicle: "Truck-002"
+        vehicle: "Truck-002",
+        location: "Uptown",
+        icNumber: "880422-05-1234",
+        completedOrders: 180,
+        totalEarnings: 4200
       }
     ];
 
@@ -184,7 +175,10 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (driver) {
       updateOrder(orderId, { 
         status: "assigned", 
-        driverName: driver.name 
+        driverName: driver.name,
+        assignedDriverId: driverId,
+        assignedDriverName: driver.name,
+        assignedDate: new Date().toISOString().split('T')[0]
       });
     }
   };
@@ -194,7 +188,7 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       o.status === "assigned" && 
       drivers.find(d => d.id === driverId)?.name === o.driverName
     );
-    return RouteOptimizationEngine.optimizeRoute(driverOrders);
+    return RouteOptimizationEngine.calculateRouteMetrics(driverOrders);
   };
 
   const calculateDynamicPrice = (order: Order): number => {
@@ -226,10 +220,10 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const getDriverByCredentials = (username: string, password: string): DriverType | null => {
-    return drivers.find(d => d.email === username) || null;
+    return drivers.find(d => d.email === username || d.name === username) || null;
   };
 
-  const startOrder = (orderId: string, driverId: string) => {
+  const startOrder = (orderId: string) => {
     updateOrder(orderId, { status: "in-progress" });
   };
 
@@ -242,7 +236,7 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const updatePaymentStatus = (orderId: string, status: string) => {
-    updateOrder(orderId, { status: status as any });
+    updateOrder(orderId, { paymentStatus: status as any });
   };
 
   const value: OrderContextType = {

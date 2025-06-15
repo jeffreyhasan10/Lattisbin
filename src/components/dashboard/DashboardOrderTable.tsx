@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -36,7 +35,7 @@ const DashboardOrderTable: React.FC = () => {
   const handleAssignDriver = (orderId: string, driverId: string) => {
     const driver = drivers.find(d => d.id === driverId);
     if (driver) {
-      assignOrderToDriver(orderId, driverId, driver.name);
+      assignOrderToDriver(orderId, driverId);
       toast.success(`Order assigned to ${driver.name}`);
     }
   };

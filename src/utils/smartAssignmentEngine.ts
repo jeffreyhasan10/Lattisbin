@@ -1,129 +1,95 @@
 
+interface AssignmentCriteria {
+  proximity: number;
+  availability: boolean;
+  capacity: number;
+  expertise: string[];
+  currentWorkload: number;
+}
+
 interface Driver {
   id: string;
   name: string;
-  location: { lat: number; lng: number };
+  location: string;
   status: string;
-  rating: number;
-  vehicle: string;
   capacity: number;
-  currentLoad: number;
   expertise: string[];
+  currentOrders: number;
 }
 
 interface Order {
   id: string;
-  location: { lat: number; lng: number };
-  wasteType: string;
-  estimatedWeight: number;
-  priority: 'high' | 'medium' | 'low';
-  timeWindow: { start: string; end: string };
-  specialRequirements?: string[];
-}
-
-interface AssignmentResult {
-  driverId: string;
-  orderId: string;
-  score: number;
-  estimatedDistance: number;
-  estimatedTime: number;
+  location: string;
+  requirements: string[];
+  priority: 'low' | 'medium' | 'high';
+  estimatedDuration: number;
 }
 
 class SmartAssignmentEngine {
-  private calculateDistance(point1: { lat: number; lng: number }, point2: { lat: number; lng: number }): number {
-    const R = 6371; // Earth's radius in km
-    const dLat = (point2.lat - point1.lat) * (Math.PI / 180);
-    const dLng = (point2.lng - point1.lng) * (Math.PI / 180);
-    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(point1.lat * (Math.PI / 180)) * Math.cos(point2.lat * (Math.PI / 180)) *
-      Math.sin(dLng / 2) * Math.sin(dLng / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
-  }
-
-  private calculateAssignmentScore(driver: Driver, order: Order): number {
+  static calculateDriverScore(driver: Driver, order: Order): number {
     let score = 0;
-    const distance = this.calculateDistance(driver.location, order.location);
     
-    // Distance factor (closer is better)
-    score += Math.max(0, 100 - distance * 2);
+    // Availability check
+    if (driver.status !== 'active') return 0;
     
-    // Driver rating factor
-    score += driver.rating * 10;
+    // Capacity check
+    if (driver.currentOrders >= driver.capacity) return 0;
     
-    // Capacity utilization factor
-    const utilizationRate = (driver.currentLoad + order.estimatedWeight) / driver.capacity;
-    if (utilizationRate <= 1) {
-      score += (1 - utilizationRate) * 20;
-    } else {
-      score -= 50; // Penalty for overload
-    }
+    // Base score for available driver
+    score += 50;
     
-    // Expertise matching
-    if (driver.expertise.includes(order.wasteType)) {
-      score += 30;
-    }
+    // Proximity bonus (mock calculation)
+    const proximityBonus = Math.random() * 30; // In real app, calculate actual distance
+    score += proximityBonus;
+    
+    // Expertise match
+    const expertiseMatch = order.requirements.some(req => 
+      driver.expertise.includes(req)
+    );
+    if (expertiseMatch) score += 20;
+    
+    // Workload penalty
+    const workloadPenalty = driver.currentOrders * 5;
+    score -= workloadPenalty;
     
     // Priority bonus
-    if (order.priority === 'high') {
-      score += 20;
-    } else if (order.priority === 'medium') {
-      score += 10;
-    }
+    const priorityBonus = order.priority === 'high' ? 10 : 
+                         order.priority === 'medium' ? 5 : 0;
+    score += priorityBonus;
     
     return Math.max(0, score);
   }
 
-  public findBestDriverForOrder(drivers: Driver[], order: Order): AssignmentResult | null {
-    const availableDrivers = drivers.filter(driver => 
-      driver.status === 'active' && 
-      (driver.currentLoad + order.estimatedWeight) <= driver.capacity
-    );
+  static assignOptimalDriver(drivers: Driver[], order: Order): Driver | null {
+    const scoredDrivers = drivers
+      .map(driver => ({
+        driver,
+        score: this.calculateDriverScore(driver, order)
+      }))
+      .filter(item => item.score > 0)
+      .sort((a, b) => b.score - a.score);
 
-    if (availableDrivers.length === 0) {
-      return null;
-    }
-
-    let bestAssignment: AssignmentResult | null = null;
-    let bestScore = 0;
-
-    for (const driver of availableDrivers) {
-      const score = this.calculateAssignmentScore(driver, order);
-      const distance = this.calculateDistance(driver.location, order.location);
-      const estimatedTime = distance * 3; // Rough estimate: 3 minutes per km
-
-      if (score > bestScore) {
-        bestScore = score;
-        bestAssignment = {
-          driverId: driver.id,
-          orderId: order.id,
-          score,
-          estimatedDistance: distance,
-          estimatedTime
-        };
-      }
-    }
-
-    return bestAssignment;
+    return scoredDrivers.length > 0 ? scoredDrivers[0].driver : null;
   }
 
-  public optimizeMultipleAssignments(drivers: Driver[], orders: Order[]): AssignmentResult[] {
-    const assignments: AssignmentResult[] = [];
+  static batchAssignOrders(drivers: Driver[], orders: Order[]): Map<string, string> {
+    const assignments = new Map<string, string>();
     const availableDrivers = [...drivers];
-    const remainingOrders = [...orders].sort((a, b) => {
+    
+    // Sort orders by priority
+    const sortedOrders = orders.sort((a, b) => {
       const priorityWeight = { high: 3, medium: 2, low: 1 };
       return priorityWeight[b.priority] - priorityWeight[a.priority];
     });
 
-    for (const order of remainingOrders) {
-      const assignment = this.findBestDriverForOrder(availableDrivers, order);
-      if (assignment) {
-        assignments.push(assignment);
-        
-        // Update driver's current load
-        const driverIndex = availableDrivers.findIndex(d => d.id === assignment.driverId);
-        if (driverIndex !== -1) {
-          availableDrivers[driverIndex].currentLoad += order.estimatedWeight;
+    for (const order of sortedOrders) {
+      const assignedDriver = this.assignOptimalDriver(availableDrivers, order);
+      if (assignedDriver) {
+        assignments.set(order.id, assignedDriver.id);
+        // Update driver workload
+        const driverIndex = availableDrivers.findIndex(d => d.id === assignedDriver.id);
+        if (driverIndex >= 0) {
+          availableDrivers[driverIndex].currentOrders += 1;
         }
       }
     }
@@ -133,4 +99,3 @@ class SmartAssignmentEngine {
 }
 
 export default SmartAssignmentEngine;
-export type { Driver, Order, AssignmentResult };

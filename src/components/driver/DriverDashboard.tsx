@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -72,7 +71,7 @@ const DriverDashboard: React.FC = () => {
   };
 
   const handleCompleteOrder = (orderId: string) => {
-    completeOrder(orderId, driverNotes);
+    completeOrder(orderId);
     setDriverNotes("");
     setSelectedOrder(null);
     toast.success("Order completed successfully!");
@@ -96,11 +95,7 @@ const DriverDashboard: React.FC = () => {
       return;
     }
     
-    updatePaymentStatus(orderId, {
-      status: 'paid',
-      amount: amount,
-      date: new Date().toISOString().split('T')[0]
-    });
+    updatePaymentStatus(orderId, 'paid');
     
     setPaymentAmount("");
     setSelectedOrder(null);
