@@ -1,12 +1,13 @@
+
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Building2, Plus, FileText, MapPin, Phone, Mail, Upload, CheckCircle, AlertCircle, Clock, Users, Eye, Settings } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Building, MapPin, Phone, Mail, Upload, CheckCircle, AlertCircle, Plus, Search, Eye, Settings } from "lucide-react";
 import { toast } from "sonner";
 import BusinessDocumentUpload from "./BusinessDocumentUpload";
 import BusinessLocationManager from "./BusinessLocationManager";
@@ -18,128 +19,151 @@ interface Business {
   rocNumber: string;
   businessType: string;
   registrationDate: string;
-  locations: Location[];
-  documents: Document[];
   verificationStatus: "pending" | "verified" | "rejected";
-  contactInfo: {
-    email: string;
+  totalLocations: number;
+  totalEmployees: number;
+  annualRevenue: string;
+  contactPerson: {
+    name: string;
+    position: string;
     phone: string;
-    website?: string;
+    email: string;
+  };
+  headquarters: {
+    address: string;
+    city: string;
+    state: string;
+    postcode: string;
+    coordinates?: string;
+  };
+  documents: {
+    ssmCertificate: boolean;
+    businessLicense: boolean;
+    taxRegistration: boolean;
+    bankStatement: boolean;
   };
 }
 
 interface Location {
   id: string;
+  locationType: "Headquarters" | "Branch" | "Warehouse" | "Service Point";
   address: string;
-  state: string;
   city: string;
+  state: string;
   postcode: string;
-  gpsCoordinates: string;
-  isPrimary: boolean;
-}
-
-interface Document {
-  id: string;
-  type: string;
-  name: string;
-  uploadDate: string;
-  status: "uploaded" | "verified" | "expired";
+  coordinates?: string;
+  contactPerson: string;
+  phone: string;
+  isActive: boolean;
 }
 
 const AdminBusinessRegister: React.FC = () => {
   const [businesses, setBusinesses] = useState<Business[]>([
     {
-      id: "BUS001",
+      id: "BIZ001",
       companyName: "ABC Construction Sdn Bhd",
-      rocNumber: "201234567890",
-      businessType: "Construction",
-      registrationDate: "2024-01-15",
-      locations: [
-        {
-          id: "LOC001",
-          address: "123 Jalan Klang Lama",
-          state: "Kuala Lumpur",
-          city: "Kuala Lumpur",
-          postcode: "58000",
-          gpsCoordinates: "3.1390,101.6869",
-          isPrimary: true
-        }
-      ],
-      documents: [
-        { id: "DOC001", type: "SSM Certificate", name: "ssm_cert.pdf", uploadDate: "2024-01-15", status: "verified" },
-        { id: "DOC002", type: "Business License", name: "business_license.pdf", uploadDate: "2024-01-15", status: "verified" }
-      ],
+      rocNumber: "202301234567",
+      businessType: "Construction & Engineering",
+      registrationDate: "2023-01-15",
       verificationStatus: "verified",
-      contactInfo: {
-        email: "info@abc-construction.com",
-        phone: "+60 3-1234 5678",
-        website: "www.abc-construction.com"
+      totalLocations: 3,
+      totalEmployees: 45,
+      annualRevenue: "RM 2.5M",
+      contactPerson: {
+        name: "Ahmad Rahman",
+        position: "Managing Director",
+        phone: "+60 12-345 6789",
+        email: "ahmad@abc-construction.com"
+      },
+      headquarters: {
+        address: "123 Jalan Industri, Taman Perindustrian",
+        city: "Shah Alam",
+        state: "Selangor",
+        postcode: "40000",
+        coordinates: "3.0738,101.5183"
+      },
+      documents: {
+        ssmCertificate: true,
+        businessLicense: true,
+        taxRegistration: true,
+        bankStatement: true
       }
     }
   ]);
 
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showDocumentModal, setShowDocumentModal] = useState(false);
+  const [showLocationModal, setShowLocationModal] = useState(false);
+  const [showROCModal, setShowROCModal] = useState(false);
+  const [selectedBusinessId, setSelectedBusinessId] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
+
   const [newBusiness, setNewBusiness] = useState({
     companyName: "",
     rocNumber: "",
     businessType: "",
-    email: "",
-    phone: "",
-    website: "",
+    contactName: "",
+    contactPosition: "",
+    contactPhone: "",
+    contactEmail: "",
     address: "",
-    state: "",
     city: "",
+    state: "",
     postcode: ""
   });
 
-  const [showDocumentModal, setShowDocumentModal] = useState(false);
-  const [showLocationModal, setShowLocationModal] = useState(false);
-  const [selectedBusinessId, setSelectedBusinessId] = useState("");
-  const [rocValidationResult, setRocValidationResult] = useState(null);
-
   const businessTypes = [
-    "Construction", "Manufacturing", "Trading", "Services", "Technology", 
-    "Healthcare", "Education", "Hospitality", "Transportation", "Agriculture"
+    "Construction & Engineering",
+    "Manufacturing",
+    "Trading & Import/Export",
+    "Services",
+    "Technology",
+    "Healthcare",
+    "Education",
+    "Hospitality",
+    "Transportation",
+    "Agriculture"
   ];
 
-  const validateROC = (rocNumber: string): boolean => {
-    // Basic ROC validation (12 digits)
-    const rocPattern = /^\d{12}$/;
-    return rocPattern.test(rocNumber);
-  };
+  const malaysianStates = [
+    "Johor", "Kedah", "Kelantan", "Kuala Lumpur", "Labuan", "Malacca", "Negeri Sembilan",
+    "Pahang", "Penang", "Perak", "Perlis", "Putrajaya", "Sabah", "Sarawak", "Selangor", "Terengganu"
+  ];
 
   const handleAddBusiness = () => {
-    if (!newBusiness.companyName || !newBusiness.rocNumber || !newBusiness.businessType) {
-      toast.error("Please fill in all required fields");
-      return;
-    }
-
-    if (!validateROC(newBusiness.rocNumber)) {
-      toast.error("Invalid ROC number format. Must be 12 digits.");
+    if (!newBusiness.companyName || !newBusiness.rocNumber || !newBusiness.contactPhone) {
+      toast.error("Please fill in required fields");
       return;
     }
 
     const business: Business = {
-      id: `BUS${String(businesses.length + 1).padStart(3, '0')}`,
+      id: `BIZ${String(businesses.length + 1).padStart(3, '0')}`,
       companyName: newBusiness.companyName,
       rocNumber: newBusiness.rocNumber,
-      businessType: newBusiness.businessType,
+      businessType: newBusiness.businessType || "Services",
       registrationDate: new Date().toISOString().split('T')[0],
-      locations: [{
-        id: "LOC001",
-        address: newBusiness.address,
-        state: newBusiness.state,
-        city: newBusiness.city,
-        postcode: newBusiness.postcode,
-        gpsCoordinates: "",
-        isPrimary: true
-      }],
-      documents: [],
       verificationStatus: "pending",
-      contactInfo: {
-        email: newBusiness.email,
-        phone: newBusiness.phone,
-        website: newBusiness.website
+      totalLocations: 1,
+      totalEmployees: 0,
+      annualRevenue: "Undisclosed",
+      contactPerson: {
+        name: newBusiness.contactName,
+        position: newBusiness.contactPosition,
+        phone: newBusiness.contactPhone,
+        email: newBusiness.contactEmail
+      },
+      headquarters: {
+        address: newBusiness.address,
+        city: newBusiness.city,
+        state: newBusiness.state,
+        postcode: newBusiness.postcode
+      },
+      documents: {
+        ssmCertificate: false,
+        businessLicense: false,
+        taxRegistration: false,
+        bankStatement: false
       }
     };
 
@@ -150,12 +174,13 @@ const AdminBusinessRegister: React.FC = () => {
       companyName: "",
       rocNumber: "",
       businessType: "",
-      email: "",
-      phone: "",
-      website: "",
+      contactName: "",
+      contactPosition: "",
+      contactPhone: "",
+      contactEmail: "",
       address: "",
-      state: "",
       city: "",
+      state: "",
       postcode: ""
     });
   };
@@ -170,31 +195,9 @@ const AdminBusinessRegister: React.FC = () => {
     setShowLocationModal(true);
   };
 
-  const handleDocumentsUpdate = (documents: any[]) => {
-    setBusinesses(prev => prev.map(business => 
-      business.id === selectedBusinessId 
-        ? { ...business, documents }
-        : business
-    ));
-  };
-
-  const handleLocationsUpdate = (locations: any[]) => {
-    setBusinesses(prev => prev.map(business => 
-      business.id === selectedBusinessId 
-        ? { ...business, locations }
-        : business
-    ));
-  };
-
-  const getVerificationProgress = (business: Business) => {
-    const requiredDocs = 4; // Minimum required documents
-    const uploadedDocs = business.documents.length;
-    const verifiedDocs = business.documents.filter(doc => doc.status === 'verified').length;
-    
-    return {
-      uploaded: (uploadedDocs / requiredDocs) * 100,
-      verified: (verifiedDocs / requiredDocs) * 100
-    };
+  const handleROCValidation = (businessId: string) => {
+    setSelectedBusinessId(businessId);
+    setShowROCModal(true);
   };
 
   const getVerificationBadge = (status: string) => {
@@ -202,11 +205,46 @@ const AdminBusinessRegister: React.FC = () => {
       case "verified":
         return <Badge className="bg-green-100 text-green-800"><CheckCircle className="h-3 w-3 mr-1" />Verified</Badge>;
       case "pending":
-        return <Badge className="bg-yellow-100 text-yellow-800"><Clock className="h-3 w-3 mr-1" />Pending</Badge>;
+        return <Badge className="bg-yellow-100 text-yellow-800"><AlertCircle className="h-3 w-3 mr-1" />Pending</Badge>;
       case "rejected":
         return <Badge className="bg-red-100 text-red-800"><AlertCircle className="h-3 w-3 mr-1" />Rejected</Badge>;
       default:
         return <Badge variant="secondary">Unknown</Badge>;
+    }
+  };
+
+  const filteredBusinesses = businesses.filter(business => {
+    const matchesSearch = business.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         business.rocNumber.includes(searchTerm);
+    const matchesStatus = filterStatus === "all" || business.verificationStatus === filterStatus;
+    return matchesSearch && matchesStatus;
+  });
+
+  const handleDocumentUpdate = (documents: any[]) => {
+    // Update business documents
+    setBusinesses(prev => prev.map(business => 
+      business.id === selectedBusinessId 
+        ? { ...business, documents: { ...business.documents, ssmCertificate: true } }
+        : business
+    ));
+  };
+
+  const handleLocationUpdate = (locations: Location[]) => {
+    // Update business locations
+    setBusinesses(prev => prev.map(business => 
+      business.id === selectedBusinessId 
+        ? { ...business, totalLocations: locations.length }
+        : business
+    ));
+  };
+
+  const handleROCValidation = (result: any) => {
+    if (result?.isValid) {
+      setBusinesses(prev => prev.map(business => 
+        business.id === selectedBusinessId 
+          ? { ...business, verificationStatus: "verified" }
+          : business
+      ));
     }
   };
 
@@ -215,10 +253,10 @@ const AdminBusinessRegister: React.FC = () => {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Building2 className="h-6 w-6 text-blue-600" />
-            Business Registration Management
+            <Building className="h-6 w-6 text-blue-600" />
+            Business Registration & Management
           </h2>
-          <p className="text-gray-600 mt-1">Complete business profile management with ROC validation, multi-location support, and document verification</p>
+          <p className="text-gray-600 mt-1">Comprehensive business registration with ROC validation and document management</p>
         </div>
         <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
           <DialogTrigger asChild>
@@ -227,246 +265,357 @@ const AdminBusinessRegister: React.FC = () => {
               Register Business
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
+          <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
               <DialogTitle>Register New Business</DialogTitle>
             </DialogHeader>
-            <div className="space-y-6">
-              {/* ROC Validation Section */}
-              <ROCValidationService 
-                onValidationResult={setRocValidationResult}
-                initialROC={newBusiness.rocNumber}
-              />
-              
-              <div className="grid grid-cols-2 gap-4 space-y-2">
-                <div className="col-span-2">
-                  <Label htmlFor="companyName">Company Name *</Label>
-                  <Input
-                    id="companyName"
-                    value={rocValidationResult?.companyName || newBusiness.companyName}
-                    onChange={(e) => setNewBusiness(prev => ({...prev, companyName: e.target.value}))}
-                    placeholder="ABC Company Sdn Bhd"
-                    disabled={!!rocValidationResult?.companyName}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="rocNumber">ROC Number *</Label>
-                  <Input
-                    id="rocNumber"
-                    value={newBusiness.rocNumber}
-                    onChange={(e) => setNewBusiness(prev => ({...prev, rocNumber: e.target.value}))}
-                    placeholder="201234567890"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="businessType">Business Type *</Label>
-                  <Select value={newBusiness.businessType} onValueChange={(value) => setNewBusiness(prev => ({...prev, businessType: value}))}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {businessTypes.map((type) => (
-                        <SelectItem key={type} value={type}>{type}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                {/* Contact Information */}
-                <div>
-                  <Label htmlFor="email">Email *</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={newBusiness.email}
-                    onChange={(e) => setNewBusiness(prev => ({...prev, email: e.target.value}))}
-                    placeholder="contact@company.com"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="phone">Phone *</Label>
-                  <Input
-                    id="phone"
-                    value={newBusiness.phone}
-                    onChange={(e) => setNewBusiness(prev => ({...prev, phone: e.target.value}))}
-                    placeholder="+60 3-1234 5678"
-                  />
-                </div>
-                <div className="col-span-2">
-                  <Label htmlFor="website">Website</Label>
-                  <Input
-                    id="website"
-                    value={newBusiness.website}
-                    onChange={(e) => setNewBusiness(prev => ({...prev, website: e.target.value}))}
-                    placeholder="www.company.com"
-                  />
-                </div>
-                
-                {/* Primary Address */}
-                <div className="col-span-2">
-                  <Label htmlFor="address">Primary Address *</Label>
-                  <Input
-                    id="address"
-                    value={rocValidationResult?.registeredAddress || newBusiness.address}
-                    onChange={(e) => setNewBusiness(prev => ({...prev, address: e.target.value}))}
-                    placeholder="123 Jalan ABC"
-                    disabled={!!rocValidationResult?.registeredAddress}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="city">City *</Label>
-                  <Input
-                    id="city"
-                    value={newBusiness.city}
-                    onChange={(e) => setNewBusiness(prev => ({...prev, city: e.target.value}))}
-                    placeholder="Kuala Lumpur"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="state">State *</Label>
-                  <Input
-                    id="state"
-                    value={newBusiness.state}
-                    onChange={(e) => setNewBusiness(prev => ({...prev, state: e.target.value}))}
-                    placeholder="Selangor"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="postcode">Postcode *</Label>
-                  <Input
-                    id="postcode"
-                    value={newBusiness.postcode}
-                    onChange={(e) => setNewBusiness(prev => ({...prev, postcode: e.target.value}))}
-                    placeholder="50000"
-                  />
-                </div>
+            <div className="grid grid-cols-2 gap-4 space-y-2">
+              <div className="col-span-2">
+                <Label htmlFor="companyName">Company Name *</Label>
+                <Input
+                  id="companyName"
+                  value={newBusiness.companyName}
+                  onChange={(e) => setNewBusiness(prev => ({...prev, companyName: e.target.value}))}
+                  placeholder="ABC Construction Sdn Bhd"
+                />
+              </div>
+              <div>
+                <Label htmlFor="rocNumber">ROC Number *</Label>
+                <Input
+                  id="rocNumber"
+                  value={newBusiness.rocNumber}
+                  onChange={(e) => setNewBusiness(prev => ({...prev, rocNumber: e.target.value}))}
+                  placeholder="202301234567"
+                />
+              </div>
+              <div>
+                <Label htmlFor="businessType">Business Type</Label>
+                <Select value={newBusiness.businessType} onValueChange={(value) => setNewBusiness(prev => ({...prev, businessType: value}))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select business type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {businessTypes.map((type) => (
+                      <SelectItem key={type} value={type}>{type}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="contactName">Contact Person *</Label>
+                <Input
+                  id="contactName"
+                  value={newBusiness.contactName}
+                  onChange={(e) => setNewBusiness(prev => ({...prev, contactName: e.target.value}))}
+                  placeholder="Ahmad Rahman"
+                />
+              </div>
+              <div>
+                <Label htmlFor="contactPosition">Position</Label>
+                <Input
+                  id="contactPosition"
+                  value={newBusiness.contactPosition}
+                  onChange={(e) => setNewBusiness(prev => ({...prev, contactPosition: e.target.value}))}
+                  placeholder="Managing Director"
+                />
+              </div>
+              <div>
+                <Label htmlFor="contactPhone">Phone Number *</Label>
+                <Input
+                  id="contactPhone"
+                  value={newBusiness.contactPhone}
+                  onChange={(e) => setNewBusiness(prev => ({...prev, contactPhone: e.target.value}))}
+                  placeholder="+60 12-345 6789"
+                />
+              </div>
+              <div>
+                <Label htmlFor="contactEmail">Email</Label>
+                <Input
+                  id="contactEmail"
+                  type="email"
+                  value={newBusiness.contactEmail}
+                  onChange={(e) => setNewBusiness(prev => ({...prev, contactEmail: e.target.value}))}
+                  placeholder="contact@company.com"
+                />
+              </div>
+              <div className="col-span-2">
+                <Label htmlFor="address">Headquarters Address</Label>
+                <Input
+                  id="address"
+                  value={newBusiness.address}
+                  onChange={(e) => setNewBusiness(prev => ({...prev, address: e.target.value}))}
+                  placeholder="123 Jalan ABC, Taman DEF"
+                />
+              </div>
+              <div>
+                <Label htmlFor="city">City</Label>
+                <Input
+                  id="city"
+                  value={newBusiness.city}
+                  onChange={(e) => setNewBusiness(prev => ({...prev, city: e.target.value}))}
+                  placeholder="Kuala Lumpur"
+                />
+              </div>
+              <div>
+                <Label htmlFor="state">State</Label>
+                <Select value={newBusiness.state} onValueChange={(value) => setNewBusiness(prev => ({...prev, state: value}))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select state" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {malaysianStates.map((state) => (
+                      <SelectItem key={state} value={state}>{state}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="postcode">Postcode</Label>
+                <Input
+                  id="postcode"
+                  value={newBusiness.postcode}
+                  onChange={(e) => setNewBusiness(prev => ({...prev, postcode: e.target.value}))}
+                  placeholder="50000"
+                />
               </div>
             </div>
             <div className="flex justify-end gap-2 pt-4">
               <Button variant="outline" onClick={() => setShowAddModal(false)}>Cancel</Button>
-              <Button onClick={handleAddBusiness} className="bg-blue-600 hover:bg-blue-700">Register</Button>
+              <Button onClick={handleAddBusiness} className="bg-blue-600 hover:bg-blue-700">Register Business</Button>
             </div>
           </DialogContent>
         </Dialog>
       </div>
 
-      {/* Enhanced Business Cards */}
+      {/* Search and Filter */}
+      <Card className="bg-white/60 backdrop-blur-sm border border-white/30">
+        <CardContent className="p-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="md:col-span-2">
+              <div className="relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Search by company name or ROC number..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+            <div>
+              <Select value={filterStatus} onValueChange={setFilterStatus}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="verified">Verified</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="rejected">Rejected</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Business Statistics */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card className="bg-white/60 backdrop-blur-sm border border-white/30">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="bg-blue-100 p-3 rounded-xl">
+                <Building className="h-6 w-6 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{businesses.length}</p>
+                <p className="text-sm text-gray-600">Total Businesses</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-white/60 backdrop-blur-sm border border-white/30">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="bg-green-100 p-3 rounded-xl">
+                <CheckCircle className="h-6 w-6 text-green-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-green-600">
+                  {businesses.filter(b => b.verificationStatus === 'verified').length}
+                </p>
+                <p className="text-sm text-gray-600">Verified</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-white/60 backdrop-blur-sm border border-white/30">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="bg-yellow-100 p-3 rounded-xl">
+                <AlertCircle className="h-6 w-6 text-yellow-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-yellow-600">
+                  {businesses.filter(b => b.verificationStatus === 'pending').length}
+                </p>
+                <p className="text-sm text-gray-600">Pending</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-white/60 backdrop-blur-sm border border-white/30">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="bg-purple-100 p-3 rounded-xl">
+                <MapPin className="h-6 w-6 text-purple-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-purple-600">
+                  {businesses.reduce((sum, b) => sum + b.totalLocations, 0)}
+                </p>
+                <p className="text-sm text-gray-600">Total Locations</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Business Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {businesses.map((business) => {
-          const progress = getVerificationProgress(business);
-          return (
-            <Card key={business.id} className="bg-white/60 backdrop-blur-sm border border-white/30 shadow-lg hover:shadow-xl transition-shadow">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
-                    <Building2 className="h-5 w-5 text-blue-600" />
-                    {business.companyName}
-                  </CardTitle>
-                  {getVerificationBadge(business.verificationStatus)}
-                </div>
-                
-                {/* Verification Progress */}
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Document Upload</span>
-                    <span>{Math.round(progress.uploaded)}%</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
-                      style={{ width: `${progress.uploaded}%` }}
-                    ></div>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Verification</span>
-                    <span>{Math.round(progress.verified)}%</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="bg-green-600 h-2 rounded-full transition-all duration-300" 
-                      style={{ width: `${progress.verified}%` }}
-                    ></div>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center gap-2 text-sm">
-                  <FileText className="h-4 w-4 text-gray-500" />
-                  <span>ROC: {business.rocNumber}</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Building2 className="h-4 w-4 text-gray-500" />
-                  <span>{business.businessType}</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <MapPin className="h-4 w-4 text-gray-500" />
-                  <span>{business.locations[0]?.city}, {business.locations[0]?.state}</span>
-                </div>
+        {filteredBusinesses.map((business) => (
+          <Card key={business.id} className="bg-white/60 backdrop-blur-sm border border-white/30 shadow-lg hover:shadow-xl transition-shadow">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Building className="h-5 w-5 text-blue-600" />
+                  {business.companyName}
+                </CardTitle>
+                {getVerificationBadge(business.verificationStatus)}
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="text-xs">ROC: {business.rocNumber}</Badge>
+                <Badge variant="outline" className="text-xs">{business.businessType}</Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {/* Contact Information */}
+              <div className="space-y-2">
                 <div className="flex items-center gap-2 text-sm">
                   <Phone className="h-4 w-4 text-gray-500" />
-                  <span>{business.contactInfo.phone}</span>
+                  <span>{business.contactPerson.phone}</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <Mail className="h-4 w-4 text-gray-500" />
-                  <span>{business.contactInfo.email}</span>
+                  <span>{business.contactPerson.email}</span>
                 </div>
-                
-                <div className="pt-2 border-t">
-                  <div className="text-xs text-gray-500 mb-2">
-                    Documents ({business.documents.length}) • Locations ({business.locations.length})
+                <div className="flex items-center gap-2 text-sm">
+                  <MapPin className="h-4 w-4 text-gray-500" />
+                  <span>{business.headquarters.city}, {business.headquarters.state}</span>
+                </div>
+              </div>
+
+              {/* Business Metrics */}
+              <div className="pt-2 border-t space-y-2">
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-gray-500">Locations:</span>
+                    <div className="font-semibold">{business.totalLocations}</div>
                   </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      onClick={() => handleDocumentUpload(business.id)}
-                      className="text-xs"
-                    >
-                      <Upload className="h-3 w-3 mr-1" />
-                      Documents
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      onClick={() => handleLocationManagement(business.id)}
-                      className="text-xs"
-                    >
-                      <MapPin className="h-3 w-3 mr-1" />
-                      Locations
-                    </Button>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2 mt-2">
-                    <Button size="sm" variant="outline" className="text-xs">
-                      <Eye className="h-3 w-3 mr-1" />
-                      View Details
-                    </Button>
-                    <Button size="sm" variant="outline" className="text-xs">
-                      <Settings className="h-3 w-3 mr-1" />
-                      Manage
-                    </Button>
+                  <div>
+                    <span className="text-gray-500">Employees:</span>
+                    <div className="font-semibold">{business.totalEmployees}</div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+                <div className="text-sm">
+                  <span className="text-gray-500">Revenue:</span>
+                  <div className="font-semibold">{business.annualRevenue}</div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="grid grid-cols-2 gap-2 mt-4">
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={() => handleDocumentUpload(business.id)}
+                  className="text-xs"
+                >
+                  <Upload className="h-3 w-3 mr-1" />
+                  Documents
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={() => handleLocationManagement(business.id)}
+                  className="text-xs"
+                >
+                  <MapPin className="h-3 w-3 mr-1" />
+                  Locations
+                </Button>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={() => handleROCValidation(business.id)}
+                  className="text-xs"
+                >
+                  <Search className="h-3 w-3 mr-1" />
+                  ROC Check
+                </Button>
+                <Button size="sm" variant="outline" className="text-xs">
+                  <Eye className="h-3 w-3 mr-1" />
+                  View
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
-      {/* Modals */}
-      <BusinessDocumentUpload
-        isOpen={showDocumentModal}
-        onClose={() => setShowDocumentModal(false)}
-        businessId={selectedBusinessId}
-        onDocumentsUpdate={handleDocumentsUpdate}
-      />
-      
-      <BusinessLocationManager
-        isOpen={showLocationModal}
-        onClose={() => setShowLocationModal(false)}
-        businessId={selectedBusinessId}
-        locations={businesses.find(b => b.id === selectedBusinessId)?.locations || []}
-        onLocationsUpdate={handleLocationsUpdate}
-      />
+      {/* Document Upload Modal */}
+      {selectedBusinessId && (
+        <BusinessDocumentUpload
+          isOpen={showDocumentModal}
+          onClose={() => setShowDocumentModal(false)}
+          businessId={selectedBusinessId}
+          onDocumentsUpdate={handleDocumentUpdate}
+        />
+      )}
+
+      {/* Location Management Modal */}
+      <Dialog open={showLocationModal} onOpenChange={setShowLocationModal}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Location Management</DialogTitle>
+          </DialogHeader>
+          {selectedBusinessId && (
+            <BusinessLocationManager
+              businessId={selectedBusinessId}
+              onLocationsUpdate={handleLocationUpdate}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* ROC Validation Modal */}
+      <Dialog open={showROCModal} onOpenChange={setShowROCModal}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>ROC Validation Service</DialogTitle>
+          </DialogHeader>
+          {selectedBusinessId && (
+            <ROCValidationService
+              onValidationResult={handleROCValidation}
+              initialROC={businesses.find(b => b.id === selectedBusinessId)?.rocNumber || ""}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
