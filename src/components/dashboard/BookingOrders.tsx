@@ -1645,22 +1645,24 @@ const BookingOrders = () => {
       </motion.div>
 
       {/* Custom Scrollbar Styles */}
-      <style jsx>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          height: 8px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: #f1f1f1;
-          border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #888;
-          border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #555;
-        }
-      `}</style>
+      <style>
+        {`
+          .custom-scrollbar::-webkit-scrollbar {
+            height: 8px;
+          }
+          .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+          }
+          .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+          }
+          .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #555;
+          }
+        `}
+      </style>
     </TooltipProvider>
   );
 };
