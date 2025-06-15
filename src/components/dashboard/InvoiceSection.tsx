@@ -6,8 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import AddInvoiceModal from "./AddInvoiceModal";
 import {
   Search,
   FileText,
@@ -15,17 +15,12 @@ import {
   Eye,
   Plus,
   Filter,
-  Calendar,
   DollarSign,
-  Users,
   CheckCircle,
   Clock,
   AlertTriangle,
-  X,
   Printer,
-  Mail,
   Send,
-  TrendingUp,
   Receipt,
   CreditCard,
 } from "lucide-react";
@@ -86,6 +81,7 @@ const InvoiceSection = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedInvoice, setSelectedInvoice] = useState<typeof DUMMY_INVOICES[0] | null>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const { toast } = useToast();
 
   const filteredInvoices = useMemo(() => {
@@ -98,32 +94,12 @@ const InvoiceSection = () => {
     });
   }, [searchTerm, statusFilter]);
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
-  };
-
-  const handleStatusFilterChange = (status: string) => {
-    setStatusFilter(status);
-  };
-
   const handleInvoiceSelect = (invoice: typeof DUMMY_INVOICES[0]) => {
     setSelectedInvoice(invoice);
     setIsPreviewOpen(true);
     toast({
       title: "Invoice Preview",
       description: `Viewing invoice ${invoice.invoiceNumber}`,
-    });
-  };
-
-  const handleClosePreview = () => {
-    setIsPreviewOpen(false);
-    setSelectedInvoice(null);
-  };
-
-  const handleAddInvoice = () => {
-    toast({
-      title: "Add Invoice",
-      description: "Invoice creation form will open shortly.",
     });
   };
 
@@ -168,9 +144,7 @@ const InvoiceSection = () => {
   };
 
   const calculateTotalRevenue = () => {
-    return DUMMY_INVOICES.reduce((sum, invoice) => {
-      return sum + invoice.amount;
-    }, 0);
+    return DUMMY_INVOICES.reduce((sum, invoice) => sum + invoice.amount, 0);
   };
 
   const totalRevenue = calculateTotalRevenue();
@@ -179,61 +153,113 @@ const InvoiceSection = () => {
   const overdueInvoicesCount = DUMMY_INVOICES.filter(invoice => invoice.status === "overdue").length;
 
   return (
-    <div className="min-h-screen p-4 sm:p-6 lg:p-8 space-y-6">
+    <div className="p-4 lg:p-6 space-y-6">
       {/* Header Section */}
-      <div className="bg-white/90 backdrop-blur-sm border border-gray-200/50 rounded-2xl p-4 sm:p-6 lg:p-8 shadow-sm">
-        <div className="flex flex-col space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="space-y-2">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-100 rounded-xl">
-                  <Receipt className="w-6 h-6 text-blue-600" />
-                </div>
-                <div>
-                  <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">
-                    Invoice Management
-                  </h1>
-                  <p className="text-gray-600 text-sm sm:text-base">
-                    Track payments and manage your billing efficiently
-                  </p>
-                </div>
-              </div>
-              <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-500">
-                <span className="flex items-center gap-1">
-                  <DollarSign className="w-4 h-4" />
-                  Total: RM {totalRevenue.toFixed(2)}
-                </span>
-                <span>•</span>
-                <span className="flex items-center gap-1">
-                  <FileText className="w-4 h-4" />
-                  {DUMMY_INVOICES.length} Invoices
-                </span>
-              </div>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="space-y-1">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl">
+              <Receipt className="w-6 h-6 text-white" />
             </div>
-            
-            <Button 
-              onClick={handleAddInvoice}
-              className="bg-blue-600 hover:bg-blue-700 text-white self-start sm:self-auto"
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Add Invoice
-            </Button>
+            <div>
+              <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">
+                Invoice Management
+              </h1>
+              <p className="text-gray-600 dark:text-gray-400">
+                Track payments and manage billing efficiently
+              </p>
+            </div>
           </div>
+        </div>
+        
+        <Button 
+          onClick={() => setIsAddModalOpen(true)}
+          className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+        >
+          <Plus className="mr-2 h-4 w-4" />
+          Add Invoice
+        </Button>
+      </div>
 
-          {/* Search and Filter */}
+      {/* Stats Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-green-200 dark:border-green-800">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-green-700 dark:text-green-300 flex items-center gap-2">
+              <div className="p-1 bg-green-100 dark:bg-green-800 rounded-lg">
+                <DollarSign className="w-4 h-4 text-green-600 dark:text-green-400" />
+              </div>
+              Total Revenue
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-900 dark:text-green-100">RM {totalRevenue.toFixed(2)}</div>
+            <p className="text-xs text-green-600 dark:text-green-400 mt-1">All invoices combined</p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 border-blue-200 dark:border-blue-800">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-blue-700 dark:text-blue-300 flex items-center gap-2">
+              <div className="p-1 bg-blue-100 dark:bg-blue-800 rounded-lg">
+                <CheckCircle className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+              </div>
+              Paid
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-900 dark:text-blue-100">{paidInvoicesCount}</div>
+            <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">Successfully collected</p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 border-yellow-200 dark:border-yellow-800">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-yellow-700 dark:text-yellow-300 flex items-center gap-2">
+              <div className="p-1 bg-yellow-100 dark:bg-yellow-800 rounded-lg">
+                <Clock className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
+              </div>
+              Pending
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-yellow-900 dark:text-yellow-100">{pendingInvoicesCount}</div>
+            <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-1">Awaiting payment</p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-red-50 to-pink-50 dark:from-red-900/20 dark:to-pink-900/20 border-red-200 dark:border-red-800">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-red-700 dark:text-red-300 flex items-center gap-2">
+              <div className="p-1 bg-red-100 dark:bg-red-800 rounded-lg">
+                <AlertTriangle className="w-4 h-4 text-red-600 dark:text-red-400" />
+              </div>
+              Overdue
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-900 dark:text-red-100">{overdueInvoicesCount}</div>
+            <p className="text-xs text-red-600 dark:text-red-400 mt-1">Need attention</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Search and Filter */}
+      <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+        <CardContent className="p-4">
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
                 placeholder="Search invoices..."
                 value={searchTerm}
-                onChange={handleSearchChange}
-                className="pl-10 bg-white border-gray-200"
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700"
               />
             </div>
             
-            <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
-              <SelectTrigger className="w-full sm:w-48 bg-white border-gray-200">
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-full sm:w-48 bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700">
                 <Filter className="mr-2 h-4 w-4" />
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
@@ -245,269 +271,133 @@ const InvoiceSection = () => {
               </SelectContent>
             </Select>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-sm">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
-              <DollarSign className="w-4 h-4 text-green-600" />
-              Total Revenue
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl sm:text-2xl font-bold text-gray-900">RM {totalRevenue.toFixed(2)}</div>
-            <p className="text-xs text-gray-500 mt-1">All invoices combined</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-sm">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
-              <CheckCircle className="w-4 h-4 text-green-600" />
-              Paid
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl sm:text-2xl font-bold text-gray-900">{paidInvoicesCount}</div>
-            <p className="text-xs text-gray-500 mt-1">Successfully collected</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-sm">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
-              <Clock className="w-4 h-4 text-yellow-600" />
-              Pending
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl sm:text-2xl font-bold text-gray-900">{pendingInvoicesCount}</div>
-            <p className="text-xs text-gray-500 mt-1">Awaiting payment</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-sm">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-red-600" />
-              Overdue
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl sm:text-2xl font-bold text-gray-900">{overdueInvoicesCount}</div>
-            <p className="text-xs text-gray-500 mt-1">Need attention</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Main Content */}
-      <div className="bg-white/90 backdrop-blur-sm border border-gray-200/50 rounded-2xl shadow-sm overflow-hidden">
-        <Tabs defaultValue="all" className="w-full">
-          <div className="border-b border-gray-200/50 px-4 sm:px-6">
-            <TabsList className="grid w-full grid-cols-2 h-auto p-1 bg-gray-100/50 rounded-xl">
-              <TabsTrigger 
-                value="overview" 
-                className="px-4 py-3 rounded-lg text-sm font-medium data-[state=active]:bg-white data-[state=active]:shadow-sm"
-              >
-                <TrendingUp className="w-4 h-4 mr-2" />
-                <span className="hidden sm:inline">Overview</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="all"
-                className="px-4 py-3 rounded-lg text-sm font-medium data-[state=active]:bg-white data-[state=active]:shadow-sm"
-              >
-                <FileText className="w-4 h-4 mr-2" />
-                <span className="hidden sm:inline">All Invoices</span>
-              </TabsTrigger>
-            </TabsList>
+      {/* Invoice Table */}
+      <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <thead className="bg-gray-50 dark:bg-gray-900/50">
+                <tr>
+                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Invoice
+                  </th>
+                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Customer
+                  </th>
+                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden sm:table-cell">
+                    Date
+                  </th>
+                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Amount
+                  </th>
+                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-4 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                {filteredInvoices.map((invoice) => (
+                  <tr key={invoice.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-900/50 dark:to-indigo-900/50 rounded-lg">
+                          <FileText className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                        </div>
+                        <div>
+                          <div className="text-sm font-medium text-gray-900 dark:text-white">
+                            {invoice.invoiceNumber}
+                          </div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400 sm:hidden">
+                            {invoice.date}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900 dark:text-white">
+                        {invoice.customerName}
+                      </div>
+                    </td>
+                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap hidden sm:table-cell">
+                      <div className="text-sm text-gray-900 dark:text-white">
+                        {invoice.date}
+                      </div>
+                    </td>
+                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-semibold text-gray-900 dark:text-white">
+                        RM {invoice.amount.toFixed(2)}
+                      </div>
+                    </td>
+                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+                      <Badge className={`${getStatusColor(invoice.status)} flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border w-fit`}>
+                        {getStatusIcon(invoice.status)}
+                        <span className="hidden sm:inline">
+                          {invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
+                        </span>
+                      </Badge>
+                    </td>
+                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleInvoiceSelect(invoice)}
+                          className="hover:bg-blue-50 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 p-1 sm:p-2"
+                        >
+                          <Eye className="w-4 h-4" />
+                          <span className="hidden sm:inline ml-1">View</span>
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDownloadInvoice(invoice)}
+                          className="hover:bg-green-50 dark:hover:bg-green-900/50 text-green-600 dark:text-green-400 p-1 sm:p-2"
+                        >
+                          <Download className="w-4 h-4" />
+                          <span className="hidden sm:inline ml-1">Download</span>
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-
-          <div className="p-4 sm:p-6">
-            <TabsContent value="overview" className="space-y-6 mt-0">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <Card className="border border-gray-200/50">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base font-semibold text-gray-800 flex items-center gap-2">
-                      <DollarSign className="w-4 h-4 text-green-600" />
-                      Total Revenue
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold text-gray-900">RM {totalRevenue.toFixed(2)}</div>
-                    <p className="text-sm text-gray-500 mt-1">Total amount of all invoices</p>
-                  </CardContent>
-                </Card>
-
-                <Card className="border border-gray-200/50">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base font-semibold text-gray-800 flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-green-600" />
-                      Paid Invoices
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold text-gray-900">{paidInvoicesCount}</div>
-                    <p className="text-sm text-gray-500 mt-1">Invoices successfully paid</p>
-                  </CardContent>
-                </Card>
-
-                <Card className="border border-gray-200/50">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base font-semibold text-gray-800 flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-yellow-600" />
-                      Pending Invoices
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold text-gray-900">{pendingInvoicesCount}</div>
-                    <p className="text-sm text-gray-500 mt-1">Awaiting payment</p>
-                  </CardContent>
-                </Card>
-
-                <Card className="border border-gray-200/50">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base font-semibold text-gray-800 flex items-center gap-2">
-                      <AlertTriangle className="w-4 h-4 text-red-600" />
-                      Overdue Invoices
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold text-gray-900">{overdueInvoicesCount}</div>
-                    <p className="text-sm text-gray-500 mt-1">Need immediate attention</p>
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="all" className="space-y-4 mt-0">
-              <div className="border border-gray-200/50 rounded-xl overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200/50">
-                    <thead className="bg-gray-50/50">
-                      <tr>
-                        <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Invoice
-                        </th>
-                        <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Customer
-                        </th>
-                        <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
-                          Date
-                        </th>
-                        <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Amount
-                        </th>
-                        <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Status
-                        </th>
-                        <th className="px-4 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Actions
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white/50 divide-y divide-gray-200/30">
-                      {filteredInvoices.map((invoice) => (
-                        <tr key={invoice.id} className="hover:bg-gray-50/50 transition-colors">
-                          <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center gap-3">
-                              <div className="p-2 bg-blue-100 rounded-lg">
-                                <FileText className="w-4 h-4 text-blue-600" />
-                              </div>
-                              <div>
-                                <div className="text-sm font-medium text-gray-900">
-                                  {invoice.invoiceNumber}
-                                </div>
-                                <div className="text-xs text-gray-500 sm:hidden">
-                                  {invoice.date}
-                                </div>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm font-medium text-gray-900">
-                              {invoice.customerName}
-                            </div>
-                          </td>
-                          <td className="px-4 sm:px-6 py-4 whitespace-nowrap hidden sm:table-cell">
-                            <div className="text-sm text-gray-900">
-                              {invoice.date}
-                            </div>
-                          </td>
-                          <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm font-semibold text-gray-900">
-                              RM {invoice.amount.toFixed(2)}
-                            </div>
-                          </td>
-                          <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                            <Badge className={`${getStatusColor(invoice.status)} flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border w-fit`}>
-                              {getStatusIcon(invoice.status)}
-                              <span className="hidden sm:inline">
-                                {invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
-                              </span>
-                            </Badge>
-                          </td>
-                          <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-right">
-                            <div className="flex items-center justify-end gap-1">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleInvoiceSelect(invoice)}
-                                className="hover:bg-blue-50 text-blue-600 p-1 sm:p-2"
-                              >
-                                <Eye className="w-4 h-4" />
-                                <span className="hidden sm:inline ml-1">View</span>
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleDownloadInvoice(invoice)}
-                                className="hover:bg-green-50 text-green-600 p-1 sm:p-2"
-                              >
-                                <Download className="w-4 h-4" />
-                                <span className="hidden sm:inline ml-1">Download</span>
-                              </Button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </TabsContent>
-          </div>
-        </Tabs>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Invoice Preview Dialog */}
       <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
-        <DialogContent className="max-w-2xl lg:max-w-4xl bg-white border border-gray-200/50 shadow-xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold text-gray-800 flex items-center gap-3">
+            <DialogTitle className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-3">
               <Receipt className="w-5 h-5 text-blue-600" />
               Invoice Preview
             </DialogTitle>
           </DialogHeader>
           {selectedInvoice ? (
             <div className="space-y-6">
-              <div className="bg-gray-50/50 rounded-xl p-4 sm:p-6">
+              <div className="bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-800 dark:to-blue-900/20 rounded-xl p-6">
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6">
                   <div className="space-y-2">
-                    <h3 className="text-xl sm:text-2xl font-bold text-gray-900">
+                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
                       {selectedInvoice.customerName}
                     </h3>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
                       Invoice: {selectedInvoice.invoiceNumber}
                     </p>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
                       Date: {selectedInvoice.date}
                     </p>
                   </div>
                   <div className="text-left sm:text-right space-y-2">
-                    <h4 className="text-2xl sm:text-3xl font-bold text-gray-900">
+                    <h4 className="text-3xl font-bold text-gray-900 dark:text-white">
                       RM {selectedInvoice.amount.toFixed(2)}
                     </h4>
                     <Badge className={`${getStatusColor(selectedInvoice.status)} flex items-center gap-1 px-3 py-1 rounded-full border w-fit`}>
@@ -519,12 +409,14 @@ const InvoiceSection = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-3">
-                    <h4 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                      <Users className="w-5 h-5" />
+                    <h4 className="text-lg font-semibold text-gray-800 dark:text-white flex items-center gap-2">
+                      <div className="p-1 bg-blue-100 dark:bg-blue-800 rounded-lg">
+                        <Receipt className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                      </div>
                       Billing Details
                     </h4>
-                    <div className="bg-white/60 rounded-xl p-4">
-                      <p className="text-sm text-gray-700">
+                    <div className="bg-white/60 dark:bg-gray-700/60 rounded-xl p-4">
+                      <p className="text-sm text-gray-700 dark:text-gray-300">
                         {selectedInvoice.customerName}
                         <br />
                         123 Main Street
@@ -537,12 +429,14 @@ const InvoiceSection = () => {
                   </div>
 
                   <div className="space-y-3">
-                    <h4 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                      <CreditCard className="w-5 h-5" />
+                    <h4 className="text-lg font-semibold text-gray-800 dark:text-white flex items-center gap-2">
+                      <div className="p-1 bg-green-100 dark:bg-green-800 rounded-lg">
+                        <CreditCard className="w-4 h-4 text-green-600 dark:text-green-400" />
+                      </div>
                       Payment Details
                     </h4>
-                    <div className="bg-white/60 rounded-xl p-4">
-                      <p className="text-sm text-gray-700">
+                    <div className="bg-white/60 dark:bg-gray-700/60 rounded-xl p-4">
+                      <p className="text-sm text-gray-700 dark:text-gray-300">
                         Payment Method: Credit Card
                         <br />
                         Card ending in: **** 1234
@@ -558,7 +452,7 @@ const InvoiceSection = () => {
                 <Button 
                   variant="outline" 
                   onClick={() => handleDownloadInvoice()}
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 border-gray-300 dark:border-gray-600"
                 >
                   <Download className="w-4 h-4" />
                   Download PDF
@@ -566,14 +460,14 @@ const InvoiceSection = () => {
                 <Button 
                   variant="outline" 
                   onClick={handlePrintInvoice}
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 border-gray-300 dark:border-gray-600"
                 >
                   <Printer className="w-4 h-4" />
                   Print
                 </Button>
                 <Button 
                   onClick={handleSendInvoice}
-                  className="bg-blue-600 hover:bg-blue-700 flex items-center gap-2"
+                  className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 flex items-center gap-2"
                 >
                   <Send className="w-4 h-4" />
                   Send Invoice
@@ -581,10 +475,16 @@ const InvoiceSection = () => {
               </div>
             </div>
           ) : (
-            <p className="text-center text-gray-500 py-8">No invoice selected.</p>
+            <p className="text-center text-gray-500 dark:text-gray-400 py-8">No invoice selected.</p>
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Add Invoice Modal */}
+      <AddInvoiceModal 
+        isOpen={isAddModalOpen} 
+        onClose={() => setIsAddModalOpen(false)} 
+      />
     </div>
   );
 };
