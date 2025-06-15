@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   MapPin,
@@ -29,124 +28,10 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useOrders, OrderType } from "@/contexts/OrderContext";
 
-// Define the order interface with all properties
-interface Order {
-  id: string;
-  customer: string;
-  customerPhone: string;
-  location: string;
-  pickupLocation: string;
-  time: string;
-  status: "assigned" | "in-progress" | "completed";
-  amount: number;
-  priority: string;
-  wasteType: string;
-  distance: string;
-  estimatedDuration: string;
-  startedAt?: string; // Optional property for when order is started
-  binLocation: {
-    name: string;
-    address: string;
-    distance: string;
-    coordinates: { lat: number; lng: number };
-  };
-}
-
-interface CompletedOrder {
-  id: string;
-  customer: string;
-  amount: number;
-  completedAt: string;
-  paymentStatus: "pending" | "collected";
-}
-
-interface Payment {
-  id: string;
-  orderId: string;
-  customerName: string;
-  amount: number;
-  paymentType: string;
-  timestamp: string;
-  status: string;
-}
-
-// Create a shared context for order and payment state
-const useDriverData = () => {
-  const [orders, setOrders] = useState<Order[]>([
-    {
-      id: "JOB001",
-      customer: "ABC Construction Sdn Bhd",
-      customerPhone: "+60123456789",
-      location: "Jalan Ampang, Kuala Lumpur",
-      pickupLocation: "Taman Tun Dr Ismail",
-      time: "09:30 AM",
-      status: "assigned",
-      amount: 350.00,
-      priority: "high",
-      wasteType: "Construction Debris",
-      distance: "12.5 km",
-      estimatedDuration: "45 min",
-      binLocation: {
-        name: "Central Waste Collection Point",
-        address: "Jalan Sultan Ismail, KL",
-        distance: "2.3 km",
-        coordinates: { lat: 3.1478, lng: 101.7037 }
-      }
-    },
-    {
-      id: "JOB002",
-      customer: "Sunshine Apartments",
-      customerPhone: "+60198765432",
-      location: "Petaling Jaya, Selangor",
-      pickupLocation: "Block A Parking Area",
-      time: "02:30 PM",
-      status: "assigned",
-      amount: 280.00,
-      priority: "medium",
-      wasteType: "Household Waste",
-      distance: "8.2 km",
-      estimatedDuration: "30 min",
-      binLocation: {
-        name: "PJ Community Center Bin",
-        address: "Jalan 14/20, Petaling Jaya",
-        distance: "0.9 km",
-        coordinates: { lat: 3.1073, lng: 101.6067 }
-      }
-    }
-  ]);
-
-  const [completedOrders, setCompletedOrders] = useState<CompletedOrder[]>([
-    {
-      id: "JOB003",
-      customer: "Green Valley Resort",
-      amount: 450.00,
-      completedAt: "10:15 AM",
-      paymentStatus: "collected"
-    }
-  ]);
-
-  const [payments, setPayments] = useState<Payment[]>([
-    {
-      id: "PAY001",
-      orderId: "JOB003",
-      customerName: "Green Valley Resort",
-      amount: 450.00,
-      paymentType: "Cash",
-      timestamp: "2024-01-15 10:20",
-      status: "completed"
-    }
-  ]);
-
-  return {
-    orders,
-    setOrders,
-    completedOrders,
-    setCompletedOrders,
-    payments,
-    setPayments
-  };
-};
+// Assuming current driver ID - in a real app this would come from auth
+const CURRENT_DRIVER_ID = "DRV001";
 
 const DriverDashboard = () => {
   const navigate = useNavigate();
@@ -157,21 +42,17 @@ const DriverDashboard = () => {
       message: "New order assigned for today - ABC Construction",
       type: "order",
       time: "2 minutes ago",
-      orderId: "JOB001"
+      orderId: "ORD001"
     }
   ]);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<OrderType | null>(null);
   const [orderDetails, setOrderDetails] = useState(false);
 
-  const {
-    orders,
-    setOrders,
-    completedOrders,
-    setCompletedOrders,
-    payments,
-    setPayments
-  } = useDriverData();
+  const { orders, startOrder, completeOrder } = useOrders();
+
+  // Get orders assigned to current driver
+  const driverOrders = orders.filter(order => order.assignedDriverId === CURRENT_DRIVER_ID);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -179,62 +60,13 @@ const DriverDashboard = () => {
   }, []);
 
   const handleStartOrder = (orderId: string) => {
-    setOrders(prev => prev.map(order => 
-      order.id === orderId 
-        ? { ...order, status: "in-progress" as const, startedAt: new Date().toLocaleTimeString() }
-        : order
-    ));
+    startOrder(orderId);
     toast.success("Order started successfully!");
   };
 
   const handleFinishOrder = (orderId: string) => {
-    const order = orders.find(o => o.id === orderId);
-    if (order) {
-      setOrders(prev => prev.filter(o => o.id !== orderId));
-      setCompletedOrders(prev => [...prev, {
-        id: order.id,
-        customer: order.customer,
-        amount: order.amount,
-        completedAt: new Date().toLocaleTimeString(),
-        paymentStatus: "pending" as const
-      }]);
-      toast.success("Order completed successfully! You can now collect payment.");
-    }
-  };
-
-  const handleCollectPayment = (orderId: string) => {
-    const completedOrder = completedOrders.find(o => o.id === orderId);
-    if (completedOrder) {
-      // Update completed order payment status
-      setCompletedOrders(prev => prev.map(order =>
-        order.id === orderId
-          ? { ...order, paymentStatus: "collected" as const }
-          : order
-      ));
-
-      // Add to payments record
-      const newPayment: Payment = {
-        id: `PAY${String(payments.length + 1).padStart(3, '0')}`,
-        orderId: orderId,
-        customerName: completedOrder.customer,
-        amount: completedOrder.amount,
-        paymentType: "Cash",
-        timestamp: new Date().toLocaleString(),
-        status: "completed"
-      };
-      setPayments(prev => [...prev, newPayment]);
-
-      toast.success("Payment collected successfully!");
-      
-      // Navigate to payments page to record details
-      navigate('/driver/payments', { 
-        state: { 
-          orderId: orderId,
-          amount: completedOrder.amount,
-          customerName: completedOrder.customer
-        } 
-      });
-    }
+    completeOrder(orderId, "Order completed successfully");
+    toast.success("Order completed successfully!");
   };
 
   const handleNavigateToLocation = (location: string, coordinates?: any) => {
@@ -283,13 +115,20 @@ const DriverDashboard = () => {
   };
 
   const todayStats = {
-    totalOrders: orders.length + completedOrders.length,
-    activeOrders: orders.filter(o => o.status === "in-progress").length,
-    completedOrders: completedOrders.length,
-    totalEarnings: completedOrders
-      .filter(order => order.paymentStatus === "collected")
+    totalOrders: driverOrders.length,
+    activeOrders: driverOrders.filter(o => o.status === "in-progress").length,
+    completedOrders: driverOrders.filter(o => o.status === "completed").length,
+    totalEarnings: driverOrders
+      .filter(order => order.status === "completed")
       .reduce((sum, order) => sum + order.amount, 0)
   };
+
+  // Filter orders for active display (assigned and in-progress)
+  const activeOrders = driverOrders.filter(order => 
+    order.status === "assigned" || order.status === "in-progress"
+  );
+
+  const completedOrders = driverOrders.filter(order => order.status === "completed");
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-4 lg:p-6">
@@ -431,11 +270,11 @@ const DriverDashboard = () => {
             <div className="p-2 bg-blue-100 rounded-lg">
               <Truck className="h-5 w-5 text-blue-600" />
             </div>
-            Today's Orders ({orders.length})
+            Today's Orders ({activeOrders.length})
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6">
-          {orders.length === 0 ? (
+          {activeOrders.length === 0 ? (
             <div className="text-center py-12">
               <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Package className="h-8 w-8 text-gray-400" />
@@ -445,7 +284,7 @@ const DriverDashboard = () => {
             </div>
           ) : (
             <div className="space-y-6">
-              {orders.map((order) => (
+              {activeOrders.map((order) => (
                 <Card key={order.id} className="border border-gray-200 hover:shadow-md transition-all duration-200">
                   <CardContent className="p-6">
                     <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
@@ -504,7 +343,7 @@ const DriverDashboard = () => {
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => handleFindNearestBin(order.binLocation)}
+                              onClick={() => handleFindNearestBin(order.nearestBin)}
                               className="border-purple-200 text-purple-600 hover:bg-purple-50"
                             >
                               <Navigation className="h-3 w-3 mr-1" />
@@ -512,9 +351,9 @@ const DriverDashboard = () => {
                             </Button>
                           </div>
                           <div className="text-sm">
-                            <p className="text-gray-700 font-medium">{order.binLocation.name}</p>
-                            <p className="text-gray-600">{order.binLocation.address}</p>
-                            <p className="text-purple-600 font-medium">{order.binLocation.distance} away</p>
+                            <p className="text-gray-700 font-medium">{order.nearestBin.name}</p>
+                            <p className="text-gray-600">{order.nearestBin.location}</p>
+                            <p className="text-purple-600 font-medium">{order.nearestBin.distance} away</p>
                           </div>
                         </div>
 
@@ -527,10 +366,10 @@ const DriverDashboard = () => {
                             <Timer className="h-4 w-4 text-orange-500" />
                             <span className="font-medium">{order.estimatedDuration}</span>
                           </span>
-                          {order.startedAt && (
+                          {order.startedTime && (
                             <span className="flex items-center gap-2">
                               <Play className="h-4 w-4 text-green-500" />
-                              <span className="font-medium">Started at {order.startedAt}</span>
+                              <span className="font-medium">Started at {order.startedTime}</span>
                             </span>
                           )}
                         </div>
@@ -594,6 +433,7 @@ const DriverDashboard = () => {
         </CardContent>
       </Card>
 
+      {/* Completed Orders */}
       {completedOrders.length > 0 && (
         <Card className="shadow-lg border-gray-200 mb-6">
           <CardHeader className="bg-gradient-to-r from-emerald-50 to-green-50 border-b border-emerald-200">
@@ -616,27 +456,14 @@ const DriverDashboard = () => {
                         </div>
                         <div>
                           <h4 className="font-semibold text-gray-800">{order.customer}</h4>
-                          <p className="text-sm text-gray-600">#{order.id} • Completed at {order.completedAt}</p>
+                          <p className="text-sm text-gray-600">#{order.id} • Completed at {order.completedTime}</p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-4">
-                        <div className="text-right">
-                          <p className="font-bold text-emerald-600">RM {order.amount.toFixed(2)}</p>
-                          <Badge className={`${order.paymentStatus === 'collected' 
-                            ? 'bg-emerald-100 text-emerald-700 border-emerald-200' 
-                            : 'bg-orange-100 text-orange-700 border-orange-200'} border`}>
-                            {order.paymentStatus === 'collected' ? 'Payment Collected' : 'Payment Pending'}
-                          </Badge>
-                        </div>
-                        {order.paymentStatus === 'pending' && (
-                          <Button
-                            onClick={() => handleCollectPayment(order.id)}
-                            className="bg-emerald-600 hover:bg-emerald-700 text-white"
-                          >
-                            <CreditCard className="h-4 w-4 mr-2" />
-                            Collect Payment
-                          </Button>
-                        )}
+                      <div className="text-right">
+                        <p className="font-bold text-emerald-600">RM {order.amount.toFixed(2)}</p>
+                        <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 border">
+                          Completed
+                        </Badge>
                       </div>
                     </div>
                   </CardContent>
@@ -647,6 +474,7 @@ const DriverDashboard = () => {
         </Card>
       )}
 
+      {/* Quick Actions */}
       <Card className="shadow-lg border-gray-200">
         <CardHeader className="bg-gradient-to-r from-gray-50 to-slate-50 border-b border-gray-200">
           <CardTitle className="text-xl font-bold text-gray-800">Quick Actions</CardTitle>
@@ -688,6 +516,7 @@ const DriverDashboard = () => {
         </CardContent>
       </Card>
 
+      {/* Order Details Dialog */}
       <Dialog open={orderDetails} onOpenChange={setOrderDetails}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -734,12 +563,12 @@ const DriverDashboard = () => {
                   Collection Point Details
                 </h4>
                 <div className="space-y-2 text-sm">
-                  <p><span className="font-medium">Name:</span> {selectedOrder.binLocation.name}</p>
-                  <p><span className="font-medium">Address:</span> {selectedOrder.binLocation.address}</p>
-                  <p><span className="font-medium">Distance:</span> {selectedOrder.binLocation.distance}</p>
+                  <p><span className="font-medium">Name:</span> {selectedOrder.nearestBin.name}</p>
+                  <p><span className="font-medium">Location:</span> {selectedOrder.nearestBin.location}</p>
+                  <p><span className="font-medium">Distance:</span> {selectedOrder.nearestBin.distance}</p>
                 </div>
                 <Button 
-                  onClick={() => handleFindNearestBin(selectedOrder.binLocation)}
+                  onClick={() => handleFindNearestBin(selectedOrder.nearestBin)}
                   className="w-full mt-3 bg-purple-600 hover:bg-purple-700 text-white"
                 >
                   <Navigation className="h-4 w-4 mr-2" />
