@@ -121,7 +121,8 @@ const RefundManagement: React.FC = () => {
       reason: refund.reason,
       category: refund.category,
       description: refund.description,
-      requestDate: new Date(refund.requestDate)
+      requestDate: new Date(refund.requestDate),
+      status: 'pending' as const
     };
 
     const result = RefundEngine.processRefundRequest(mockRequest);
