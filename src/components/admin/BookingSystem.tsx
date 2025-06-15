@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -114,7 +113,7 @@ const BookingSystem: React.FC = () => {
       priceFactors: {
         locationMultiplier: 1.0,
         demandSurcharge: 40,
-        binS izeAdjustment: 0.9,
+        binSizeAdjustment: 0.9,
         emergencyPremium: 100
       },
       notes: "Recurring monthly booking, preferred afternoon slots",
