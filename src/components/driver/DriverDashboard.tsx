@@ -4,786 +4,677 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
-  Breadcrumb,
-  BreadcrumbList,
-  BreadcrumbItem,
-  BreadcrumbPage,
-} from "@/components/ui/breadcrumb";
-import {
-  ArrowRight,
   MapPin,
-  DollarSign,
   Clock,
-  FileText,
-  Truck,
-  TrendingUp,
+  DollarSign,
+  Package,
+  Navigation,
+  Phone,
   CheckCircle,
   AlertCircle,
-  Navigation,
-  Package,
-  BarChart3,
-  Calendar,
-  Target,
-  Activity,
-  Star,
-  User,
-  Eye,
-  PhoneCall,
-  Building,
+  Truck,
   Route,
-  Fuel,
   Timer,
-  Award,
-  Zap,
-  ShieldCheck,
+  CreditCard,
+  FileText,
+  Calendar,
+  User,
+  Trash2,
+  Play,
+  Square,
+  Bell,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
-import DriverCalendar from "./DriverCalendar";
 
 const DriverDashboard = () => {
   const navigate = useNavigate();
-  const [driverSession, setDriverSession] = useState<any>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [isAnimating, setIsAnimating] = useState(false);
-
-  useEffect(() => {
-    const session = localStorage.getItem("driverSession");
-    if (session) {
-      setDriverSession(JSON.parse(session));
+  const [notifications, setNotifications] = useState([
+    {
+      id: 1,
+      message: "New order assigned for today - ABC Construction",
+      type: "order",
+      time: "2 minutes ago",
+      orderId: "JOB001"
     }
+  ]);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [orderDetails, setOrderDetails] = useState(false);
 
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 60000);
-
-    // Animation trigger on mount
-    setTimeout(() => setIsAnimating(true), 100);
-
-    return () => clearInterval(timer);
-  }, []);
-
-  // Enhanced mock data with more realistic values
-  const todayStats = {
-    totalDeliveries: 12,
-    completedDeliveries: 8,
-    earnings: 1850.00,
-    distance: 156.7,
-    onTimeDeliveries: 7,
-    totalOrders: 9,
-    pendingOrders: 4,
-    fuelEfficiency: 12.5,
-    customerRating: 4.9
-  };
-
-  // Enhanced today's orders with more details
-  const todayOrders = [
-    {
-      id: "ORD001",
-      customer: "ABC Construction Sdn Bhd",
-      phone: "03-1234567",
-      pickupTime: "09:00 AM",
-      deliveryTime: "10:30 AM",
-      pickupAddress: "Jalan Ampang, 50450 KL",
-      deliveryAddress: "KLCC Twin Towers, KL",
-      binType: "Construction Waste",
-      status: "pending",
-      priority: "high",
-      amount: 450.00,
-      estimatedDuration: "1.5 hrs",
-      distance: "12.5 km",
-      weight: "2.5 tons"
-    },
-    {
-      id: "ORD002",
-      customer: "Green Valley Resort",
-      phone: "03-9876543",
-      pickupTime: "11:00 AM",
-      deliveryTime: "01:00 PM", 
-      pickupAddress: "Genting Highlands Resort",
-      deliveryAddress: "Disposal Site, Selangor",
-      binType: "Mixed Waste",
-      status: "in-progress",
-      priority: "medium",
-      amount: 675.00,
-      estimatedDuration: "2.5 hrs",
-      distance: "28.3 km",
-      weight: "3.2 tons"
-    },
-    {
-      id: "ORD003",
-      customer: "Sunshine Apartments",
-      phone: "03-5555555",
-      pickupTime: "02:30 PM",
-      deliveryTime: "04:00 PM",
-      pickupAddress: "Petaling Jaya, Selangor",
-      deliveryAddress: "Recycling Center, PJ",
-      binType: "Recyclable",
-      status: "scheduled",
-      priority: "low",
-      amount: 320.00,
-      estimatedDuration: "1.5 hrs",
-      distance: "8.7 km",
-      weight: "1.8 tons"
-    }
-  ];
-
-  const recentOrders = [
+  // Mock data for today's orders
+  const todaysOrders = [
     {
       id: "JOB001",
-      customer: "ABC Construction",
-      location: "Jalan Ampang, KL",
+      customer: "ABC Construction Sdn Bhd",
+      customerPhone: "+60123456789",
+      location: "Jalan Ampang, Kuala Lumpur",
+      pickupLocation: "Taman Tun Dr Ismail",
       time: "09:30 AM",
-      status: "completed",
-      amount: 450.00,
+      status: "assigned",
+      amount: 350.00,
       priority: "high",
-      rating: 5
+      wasteType: "Construction Debris",
+      distance: "12.5 km",
+      estimatedDuration: "45 min",
+      binLocation: {
+        name: "Central Waste Collection Point",
+        address: "Jalan Sultan Ismail, KL",
+        distance: "2.3 km",
+        coordinates: { lat: 3.1478, lng: 101.7037 }
+      }
     },
     {
       id: "JOB002",
-      customer: "Green Valley Resort",
-      location: "Genting Highlands",
-      time: "11:00 AM",
-      status: "in-progress",
-      amount: 675.00,
-      priority: "medium",
-      rating: null
-    },
-    {
-      id: "JOB003",
       customer: "Sunshine Apartments",
-      location: "Petaling Jaya",
+      customerPhone: "+60198765432",
+      location: "Petaling Jaya, Selangor",
+      pickupLocation: "Block A Parking Area",
       time: "02:30 PM",
-      status: "pending",
-      amount: 320.00,
-      priority: "low",
-      rating: null
+      status: "in-progress",
+      amount: 280.00,
+      priority: "medium",
+      wasteType: "Household Waste",
+      distance: "8.2 km",
+      estimatedDuration: "30 min",
+      startedAt: "02:15 PM",
+      binLocation: {
+        name: "PJ Community Center Bin",
+        address: "Jalan 14/20, Petaling Jaya",
+        distance: "0.9 km",
+        coordinates: { lat: 3.1073, lng: 101.6067 }
+      }
     }
   ];
 
-  const quickActions = [
+  const [orders, setOrders] = useState(todaysOrders);
+  const [completedOrders, setCompletedOrders] = useState([
     {
-      title: "View Orders",
-      description: "Check pending deliveries",
-      icon: FileText,
-      action: () => {
-        toast.success("Navigating to orders...");
-        navigate("/driver/orders");
-      },
-      count: todayStats.pendingOrders,
-      color: "blue",
-      gradient: "from-blue-500 to-blue-600"
-    },
-    {
-      title: "Select Lorry",
-      description: "Choose your vehicle",
-      icon: Truck,
-      action: () => {
-        toast.success("Opening lorry selection...");
-        navigate("/driver/lorries");
-      },
-      count: null,
-      color: "green",
-      gradient: "from-green-500 to-emerald-600"
-    },
-    {
-      title: "Track Payments",
-      description: "View earnings",
-      icon: DollarSign,
-      action: () => {
-        toast.success("Opening payment tracking...");
-        navigate("/driver/payments");
-      },
-      count: null,
-      color: "purple",
-      gradient: "from-purple-500 to-violet-600"
-    },
-    {
-      title: "Navigation",
-      description: "Get directions",
-      icon: Navigation,
-      action: () => {
-        toast.success("Opening GPS navigation...");
-        // Simulate opening navigation
-        setTimeout(() => {
-          toast.success("Navigation system activated!");
-        }, 1500);
-      },
-      count: null,
-      color: "orange",
-      gradient: "from-orange-500 to-red-500"
+      id: "JOB003",
+      customer: "Green Valley Resort",
+      amount: 450.00,
+      completedAt: "10:15 AM",
+      paymentStatus: "collected"
     }
-  ];
+  ]);
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const handleStartOrder = (orderId: string) => {
+    setOrders(prev => prev.map(order => 
+      order.id === orderId 
+        ? { ...order, status: "in-progress", startedAt: new Date().toLocaleTimeString() }
+        : order
+    ));
+    toast.success("Order started successfully!");
+  };
+
+  const handleFinishOrder = (orderId: string) => {
+    const order = orders.find(o => o.id === orderId);
+    if (order) {
+      setOrders(prev => prev.filter(o => o.id !== orderId));
+      setCompletedOrders(prev => [...prev, {
+        id: order.id,
+        customer: order.customer,
+        amount: order.amount,
+        completedAt: new Date().toLocaleTimeString(),
+        paymentStatus: "pending"
+      }]);
+      toast.success("Order completed successfully!");
+    }
+  };
+
+  const handleCollectPayment = (orderId: string) => {
+    setCompletedOrders(prev => prev.map(order =>
+      order.id === orderId
+        ? { ...order, paymentStatus: "collected" }
+        : order
+    ));
+    toast.success("Payment collected successfully!");
+  };
+
+  const handleNavigateToLocation = (location: string, coordinates?: any) => {
+    if (coordinates) {
+      // In a real app, this would open the device's map app
+      window.open(`https://www.google.com/maps?q=${coordinates.lat},${coordinates.lng}`, '_blank');
+    }
+    toast.success(`Navigating to ${location}`);
+  };
+
+  const handleFindNearestBin = (binLocation: any) => {
+    if (binLocation.coordinates) {
+      window.open(`https://www.google.com/maps?q=${binLocation.coordinates.lat},${binLocation.coordinates.lng}`, '_blank');
+    }
+    toast.success(`Navigating to nearest bin: ${binLocation.name}`);
+  };
+
+  const dismissNotification = (id: number) => {
+    setNotifications(prev => prev.filter(n => n.id !== id));
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "completed": return "bg-green-100 text-green-700 border-green-200";
-      case "in-progress": return "bg-blue-100 text-blue-700 border-blue-200";
-      case "pending": return "bg-orange-100 text-orange-700 border-orange-200";
-      case "scheduled": return "bg-purple-100 text-purple-700 border-purple-200";
-      default: return "bg-gray-100 text-gray-700 border-gray-200";
+      case "assigned": return "bg-blue-50 text-blue-700 border-blue-200";
+      case "in-progress": return "bg-orange-50 text-orange-700 border-orange-200";
+      case "completed": return "bg-emerald-50 text-emerald-700 border-emerald-200";
+      default: return "bg-gray-50 text-gray-700 border-gray-200";
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "assigned": return <Clock className="h-4 w-4" />;
+      case "in-progress": return <AlertCircle className="h-4 w-4" />;
+      case "completed": return <CheckCircle className="h-4 w-4" />;
+      default: return <FileText className="h-4 w-4" />;
     }
   };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case "high": return "bg-red-50 border-red-200 hover:bg-red-100";
-      case "medium": return "bg-yellow-50 border-yellow-200 hover:bg-yellow-100";
-      case "low": return "bg-green-50 border-green-200 hover:bg-green-100";
-      default: return "bg-gray-50 border-gray-200 hover:bg-gray-100";
+      case "high": return "bg-red-50 border-red-200 text-red-700";
+      case "medium": return "bg-amber-50 border-amber-200 text-amber-700";
+      case "low": return "bg-green-50 border-green-200 text-green-700";
+      default: return "bg-gray-50 border-gray-200 text-gray-700";
     }
   };
 
-  const handleOrderClick = (orderId: string) => {
-    toast.success(`Opening order ${orderId}...`);
-    navigate("/driver/orders", { state: { highlightOrder: orderId } });
+  const todayStats = {
+    totalOrders: orders.length + completedOrders.length,
+    activeOrders: orders.filter(o => o.status === "in-progress").length,
+    completedOrders: completedOrders.length,
+    totalEarnings: completedOrders.reduce((sum, order) => sum + order.amount, 0)
   };
-
-  const handleQuickNavigation = (orderId: string) => {
-    toast.success(`Starting navigation for order ${orderId}...`);
-    // Simulate GPS activation
-    setTimeout(() => {
-      toast.success("GPS route calculated! Following optimal path.");
-    }, 2000);
-  };
-
-  const completionRate = Math.round((todayStats.completedDeliveries / todayStats.totalDeliveries) * 100);
-  const onTimeRate = Math.round((todayStats.onTimeDeliveries / todayStats.completedDeliveries) * 100);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      {/* Enhanced Breadcrumbs */}
-      <div className="bg-white/80 backdrop-blur-sm border-b border-blue-200 rounded-xl mb-6 shadow-lg">
-        <div className="px-6 py-4">
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbPage className="text-blue-700 font-bold text-lg">
-                  🏠 Dashboard Overview
-                </BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-        </div>
-      </div>
-
-      {/* Enhanced Header with glassmorphism */}
-      <div className="relative bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-800 p-8 shadow-2xl rounded-2xl mb-8 border border-blue-300 overflow-hidden">
-        <div className="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
-        <div className="relative z-10 flex items-center justify-between">
-          <div className={`transform transition-all duration-1000 ${isAnimating ? 'translate-x-0 opacity-100' : '-translate-x-10 opacity-0'}`}>
-            <h1 className="text-4xl lg:text-5xl font-bold text-white mb-4 flex items-center gap-4">
-              <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-sm border border-white/30">
-                <BarChart3 className="h-10 w-10 text-blue-200" />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-4 lg:p-6">
+      {/* Notifications Panel */}
+      {notifications.length > 0 && (
+        <Card className="mb-6 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 shadow-lg">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold text-blue-800 flex items-center gap-2">
+                <Bell className="h-5 w-5" />
+                Notifications ({notifications.length})
+              </h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowNotifications(!showNotifications)}
+                className="text-blue-600 hover:bg-blue-100"
+              >
+                {showNotifications ? "Hide" : "Show"}
+              </Button>
+            </div>
+            {showNotifications && (
+              <div className="space-y-2">
+                {notifications.map((notification) => (
+                  <div key={notification.id} className="bg-white rounded-lg p-3 border border-blue-200 flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-800">{notification.message}</p>
+                      <p className="text-xs text-gray-500">{notification.time}</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        onClick={() => navigate('/driver/orders')}
+                        className="bg-blue-600 hover:bg-blue-700 text-white"
+                      >
+                        View Orders
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => dismissNotification(notification.id)}
+                        className="text-gray-500 hover:bg-gray-100"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
               </div>
-              Dashboard Control Center
-            </h1>
-            <p className="text-blue-100 font-medium text-xl mb-2">
-              Welcome back, <span className="font-bold text-white">{driverSession?.name || 'Professional Driver'}</span>! 
-            </p>
-            <p className="text-blue-200 text-lg">Ready to conquer today's deliveries? 🚛💨</p>
-          </div>
-          <div className={`bg-white/20 backdrop-blur-sm rounded-2xl p-6 text-center border border-white/30 transform transition-all duration-1000 delay-300 ${isAnimating ? 'translate-x-0 opacity-100' : 'translate-x-10 opacity-0'}`}>
-            <p className="text-2xl font-bold text-white mb-2">
-              {currentTime.toLocaleDateString('en-US', { 
-                month: 'short',
-                day: 'numeric'
-              })}
-            </p>
-            <p className="text-sm text-blue-200 flex items-center justify-center gap-2">
-              <Calendar className="h-4 w-4" />
-              {currentTime.toLocaleDateString('en-US', { weekday: 'long' })}
-            </p>
-            <div className="mt-3 flex items-center justify-center gap-2 text-xs text-blue-300">
-              <Clock className="h-3 w-3" />
-              <span>{currentTime.toLocaleTimeString('en-US', { 
-                hour: '2-digit', 
-                minute: '2-digit'
-              })}</span>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Header Section */}
+      <Card className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-800 border-0 shadow-xl mb-6">
+        <CardContent className="p-8">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 text-white">
+            <div>
+              <h1 className="text-4xl lg:text-5xl font-bold mb-3">
+                Driver Dashboard
+              </h1>
+              <p className="text-blue-100 text-lg mb-4">
+                Welcome back! Here's your daily overview and active orders.
+              </p>
+              <div className="flex items-center gap-4 text-sm text-blue-200">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4" />
+                  <span>{currentTime.toLocaleDateString('en-US', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                  })}</span>
+                </div>
+                <span className="text-blue-300">•</span>
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  <span>{currentTime.toLocaleTimeString()}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 min-w-64">
+              <div className="text-center">
+                <p className="text-3xl font-bold mb-2">{todayStats.totalOrders}</p>
+                <p className="text-blue-100 font-medium">Total Orders Today</p>
+              </div>
             </div>
           </div>
-        </div>
+        </CardContent>
+      </Card>
+
+      {/* Quick Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        {[
+          { 
+            label: "Active Orders", 
+            value: todayStats.activeOrders, 
+            color: "from-orange-500 to-red-600",
+            icon: <AlertCircle className="h-6 w-6 text-white" />
+          },
+          { 
+            label: "Completed", 
+            value: todayStats.completedOrders, 
+            color: "from-emerald-500 to-green-600",
+            icon: <CheckCircle className="h-6 w-6 text-white" />
+          },
+          { 
+            label: "Total Orders", 
+            value: todayStats.totalOrders, 
+            color: "from-blue-500 to-cyan-600",
+            icon: <Package className="h-6 w-6 text-white" />
+          },
+          { 
+            label: "Earnings", 
+            value: `RM ${todayStats.totalEarnings.toFixed(2)}`, 
+            color: "from-purple-500 to-violet-600",
+            icon: <DollarSign className="h-6 w-6 text-white" />
+          }
+        ].map((stat, index) => (
+          <Card key={index} className={`bg-gradient-to-r ${stat.color} border-0 shadow-lg hover:shadow-xl transition-all duration-300`}>
+            <CardContent className="p-5 text-white">
+              <div className="flex items-center justify-between mb-3">
+                <div className="bg-white/20 p-2 rounded-lg">
+                  {stat.icon}
+                </div>
+              </div>
+              <div className="text-2xl font-bold mb-1">{stat.value}</div>
+              <div className="text-sm opacity-90 font-medium">{stat.label}</div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
-      <ScrollArea className="h-[calc(100vh-280px)]">
-        <div className="space-y-8">
-          {/* Enhanced Stats Cards with animations */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card className="bg-gradient-to-br from-emerald-500 to-emerald-600 border-0 shadow-2xl hover:shadow-3xl transition-all duration-500 text-white transform hover:-translate-y-2 hover:scale-105 relative overflow-hidden">
-              <div className="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
-              <CardContent className="p-6 relative z-10">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm border border-white/30">
-                    <DollarSign className="h-8 w-8 text-white" />
-                  </div>
-                  <div className="text-right">
-                    <div className="flex items-center gap-1 text-emerald-200 text-sm">
-                      <TrendingUp className="h-4 w-4" />
-                      <span>+15.2%</span>
-                    </div>
-                  </div>
-                </div>
-                <div>
-                  <p className="text-emerald-100 font-medium text-sm mb-1">Total Earnings</p>
-                  <p className="text-3xl font-bold text-white mb-2">RM{todayStats.earnings.toFixed(2)}</p>
-                  <div className="flex items-center gap-2 text-emerald-200 text-xs">
-                    <Zap className="h-3 w-3" />
-                    <span>Excellent performance today!</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gradient-to-br from-blue-500 to-blue-600 border-0 shadow-2xl hover:shadow-3xl transition-all duration-500 text-white transform hover:-translate-y-2 hover:scale-105 relative overflow-hidden">
-              <div className="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
-              <CardContent className="p-6 relative z-10">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm border border-white/30">
-                    <Package className="h-8 w-8 text-white" />
-                  </div>
-                  <Badge className="bg-white/20 text-white border-white/30 font-bold">
-                    {todayStats.pendingOrders} pending
-                  </Badge>
-                </div>
-                <div>
-                  <p className="text-blue-100 font-medium text-sm mb-1">Today's Orders</p>
-                  <p className="text-3xl font-bold text-white mb-2">{todayOrders.length}</p>
-                  <div className="flex items-center gap-2 text-blue-200 text-xs">
-                    <Target className="h-3 w-3" />
-                    <span>Active deliveries in progress</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gradient-to-br from-purple-500 to-purple-600 border-0 shadow-2xl hover:shadow-3xl transition-all duration-500 text-white transform hover:-translate-y-2 hover:scale-105 relative overflow-hidden">
-              <div className="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
-              <CardContent className="p-6 relative z-10">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm border border-white/30">
-                    <Route className="h-8 w-8 text-white" />
-                  </div>
-                  <div className="text-right">
-                    <div className="flex items-center gap-1 text-purple-200 text-sm">
-                      <Fuel className="h-4 w-4" />
-                      <span>{todayStats.fuelEfficiency}L/100km</span>
-                    </div>
-                  </div>
-                </div>
-                <div>
-                  <p className="text-purple-100 font-medium text-sm mb-1">Distance Covered</p>
-                  <p className="text-3xl font-bold text-white mb-2">{todayStats.distance} km</p>
-                  <div className="flex items-center gap-2 text-purple-200 text-xs">
-                    <Activity className="h-3 w-3" />
-                    <span>Efficient routing today</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gradient-to-br from-orange-500 to-red-500 border-0 shadow-2xl hover:shadow-3xl transition-all duration-500 text-white transform hover:-translate-y-2 hover:scale-105 relative overflow-hidden">
-              <div className="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
-              <CardContent className="p-6 relative z-10">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm border border-white/30">
-                    <Award className="h-8 w-8 text-white" />
-                  </div>
-                  <div className="flex items-center gap-1 text-orange-200">
-                    <Star className="h-4 w-4 fill-current" />
-                    <span className="text-sm font-bold">{todayStats.customerRating}</span>
-                  </div>
-                </div>
-                <div>
-                  <p className="text-orange-100 font-medium text-sm mb-1">On-Time Rate</p>
-                  <p className="text-3xl font-bold text-white mb-2">{onTimeRate}%</p>
-                  <div className="flex items-center gap-2 text-orange-200 text-xs">
-                    <ShieldCheck className="h-3 w-3" />
-                    <span>Outstanding reliability!</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Calendar Component */}
-          <DriverCalendar />
-
-          {/* Enhanced Today's Orders Section */}
-          <Card className="bg-white/80 backdrop-blur-sm border-2 border-blue-200 shadow-2xl">
-            <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-100 border-b-2 border-blue-200">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-2xl flex items-center gap-3 font-bold text-blue-900">
-                  <div className="p-2 bg-blue-500 rounded-xl">
-                    <Calendar className="h-6 w-6 text-white" />
-                  </div>
-                  Today's Priority Orders ({todayOrders.length})
-                </CardTitle>
-                <Button 
-                  onClick={() => navigate("/driver/orders")}
-                  className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-lg hover:shadow-xl transition-all duration-300"
-                >
-                  View All Orders
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
+      {/* Active Orders */}
+      <Card className="shadow-lg border-gray-200 mb-6">
+        <CardHeader className="bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-200">
+          <CardTitle className="text-xl font-bold text-gray-800 flex items-center gap-3">
+            <div className="p-2 bg-blue-100 rounded-lg">
+              <Truck className="h-5 w-5 text-blue-600" />
+            </div>
+            Today's Orders ({orders.length})
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-6">
+          {orders.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Package className="h-8 w-8 text-gray-400" />
               </div>
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="space-y-0">
-                {todayOrders.map((order, index) => (
-                  <div 
-                    key={order.id} 
-                    className={`p-6 cursor-pointer transition-all duration-300 border-l-4 hover:shadow-lg transform hover:-translate-y-1 ${
-                      order.priority === 'high' ? 'border-l-red-500 hover:bg-red-50' :
-                      order.priority === 'medium' ? 'border-l-yellow-500 hover:bg-yellow-50' :
-                      'border-l-green-500 hover:bg-green-50'
-                    } ${index !== todayOrders.length - 1 ? 'border-b border-blue-100' : ''}`}
-                    onClick={() => handleOrderClick(order.id)}
-                  >
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-start gap-4">
-                        <div className={`p-4 rounded-xl border-2 ${getPriorityColor(order.priority)} shadow-sm`}>
-                          <Package className="h-6 w-6 text-blue-600" />
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-3">
-                            <h3 className="font-bold text-slate-900 text-xl">{order.customer}</h3>
-                            <Badge className={`text-xs border-2 font-bold ${getStatusColor(order.status)}`}>
+              <h3 className="text-lg font-semibold text-gray-700 mb-2">No Active Orders</h3>
+              <p className="text-gray-500">You have no orders assigned for today.</p>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {orders.map((order) => (
+                <Card key={order.id} className="border border-gray-200 hover:shadow-md transition-all duration-200">
+                  <CardContent className="p-6">
+                    <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+                      <div className="flex-1">
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex items-center gap-3">
+                            <div className="p-3 bg-blue-50 rounded-xl border border-blue-100">
+                              <Package className="h-5 w-5 text-blue-600" />
+                            </div>
+                            <div>
+                              <h3 className="text-lg font-bold text-gray-900">{order.customer}</h3>
+                              <p className="text-sm text-blue-600 font-medium">#{order.id}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Badge className={`border ${getPriorityColor(order.priority)} font-medium px-2 py-1`}>
+                              {order.priority.toUpperCase()}
+                            </Badge>
+                            <Badge className={`border ${getStatusColor(order.status)} font-medium flex items-center gap-1 px-2 py-1`}>
+                              {getStatusIcon(order.status)}
                               {order.status.replace('-', ' ').toUpperCase()}
                             </Badge>
-                            <Badge 
-                              variant="outline" 
-                              className={`text-xs font-bold ${
-                                order.priority === 'high' ? 'border-red-400 text-red-700 bg-red-50' :
-                                order.priority === 'medium' ? 'border-yellow-400 text-yellow-700 bg-yellow-50' :
-                                'border-green-400 text-green-700 bg-green-50'
-                              }`}
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                          <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                            <MapPin className="h-4 w-4 text-blue-500 mt-0.5" />
+                            <div>
+                              <p className="font-medium text-gray-700 text-sm">Pickup Location</p>
+                              <p className="text-gray-600 text-sm">{order.pickupLocation}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                            <Clock className="h-4 w-4 text-purple-500 mt-0.5" />
+                            <div>
+                              <p className="font-medium text-gray-700 text-sm">Scheduled Time</p>
+                              <p className="text-gray-600 text-sm">{order.time}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-start gap-3 p-3 bg-gradient-to-r from-emerald-50 to-green-50 rounded-lg border border-emerald-100">
+                            <DollarSign className="h-4 w-4 text-emerald-600 mt-0.5" />
+                            <div>
+                              <p className="font-medium text-gray-700 text-sm">Amount</p>
+                              <p className="text-emerald-600 font-bold text-sm">RM {order.amount.toFixed(2)}</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Bin Location */}
+                        <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-lg p-4 mb-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="font-medium text-purple-700 flex items-center gap-2">
+                              <Trash2 className="h-4 w-4" />
+                              Nearest Collection Point
+                            </h4>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleFindNearestBin(order.binLocation)}
+                              className="border-purple-200 text-purple-600 hover:bg-purple-50"
                             >
-                              {order.priority.toUpperCase()} PRIORITY
-                            </Badge>
+                              <Navigation className="h-3 w-3 mr-1" />
+                              Navigate
+                            </Button>
                           </div>
-                          <p className="text-sm text-blue-600 font-bold mb-2">Order #{order.id}</p>
-                          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 text-sm text-slate-600 mb-3">
-                            <div className="flex items-center gap-2">
-                              <PhoneCall className="h-4 w-4 text-blue-500" />
-                              <span className="font-medium">{order.phone}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Building className="h-4 w-4 text-blue-500" />
-                              <span className="font-medium">{order.binType}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Route className="h-4 w-4 text-blue-500" />
-                              <span className="font-medium">{order.distance}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Timer className="h-4 w-4 text-blue-500" />
-                              <span className="font-medium">{order.weight}</span>
-                            </div>
+                          <div className="text-sm">
+                            <p className="text-gray-700 font-medium">{order.binLocation.name}</p>
+                            <p className="text-gray-600">{order.binLocation.address}</p>
+                            <p className="text-purple-600 font-medium">{order.binLocation.distance} away</p>
                           </div>
                         </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-3xl font-bold text-emerald-600 mb-1">RM{order.amount.toFixed(2)}</p>
-                        <p className="text-sm text-slate-500 font-medium">{order.estimatedDuration}</p>
-                      </div>
-                    </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-                      <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-xl border-2 border-blue-200 shadow-sm">
-                        <div className="flex items-center gap-3 mb-3">
-                          <div className="p-2 bg-blue-500 rounded-lg">
-                            <MapPin className="h-5 w-5 text-white" />
-                          </div>
-                          <span className="text-sm font-bold text-blue-900">PICKUP LOCATION</span>
+                        <div className="flex items-center gap-4 text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
+                          <span className="flex items-center gap-2">
+                            <Route className="h-4 w-4 text-blue-500" />
+                            <span className="font-medium">{order.distance}</span>
+                          </span>
+                          <span className="flex items-center gap-2">
+                            <Timer className="h-4 w-4 text-orange-500" />
+                            <span className="font-medium">{order.estimatedDuration}</span>
+                          </span>
+                          {order.startedAt && (
+                            <span className="flex items-center gap-2">
+                              <Play className="h-4 w-4 text-green-500" />
+                              <span className="font-medium">Started at {order.startedAt}</span>
+                            </span>
+                          )}
                         </div>
-                        <p className="text-sm text-slate-700 mb-2 font-medium">{order.pickupAddress}</p>
-                        <p className="text-sm text-blue-600 font-bold flex items-center gap-1">
-                          <Clock className="h-4 w-4" />
-                          {order.pickupTime}
-                        </p>
                       </div>
-                      <div className="bg-gradient-to-r from-green-50 to-emerald-100 p-4 rounded-xl border-2 border-green-200 shadow-sm">
-                        <div className="flex items-center gap-3 mb-3">
-                          <div className="p-2 bg-green-500 rounded-lg">
-                            <MapPin className="h-5 w-5 text-white" />
-                          </div>
-                          <span className="text-sm font-bold text-green-900">DELIVERY LOCATION</span>
-                        </div>
-                        <p className="text-sm text-slate-700 mb-2 font-medium">{order.deliveryAddress}</p>
-                        <p className="text-sm text-green-600 font-bold flex items-center gap-1">
-                          <Clock className="h-4 w-4" />
-                          {order.deliveryTime}
-                        </p>
-                      </div>
-                    </div>
 
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          className="border-2 border-blue-300 hover:bg-blue-50 text-blue-600 hover:text-blue-700 font-bold"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleOrderClick(order.id);
+                      <div className="flex flex-col gap-2 min-w-48">
+                        <Button
+                          onClick={() => {
+                            setSelectedOrder(order);
+                            setOrderDetails(true);
                           }}
+                          variant="outline"
+                          className="w-full border-blue-200 text-blue-600 hover:bg-blue-50"
                         >
-                          <Eye className="h-4 w-4 mr-2" />
+                          <FileText className="h-4 w-4 mr-2" />
                           View Details
                         </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          className="border-2 border-green-300 hover:bg-green-50 text-green-600 hover:text-green-700 font-bold"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleQuickNavigation(order.id);
-                          }}
+                        
+                        <Button
+                          onClick={() => handleNavigateToLocation(order.location)}
+                          variant="outline"
+                          className="w-full border-emerald-200 text-emerald-600 hover:bg-emerald-50"
                         >
                           <Navigation className="h-4 w-4 mr-2" />
                           Navigate
                         </Button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                        
+                        <Button
+                          onClick={() => window.open(`tel:${order.customerPhone}`)}
+                          variant="outline"
+                          className="w-full border-purple-200 text-purple-600 hover:bg-purple-50"
+                        >
+                          <Phone className="h-4 w-4 mr-2" />
+                          Call Customer
+                        </Button>
 
-          {/* Enhanced Quick Actions */}
-          <Card className="bg-white/80 backdrop-blur-sm border-2 border-blue-200 shadow-2xl">
-            <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100 border-b-2 border-blue-200">
-              <CardTitle className="text-2xl flex items-center gap-3 font-bold text-blue-900">
-                <div className="p-2 bg-purple-500 rounded-xl">
-                  <Target className="h-6 w-6 text-white" />
-                </div>
-                Quick Actions & Tools
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-8">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                {quickActions.map((action, index) => (
-                  <Button
-                    key={index}
-                    variant="outline"
-                    className={`h-auto p-8 flex flex-col items-center gap-6 border-3 transition-all duration-500 hover:shadow-2xl hover:scale-110 transform bg-gradient-to-br ${action.gradient} text-white border-0 shadow-lg relative overflow-hidden group`}
-                    onClick={action.action}
-                  >
-                    <div className="absolute inset-0 bg-white/10 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    <div className="relative z-10 w-full">
-                      <div className="flex items-center justify-between w-full mb-4">
-                        <div className="p-4 bg-white/20 rounded-2xl backdrop-blur-sm border border-white/30">
-                          <action.icon className="h-8 w-8 text-white" />
-                        </div>
-                        {action.count && (
-                          <Badge className="bg-white/20 border-white/30 text-white font-bold text-lg px-3 py-1 shadow-lg">
-                            {action.count}
-                          </Badge>
+                        {order.status === "assigned" ? (
+                          <Button
+                            onClick={() => handleStartOrder(order.id)}
+                            className="w-full bg-green-600 hover:bg-green-700 text-white font-medium"
+                          >
+                            <Play className="h-4 w-4 mr-2" />
+                            Start Order
+                          </Button>
+                        ) : (
+                          <Button
+                            onClick={() => handleFinishOrder(order.id)}
+                            className="w-full bg-red-600 hover:bg-red-700 text-white font-medium"
+                          >
+                            <Square className="h-4 w-4 mr-2" />
+                            Finish Order
+                          </Button>
                         )}
                       </div>
-                      <div className="text-center">
-                        <p className="font-bold text-white text-xl mb-2">{action.title}</p>
-                        <p className="text-sm text-white/80 font-medium">{action.description}</p>
-                      </div>
                     </div>
-                  </Button>
-                ))}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Completed Orders */}
+      {completedOrders.length > 0 && (
+        <Card className="shadow-lg border-gray-200 mb-6">
+          <CardHeader className="bg-gradient-to-r from-emerald-50 to-green-50 border-b border-emerald-200">
+            <CardTitle className="text-xl font-bold text-gray-800 flex items-center gap-3">
+              <div className="p-2 bg-emerald-100 rounded-lg">
+                <CheckCircle className="h-5 w-5 text-emerald-600" />
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Enhanced Performance Overview and Recent Orders Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Performance Overview */}
-            <Card className="bg-white/80 backdrop-blur-sm border-2 border-blue-200 shadow-2xl">
-              <CardHeader className="bg-gradient-to-r from-purple-50 to-violet-100 border-b-2 border-purple-200">
-                <CardTitle className="text-xl flex items-center gap-3 font-bold text-purple-900">
-                  <div className="p-2 bg-purple-500 rounded-xl">
-                    <BarChart3 className="h-6 w-6 text-white" />
-                  </div>
-                  Performance Analytics
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-8 space-y-8">
-                <div>
-                  <div className="flex justify-between items-center mb-4">
-                    <span className="text-sm font-bold text-slate-700 flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-green-500" />
-                      Delivery Completion
-                    </span>
-                    <span className="text-lg font-bol text-blue-600">{completionRate}%</span>
-                  </div>
-                  <Progress value={completionRate} className="h-4 bg-blue-100" />
-                  <p className="text-xs text-slate-500 mt-2">8 out of 12 deliveries completed today</p>
-                </div>
-                <div>
-                  <div className="flex justify-between items-center mb-4">
-                    <span className="text-sm font-bold text-slate-700 flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-orange-500" />
-                      On-Time Performance
-                    </span>
-                    <span className="text-lg font-bold text-blue-600">{onTimeRate}%</span>
-                  </div>
-                  <Progress value={onTimeRate} className="h-4 bg-blue-100" />
-                  <p className="text-xs text-slate-500 mt-2">7 out of 8 deliveries on time</p>
-                </div>
-                <div>
-                  <div className="flex justify-between items-center mb-4">
-                    <span className="text-sm font-bold text-slate-700 flex items-center gap-2">
-                      <Star className="h-4 w-4 text-yellow-500" />
-                      Customer Satisfaction
-                    </span>
-                    <span className="text-lg font-bold text-blue-600">98%</span>
-                  </div>
-                  <Progress value={98} className="h-4 bg-blue-100" />
-                  <p className="text-xs text-slate-500 mt-2">Excellent customer feedback</p>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Recent Orders */}
-            <Card className="bg-white/80 backdrop-blur-sm border-2 border-blue-200 shadow-2xl">
-              <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-100 border-b-2 border-green-200">
-                <CardTitle className="text-xl flex items-center gap-3 font-bold text-green-900">
-                  <div className="p-2 bg-green-500 rounded-xl">
-                    <FileText className="h-6 w-6 text-white" />
-                  </div>
-                  Recent Activity
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="space-y-0">
-                  {recentOrders.map((order, index) => (
-                    <div 
-                      key={order.id} 
-                      className={`p-6 cursor-pointer hover:bg-blue-50 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg ${
-                        index !== recentOrders.length - 1 ? 'border-b border-blue-100' : ''
-                      }`}
-                      onClick={() => navigate("/driver/orders")}
-                    >
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-4">
-                          <div className={`p-3 rounded-xl border-2 ${getPriorityColor(order.priority)} shadow-sm`}>
-                            <Package className="h-5 w-5 text-blue-600" />
-                          </div>
-                          <div>
-                            <p className="font-bold text-slate-900 text-base">{order.customer}</p>
-                            <p className="text-sm text-blue-600 font-medium">{order.id}</p>
-                          </div>
+              Completed Orders ({completedOrders.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="space-y-4">
+              {completedOrders.map((order) => (
+                <Card key={order.id} className="border border-emerald-200 bg-emerald-50/30">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="p-2 bg-emerald-100 rounded-lg">
+                          <CheckCircle className="h-4 w-4 text-emerald-600" />
                         </div>
-                        <div className="flex items-center gap-3">
-                          <Badge className={`text-xs border-2 font-bold ${getStatusColor(order.status)}`}>
-                            {order.status.replace('-', ' ')}
+                        <div>
+                          <h4 className="font-semibold text-gray-800">{order.customer}</h4>
+                          <p className="text-sm text-gray-600">#{order.id} • Completed at {order.completedAt}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="text-right">
+                          <p className="font-bold text-emerald-600">RM {order.amount.toFixed(2)}</p>
+                          <Badge className={`${order.paymentStatus === 'collected' 
+                            ? 'bg-emerald-100 text-emerald-700 border-emerald-200' 
+                            : 'bg-orange-100 text-orange-700 border-orange-200'} border`}>
+                            {order.paymentStatus === 'collected' ? 'Payment Collected' : 'Payment Pending'}
                           </Badge>
-                          {order.rating && (
-                            <div className="flex items-center gap-1">
-                              <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                              <span className="text-sm font-bold text-yellow-600">{order.rating}</span>
-                            </div>
-                          )}
                         </div>
-                      </div>
-                      <div className="flex items-center justify-between text-sm text-slate-600">
-                        <div className="flex items-center gap-2">
-                          <MapPin className="h-4 w-4 text-blue-500" />
-                          <span className="truncate max-w-48 font-medium">{order.location}</span>
-                        </div>
-                        <div className="flex items-center gap-4">
-                          <div className="flex items-center gap-1">
-                            <Clock className="h-4 w-4 text-blue-500" />
-                            <span className="font-medium">{order.time}</span>
-                          </div>
-                          <span className="font-bold text-emerald-600 text-base">RM{order.amount.toFixed(2)}</span>
-                        </div>
+                        {order.paymentStatus === 'pending' && (
+                          <Button
+                            onClick={() => handleCollectPayment(order.id)}
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                          >
+                            <CreditCard className="h-4 w-4 mr-2" />
+                            Collect Payment
+                          </Button>
+                        )}
                       </div>
                     </div>
-                  ))}
-                </div>
-                <div className="p-6 border-t-2 border-blue-100 bg-gradient-to-r from-blue-50 to-blue-100">
-                  <Button 
-                    variant="ghost" 
-                    className="w-full justify-center text-blue-600 hover:text-blue-700 hover:bg-blue-100 font-bold text-base"
-                    onClick={() => navigate("/driver/orders")}
-                  >
-                    View Complete Order History
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
-          {/* Enhanced Driver Profile Summary */}
-          <Card className="bg-white/80 backdrop-blur-sm border-2 border-blue-200 shadow-2xl">
-            <CardHeader className="bg-gradient-to-r from-slate-50 to-blue-100 border-b-2 border-blue-200">
-              <CardTitle className="text-2xl flex items-center gap-3 font-bold text-blue-900">
-                <div className="p-2 bg-indigo-500 rounded-xl">
-                  <User className="h-6 w-6 text-white" />
+      {/* Quick Actions */}
+      <Card className="shadow-lg border-gray-200">
+        <CardHeader className="bg-gradient-to-r from-gray-50 to-slate-50 border-b border-gray-200">
+          <CardTitle className="text-xl font-bold text-gray-800">Quick Actions</CardTitle>
+        </CardHeader>
+        <CardContent className="p-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Button 
+              onClick={() => navigate('/driver/orders')}
+              className="h-16 bg-blue-600 hover:bg-blue-700 text-white flex flex-col items-center justify-center gap-2"
+            >
+              <Package className="h-5 w-5" />
+              <span className="text-sm font-medium">My Orders</span>
+            </Button>
+            <Button 
+              onClick={() => navigate('/driver/calendar')}
+              variant="outline"
+              className="h-16 border-emerald-200 text-emerald-600 hover:bg-emerald-50 flex flex-col items-center justify-center gap-2"
+            >
+              <Calendar className="h-5 w-5" />
+              <span className="text-sm font-medium">Schedule</span>
+            </Button>
+            <Button 
+              onClick={() => navigate('/driver/payments')}
+              variant="outline"
+              className="h-16 border-purple-200 text-purple-600 hover:bg-purple-50 flex flex-col items-center justify-center gap-2"
+            >
+              <DollarSign className="h-5 w-5" />
+              <span className="text-sm font-medium">Payments</span>
+            </Button>
+            <Button 
+              onClick={() => navigate('/driver/profile')}
+              variant="outline"
+              className="h-16 border-orange-200 text-orange-600 hover:bg-orange-50 flex flex-col items-center justify-center gap-2"
+            >
+              <User className="h-5 w-5" />
+              <span className="text-sm font-medium">Profile</span>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Order Details Modal */}
+      <Dialog open={orderDetails} onOpenChange={setOrderDetails}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              <div className="p-2 bg-blue-50 rounded-lg">
+                <FileText className="h-5 w-5 text-blue-600" />
+              </div>
+              Order Details - #{selectedOrder?.id}
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedOrder && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-gray-600">Customer</p>
+                  <p className="font-medium">{selectedOrder.customer}</p>
                 </div>
-                Driver Profile & Stats
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-8">
-              <div className="flex items-center gap-8">
-                <Avatar className="h-24 w-24 border-4 border-blue-300 shadow-xl">
-                  <AvatarImage src="/placeholder-avatar.jpg" alt="Driver" />
-                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-bold text-2xl">
-                    {driverSession?.name?.split(' ').map((n: string) => n[0]).join('') || 'D'}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1">
-                  <h3 className="text-2xl font-bold text-slate-900 mb-2">{driverSession?.name || 'Professional Driver'}</h3>
-                  <p className="text-lg text-blue-600 mb-4 font-medium">Elite Driver • ID: {driverSession?.driverId || 'DRV001'}</p>
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 text-sm">
-                    <div className="flex items-center gap-2 bg-yellow-50 p-3 rounded-lg border border-yellow-200">
-                      <Star className="h-5 w-5 text-yellow-500 fill-current" />
-                      <div>
-                        <span className="font-bold text-slate-700 block">{todayStats.customerRating} Rating</span>
-                        <span className="text-xs text-slate-500">Customer Score</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 bg-green-50 p-3 rounded-lg border border-green-200">
-                      <Truck className="h-5 w-5 text-green-500" />
-                      <div>
-                        <span className="font-bold text-slate-700 block">187 Completed</span>
-                        <span className="text-xs text-slate-500">Total Deliveries</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 bg-blue-50 p-3 rounded-lg border border-blue-200">
-                      <Clock className="h-5 w-5 text-blue-500" />
-                      <div>
-                        <span className="font-bold text-slate-700 block">{onTimeRate}% On-Time</span>
-                        <span className="text-xs text-slate-500">Reliability Rate</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 bg-purple-50 p-3 rounded-lg border border-purple-200">
-                      <Award className="h-5 w-5 text-purple-500" />
-                      <div>
-                        <span className="font-bold text-slate-700 block">Elite Status</span>
-                        <span className="text-xs text-slate-500">Driver Tier</span>
-                      </div>
-                    </div>
-                  </div>
+                <div>
+                  <p className="text-sm text-gray-600">Phone</p>
+                  <p className="font-medium">{selectedOrder.customerPhone}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Pickup Location</p>
+                  <p className="font-medium">{selectedOrder.pickupLocation}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Scheduled Time</p>
+                  <p className="font-medium">{selectedOrder.time}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Waste Type</p>
+                  <p className="font-medium">{selectedOrder.wasteType}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Amount</p>
+                  <p className="font-bold text-emerald-600">RM {selectedOrder.amount.toFixed(2)}</p>
+                </div>
+              </div>
+
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                <h4 className="font-medium text-purple-700 mb-3 flex items-center gap-2">
+                  <Trash2 className="h-4 w-4" />
+                  Collection Point Details
+                </h4>
+                <div className="space-y-2 text-sm">
+                  <p><span className="font-medium">Name:</span> {selectedOrder.binLocation.name}</p>
+                  <p><span className="font-medium">Address:</span> {selectedOrder.binLocation.address}</p>
+                  <p><span className="font-medium">Distance:</span> {selectedOrder.binLocation.distance}</p>
                 </div>
                 <Button 
-                  onClick={() => {
-                    toast.success("Opening driver profile...");
-                    navigate("/driver/profile");
-                  }}
-                  className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-lg hover:shadow-xl transition-all duration-300"
+                  onClick={() => handleFindNearestBin(selectedOrder.binLocation)}
+                  className="w-full mt-3 bg-purple-600 hover:bg-purple-700 text-white"
                 >
-                  View Full Profile
-                  <ArrowRight className="ml-2 h-4 w-4" />
+                  <Navigation className="h-4 w-4 mr-2" />
+                  Navigate to Collection Point
                 </Button>
               </div>
-            </CardContent>
-          </Card>
-        </div>
-      </ScrollArea>
+
+              <div className="flex gap-3 pt-4 border-t border-gray-200">
+                <Button
+                  onClick={() => handleNavigateToLocation(selectedOrder.location)}
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  <Navigation className="h-4 w-4 mr-2" />
+                  Navigate to Customer
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => window.open(`tel:${selectedOrder.customerPhone}`)}
+                  className="flex-1 border-emerald-200 text-emerald-600 hover:bg-emerald-50"
+                >
+                  <Phone className="h-4 w-4 mr-2" />
+                  Call Customer
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
