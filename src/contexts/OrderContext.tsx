@@ -1,253 +1,219 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect } from "react";
+import SmartAssignmentEngine, { Driver, Order as SmartOrder, AssignmentResult } from "@/utils/smartAssignmentEngine";
+import RouteOptimizationEngine, { Location, OptimizedRoute } from "@/utils/routeOptimizationEngine";
+import DynamicPricingEngine, { PricingFactors } from "@/utils/dynamicPricingEngine";
+import MaintenanceScheduler, { Vehicle, MaintenanceAlert } from "@/utils/maintenanceScheduler";
+import mobileIntegrationService from "@/services/mobileIntegrationService";
 
-export interface OrderType {
+interface Order {
   id: string;
   customer: string;
   customerPhone: string;
   location: string;
-  pickupLocation: string;
+  pickupLocation?: string;
   time: string;
   date: string;
-  status: 'pending' | 'assigned' | 'in-progress' | 'completed' | 'cancelled';
   amount: number;
+  status: 'pending' | 'assigned' | 'in-progress' | 'completed' | 'cancelled';
   priority: 'high' | 'medium' | 'low';
-  wasteType: string;
-  lorryType: string;
-  distance: string;
-  estimatedDuration: string;
-  notes: string;
-  paymentStatus: 'pending' | 'paid' | 'overdue';
   assignedDriverId?: string;
   assignedDriverName?: string;
   assignedDate?: string;
-  nearestBin: {
+  wasteType: string;
+  lorryType?: string;
+  distance?: string;
+  estimatedDuration?: string;
+  notes?: string;
+  paymentStatus: 'pending' | 'paid' | 'overdue';
+  nearestBin?: {
     name: string;
     distance: string;
     location: string;
     capacity: string;
     type: string;
   };
-  driverNotes?: string;
-  startedTime?: string;
-  completedTime?: string;
-  cancelledTime?: string;
-  cancelReason?: string;
-  paidAmount?: number;
-  paidDate?: string;
+  coordinates?: { lat: number; lng: number };
+  estimatedWeight?: number;
 }
 
-export interface DriverType {
+interface Driver {
   id: string;
   name: string;
   phone: string;
-  vehicle: string;
-  status: 'active' | 'maintenance' | 'offline';
-  location: string;
-  orders: number;
-  rating: number;
   email?: string;
-  icNumber?: string;
-  joinDate?: string;
-  totalEarnings?: number;
+  vehicle: string;
+  status: 'active' | 'offline' | 'maintenance';
+  location: string;
+  coordinates?: { lat: number; lng: number };
+  rating: number;
   completedOrders?: number;
-  loginCredentials?: {
-    username: string;
-    password: string;
-  };
+  totalEarnings?: number;
+  icNumber?: string;
+  capacity?: number;
+  currentLoad?: number;
+  expertise?: string[];
 }
 
 interface OrderContextType {
-  orders: OrderType[];
-  drivers: DriverType[];
-  addOrder: (order: Omit<OrderType, 'id'>) => void;
-  updateOrder: (orderId: string, updates: Partial<OrderType>) => void;
+  orders: Order[];
+  drivers: Driver[];
+  vehicles: Vehicle[];
+  maintenanceAlerts: MaintenanceAlert[];
+  optimizedRoutes: OptimizedRoute[];
+  addOrder: (order: Omit<Order, 'id'>) => void;
+  addDriver: (driver: Omit<Driver, 'id'>) => void;
   assignOrderToDriver: (orderId: string, driverId: string, driverName: string) => void;
-  getOrdersByDriver: (driverId: string) => OrderType[];
-  getUnassignedOrders: () => OrderType[];
-  startOrder: (orderId: string) => void;
-  completeOrder: (orderId: string, driverNotes?: string) => void;
-  cancelOrder: (orderId: string, reason: string) => void;
-  addDriver: (driver: Omit<DriverType, 'id'>) => void;
-  updateDriver: (driverId: string, updates: Partial<DriverType>) => void;
-  updatePaymentStatus: (orderId: string, paymentData: { status: 'paid' | 'pending' | 'overdue'; amount?: number; date?: string }) => void;
-  getDriverByCredentials: (name: string, icNumber: string, phone: string) => DriverType | null;
+  updateOrderStatus: (orderId: string, status: Order['status']) => void;
+  smartAssignOrder: (orderId: string) => AssignmentResult | null;
+  optimizeDriverRoutes: () => void;
+  calculateDynamicPrice: (factors: PricingFactors) => number;
+  generateMaintenanceAlerts: () => void;
 }
 
 const OrderContext = createContext<OrderContextType | undefined>(undefined);
 
-export const useOrders = () => {
-  const context = useContext(OrderContext);
-  if (!context) {
-    throw new Error('useOrders must be used within an OrderProvider');
-  }
-  return context;
-};
-
-interface OrderProviderProps {
-  children: ReactNode;
-}
-
-export const OrderProvider: React.FC<OrderProviderProps> = ({ children }) => {
-  const [orders, setOrders] = useState<OrderType[]>([
+export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [orders, setOrders] = useState<Order[]>([
     {
       id: "ORD001",
-      customer: "ABC Construction Sdn Bhd",
+      customer: "Ahmad Building Supplies",
       customerPhone: "+60123456789",
       location: "Jalan Ampang, Kuala Lumpur",
-      pickupLocation: "Taman Tun Dr Ismail",
       time: "09:30 AM",
-      date: "2024-01-15",
-      status: "assigned",
-      amount: 350.00,
+      date: "2024-03-15",
+      amount: 250.00,
+      status: "pending",
       priority: "high",
       wasteType: "Construction Debris",
-      lorryType: "5 Ton Lorry",
-      distance: "12.5 km",
-      estimatedDuration: "45 min",
-      notes: "Large construction waste, requires proper handling",
       paymentStatus: "pending",
-      assignedDriverId: "DRV001",
-      assignedDriverName: "Ahmad Rahman",
-      assignedDate: "2024-01-15",
+      coordinates: { lat: 3.1598, lng: 101.7131 },
+      estimatedWeight: 500,
       nearestBin: {
-        name: "Central Waste Collection Point",
-        distance: "2.3 km",
-        location: "Jalan Sultan Ismail, KL",
-        capacity: "80%",
-        type: "Construction Waste"
-      }
-    },
-    {
-      id: "ORD002",
-      customer: "Sunshine Apartments",
-      customerPhone: "+60198765432",
-      location: "Petaling Jaya, Selangor",
-      pickupLocation: "Block A Parking Area",
-      time: "02:30 PM",
-      date: "2024-01-15",
-      status: "pending",
-      amount: 280.00,
-      priority: "medium",
-      wasteType: "Household Waste",
-      lorryType: "3 Ton Truck",
-      distance: "8.2 km",
-      estimatedDuration: "30 min",
-      notes: "Regular household waste collection",
-      paymentStatus: "pending",
-      nearestBin: {
-        name: "PJ Community Center Bin",
-        distance: "0.9 km",
-        location: "Jalan 14/20, Petaling Jaya",
-        capacity: "65%",
+        name: "Central Collection Point",
+        distance: "2.5 km",
+        location: "Industrial Area",
+        capacity: "75%",
         type: "General Waste"
       }
     },
     {
-      id: "ORD003",
-      customer: "Tech Plaza Mall",
-      customerPhone: "+60177654321",
-      location: "Mid Valley, KL",
-      pickupLocation: "Loading Bay B",
-      time: "11:00 AM",
-      date: "2024-01-15",
-      status: "in-progress",
-      amount: 520.00,
-      priority: "high",
-      wasteType: "Commercial Waste",
-      lorryType: "7 Ton Lorry",
-      distance: "15.3 km",
-      estimatedDuration: "60 min",
-      notes: "Mall waste collection - mixed materials",
-      paymentStatus: "pending",
-      assignedDriverId: "DRV002",
-      assignedDriverName: "Lim Wei Ming",
-      assignedDate: "2024-01-14",
-      startedTime: "10:45 AM",
-      nearestBin: {
-        name: "Mid Valley Waste Center",
-        distance: "1.2 km",
-        location: "Jalan Syed Putra, KL",
-        capacity: "70%",
-        type: "Commercial Waste"
-      }
+      id: "ORD002",
+      customer: "Sarah Lim",
+      customerPhone: "+60198765432",
+      location: "Taman Desa, Kuala Lumpur",
+      time: "02:00 PM",
+      date: "2024-03-15",
+      amount: 180.00,
+      status: "assigned",
+      priority: "medium",
+      assignedDriverId: "DRV001",
+      assignedDriverName: "John Doe",
+      assignedDate: "2024-03-15",
+      wasteType: "Household Waste",
+      paymentStatus: "paid",
+      coordinates: { lat: 3.0833, lng: 101.6833 },
+      estimatedWeight: 150
     }
   ]);
 
-  const [drivers, setDrivers] = useState<DriverType[]>([
+  const [drivers, setDrivers] = useState<Driver[]>([
     {
       id: "DRV001",
-      name: "Ahmad Rahman",
-      phone: "+60 12-345 6789",
-      vehicle: "Lorry WMD1234",
+      name: "John Doe",
+      phone: "+60123456789",
+      email: "john.doe@lattisbin.com",
+      vehicle: "Isuzu NPR 3.5T",
       status: "active",
-      location: "KLCC, KL",
-      orders: 2,
+      location: "Kuala Lumpur",
+      coordinates: { lat: 3.1390, lng: 101.6869 },
       rating: 4.8,
-      email: "ahmad.rahman@lattisbin.com",
-      icNumber: "920815-14-5678",
-      joinDate: "2023-01-15",
-      totalEarnings: 2500.00,
-      completedOrders: 45,
-      loginCredentials: {
-        username: "ahmad.rahman",
-        password: "driver123"
-      }
+      completedOrders: 156,
+      totalEarnings: 15600.00,
+      icNumber: "123456-78-9012",
+      capacity: 3500,
+      currentLoad: 0,
+      expertise: ["Construction Debris", "Household Waste"]
     },
     {
       id: "DRV002",
-      name: "Lim Wei Ming",
-      phone: "+60 16-789 0123",
-      vehicle: "Truck ABC5678",
+      name: "Ali Hassan",
+      phone: "+60198765432",
+      email: "ali.hassan@lattisbin.com",
+      vehicle: "Mitsubishi Canter 5T",
       status: "active",
       location: "Petaling Jaya",
-      orders: 1,
+      coordinates: { lat: 3.1073, lng: 101.6415 },
       rating: 4.6,
-      email: "lim.weiming@lattisbin.com",
-      icNumber: "880422-05-1234",
-      joinDate: "2023-03-10",
-      totalEarnings: 1800.00,
-      completedOrders: 32,
-      loginCredentials: {
-        username: "lim.weiming",
-        password: "driver456"
-      }
-    },
-    {
-      id: "DRV003",
-      name: "Raj Kumar",
-      phone: "+60 19-456 7890",
-      vehicle: "Van DEF9012",
-      status: "maintenance",
-      location: "Service Center",
-      orders: 0,
-      rating: 4.9,
-      email: "raj.kumar@lattisbin.com",
-      icNumber: "750905-11-2345",
-      joinDate: "2022-11-05",
-      totalEarnings: 3200.00,
-      completedOrders: 67,
-      loginCredentials: {
-        username: "raj.kumar",
-        password: "driver789"
-      }
+      completedOrders: 89,
+      totalEarnings: 8900.00,
+      icNumber: "987654-32-1098",
+      capacity: 5000,
+      currentLoad: 1200,
+      expertise: ["Commercial Waste", "Recyclable Materials"]
     }
   ]);
 
-  const addOrder = (orderData: Omit<OrderType, 'id'>) => {
-    const newOrder: OrderType = {
-      id: `ORD${String(Date.now()).slice(-6)}`,
+  const [vehicles, setVehicles] = useState<Vehicle[]>([
+    {
+      id: "VEH001",
+      model: "Isuzu NPR 75",
+      registration: "WA 1234 A",
+      mileage: 45000,
+      lastMaintenance: "2024-01-15",
+      maintenanceInterval: 5000,
+      timeBasedInterval: 6,
+      alerts: []
+    },
+    {
+      id: "VEH002",
+      model: "Mitsubishi Canter",
+      registration: "WA 5678 B",
+      mileage: 52000,
+      lastMaintenance: "2024-02-01",
+      maintenanceInterval: 5000,
+      timeBasedInterval: 6,
+      alerts: []
+    }
+  ]);
+
+  const [maintenanceAlerts, setMaintenanceAlerts] = useState<MaintenanceAlert[]>([]);
+  const [optimizedRoutes, setOptimizedRoutes] = useState<OptimizedRoute[]>([]);
+
+  // Initialize engines
+  const smartAssignmentEngine = new SmartAssignmentEngine();
+  const routeOptimizationEngine = new RouteOptimizationEngine();
+  const dynamicPricingEngine = new DynamicPricingEngine();
+  const maintenanceScheduler = new MaintenanceScheduler();
+
+  // Initialize mobile service
+  useEffect(() => {
+    mobileIntegrationService.initialize();
+  }, []);
+
+  // Generate maintenance alerts on component mount and when vehicles change
+  useEffect(() => {
+    generateMaintenanceAlerts();
+  }, [vehicles]);
+
+  const addOrder = (orderData: Omit<Order, 'id'>) => {
+    const newOrder: Order = {
       ...orderData,
-      status: 'pending'
+      id: `ORD${(orders.length + 1).toString().padStart(3, '0')}`
     };
     setOrders(prev => [...prev, newOrder]);
   };
 
-  const updateOrder = (orderId: string, updates: Partial<OrderType>) => {
-    setOrders(prev => prev.map(order => 
-      order.id === orderId 
-        ? { ...order, ...updates }
-        : order
-    ));
+  const addDriver = (driverData: Omit<Driver, 'id'>) => {
+    const newDriver: Driver = {
+      ...driverData,
+      id: `DRV${(drivers.length + 1).toString().padStart(3, '0')}`,
+      completedOrders: 0,
+      totalEarnings: 0,
+      capacity: 3500,
+      currentLoad: 0,
+      expertise: ["General Waste"]
+    };
+    setDrivers(prev => [...prev, newDriver]);
   };
 
   const assignOrderToDriver = (orderId: string, driverId: string, driverName: string) => {
@@ -264,125 +230,133 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({ children }) => {
     ));
   };
 
-  const getOrdersByDriver = (driverId: string) => {
-    return orders.filter(order => order.assignedDriverId === driverId);
-  };
-
-  const getUnassignedOrders = () => {
-    return orders.filter(order => order.status === 'pending' && !order.assignedDriverId);
-  };
-
-  const startOrder = (orderId: string) => {
+  const updateOrderStatus = (orderId: string, status: Order['status']) => {
     setOrders(prev => prev.map(order => 
-      order.id === orderId 
-        ? { 
-            ...order, 
-            status: 'in-progress' as const,
-            startedTime: new Date().toLocaleTimeString()
-          }
-        : order
+      order.id === orderId ? { ...order, status } : order
     ));
   };
 
-  const completeOrder = (orderId: string, driverNotes?: string) => {
-    setOrders(prev => prev.map(order => 
-      order.id === orderId 
-        ? { 
-            ...order, 
-            status: 'completed' as const,
-            completedTime: new Date().toLocaleTimeString(),
-            driverNotes: driverNotes || order.driverNotes
-          }
-        : order
-    ));
-  };
+  const smartAssignOrder = (orderId: string): AssignmentResult | null => {
+    const order = orders.find(o => o.id === orderId);
+    if (!order || !order.coordinates) return null;
 
-  const cancelOrder = (orderId: string, reason: string) => {
-    setOrders(prev => prev.map(order => 
-      order.id === orderId 
-        ? { 
-            ...order, 
-            status: 'cancelled' as const,
-            cancelledTime: new Date().toLocaleTimeString(),
-            cancelReason: reason
-          }
-        : order
-    ));
-  };
-
-  // New driver management functions
-  const addDriver = (driverData: Omit<DriverType, 'id'>) => {
-    const newDriver: DriverType = {
-      id: `DRV${String(Date.now()).slice(-6)}`,
-      ...driverData,
-      orders: 0,
-      rating: 5.0,
-      totalEarnings: 0,
-      completedOrders: 0
+    const smartOrder: SmartOrder = {
+      id: order.id,
+      location: order.coordinates,
+      wasteType: order.wasteType,
+      estimatedWeight: order.estimatedWeight || 100,
+      priority: order.priority,
+      timeWindow: { start: "08:00", end: "18:00" }
     };
-    setDrivers(prev => [...prev, newDriver]);
-  };
 
-  const updateDriver = (driverId: string, updates: Partial<DriverType>) => {
-    setDrivers(prev => prev.map(driver => 
-      driver.id === driverId 
-        ? { ...driver, ...updates }
-        : driver
-    ));
-  };
+    const smartDrivers: SmartAssignmentEngine.Driver[] = drivers
+      .filter(d => d.status === 'active' && d.coordinates)
+      .map(d => ({
+        id: d.id,
+        name: d.name,
+        location: d.coordinates!,
+        status: d.status,
+        rating: d.rating,
+        vehicle: d.vehicle,
+        capacity: d.capacity || 3500,
+        currentLoad: d.currentLoad || 0,
+        expertise: d.expertise || ["General Waste"]
+      }));
 
-  const updatePaymentStatus = (orderId: string, paymentData: { status: 'paid' | 'pending' | 'overdue'; amount?: number; date?: string }) => {
-    setOrders(prev => prev.map(order => 
-      order.id === orderId 
-        ? { 
-            ...order, 
-            paymentStatus: paymentData.status,
-            paidAmount: paymentData.amount || order.paidAmount,
-            paidDate: paymentData.date || order.paidDate
-          }
-        : order
-    ));
-
-    // Update driver earnings if payment is completed
-    if (paymentData.status === 'paid') {
-      const order = orders.find(o => o.id === orderId);
-      if (order && order.assignedDriverId) {
-        setDrivers(prev => prev.map(driver => 
-          driver.id === order.assignedDriverId 
-            ? { 
-                ...driver, 
-                totalEarnings: (driver.totalEarnings || 0) + (paymentData.amount || order.amount),
-                completedOrders: (driver.completedOrders || 0) + 1
-              }
-            : driver
-        ));
-      }
+    const assignment = smartAssignmentEngine.findBestDriverForOrder(smartDrivers, smartOrder);
+    
+    if (assignment) {
+      assignOrderToDriver(orderId, assignment.driverId, 
+        drivers.find(d => d.id === assignment.driverId)?.name || "Unknown Driver"
+      );
     }
+
+    return assignment;
   };
 
-  const getDriverByCredentials = (name: string, icNumber: string, phone: string) => {
-    return drivers.find(driver => 
-      driver.name === name && 
-      driver.icNumber === icNumber && 
-      driver.phone.replace(/[^0-9]/g, '') === phone.replace(/[^0-9]/g, '')
-    ) || null;
+  const optimizeDriverRoutes = () => {
+    const activeDriversWithOrders = drivers
+      .filter(d => d.status === 'active' && d.coordinates)
+      .map(driver => {
+        const driverOrders = orders.filter(o => 
+          o.assignedDriverId === driver.id && 
+          o.status === 'assigned' && 
+          o.coordinates
+        );
+
+        const locations: Location[] = driverOrders.map(order => ({
+          id: order.id,
+          lat: order.coordinates!.lat,
+          lng: order.coordinates!.lng,
+          address: order.location,
+          serviceTime: 30, // 30 minutes average service time
+          priority: order.priority === 'high' ? 8 : order.priority === 'medium' ? 5 : 3
+        }));
+
+        return {
+          driverId: driver.id,
+          currentLocation: {
+            id: `driver-${driver.id}`,
+            lat: driver.coordinates!.lat,
+            lng: driver.coordinates!.lng,
+            address: driver.location,
+            serviceTime: 0,
+            priority: 10
+          },
+          locations
+        };
+      })
+      .filter(driver => driver.locations.length > 0);
+
+    const constraints = {
+      maxDistance: 100, // 100km max per route
+      maxTime: 480, // 8 hours max
+      vehicleCapacity: 5000, // 5 tons
+      fuelEfficiency: 8, // 8km per liter
+      fuelPrice: 2.5 // RM 2.50 per liter
+    };
+
+    const routes = activeDriversWithOrders.map(driver => 
+      routeOptimizationEngine.optimizeRoute(
+        driver.driverId,
+        driver.locations,
+        constraints,
+        driver.currentLocation
+      )
+    );
+
+    setOptimizedRoutes(routes);
+  };
+
+  const calculateDynamicPrice = (factors: PricingFactors): number => {
+    const currentDemandData = {
+      currentOrders: orders.filter(o => o.status === 'pending').length,
+      averageOrders: 5 // Historical average
+    };
+
+    const result = dynamicPricingEngine.calculatePrice(factors, undefined, currentDemandData);
+    return result.finalPrice;
+  };
+
+  const generateMaintenanceAlerts = () => {
+    const alerts = maintenanceScheduler.generateMaintenanceAlerts(vehicles);
+    setMaintenanceAlerts(alerts);
   };
 
   const value: OrderContextType = {
     orders,
     drivers,
+    vehicles,
+    maintenanceAlerts,
+    optimizedRoutes,
     addOrder,
-    updateOrder,
-    assignOrderToDriver,
-    getOrdersByDriver,
-    getUnassignedOrders,
-    startOrder,
-    completeOrder,
-    cancelOrder,
     addDriver,
-    updateDriver,
-    updatePaymentStatus,
-    getDriverByCredentials
+    assignOrderToDriver,
+    updateOrderStatus,
+    smartAssignOrder,
+    optimizeDriverRoutes,
+    calculateDynamicPrice,
+    generateMaintenanceAlerts
   };
 
   return (
@@ -390,4 +364,12 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({ children }) => {
       {children}
     </OrderContext.Provider>
   );
+};
+
+export const useOrders = () => {
+  const context = useContext(OrderContext);
+  if (context === undefined) {
+    throw new Error('useOrders must be used within an OrderProvider');
+  }
+  return context;
 };

@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useLocation, NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -164,15 +163,16 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ collapsed }) => {
   return (
     <div
       className={cn(
-        "flex flex-col w-64 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 h-full fixed top-0 left-0 z-50",
+        "flex flex-col border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 h-full fixed top-0 left-0 z-40 transition-all duration-300",
         collapsed ? "w-16" : "w-64"
       )}
     >
       <div className="flex items-center justify-center h-16 border-b border-gray-200 dark:border-gray-700">
-        <span className="text-lg font-semibold">Admin Panel</span>
+        {!collapsed && <span className="text-lg font-semibold">Admin Panel</span>}
+        {collapsed && <span className="text-lg font-semibold">AP</span>}
       </div>
-      <nav className="flex-1 py-4">
-        <ul>
+      <nav className="flex-1 py-4 overflow-y-auto">
+        <ul className="space-y-1">
           {menuItems.map((item) => (
             <li key={item.id}>
               <NavLink
@@ -180,20 +180,22 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ collapsed }) => {
                 className={({ isActive }) =>
                   cn(
                     "flex items-center px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200",
-                    isActive && "bg-gray-100 dark:bg-gray-700 text-blue-600 dark:text-blue-500 font-bold"
+                    isActive && "bg-gray-100 dark:bg-gray-700 text-blue-600 dark:text-blue-500 font-bold",
+                    collapsed ? "justify-center" : "justify-start"
                   )
                 }
+                title={collapsed ? item.label : undefined}
               >
-                <item.icon className="w-4 h-4 mr-2" />
-                <span>{item.label}</span>
+                <item.icon className="w-4 h-4" />
+                {!collapsed && <span className="ml-2">{item.label}</span>}
               </NavLink>
             </li>
           ))}
         </ul>
       </nav>
       <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-        <Button variant="outline" className="w-full">
-          Logout
+        <Button variant="outline" className="w-full" size={collapsed ? "sm" : "default"}>
+          {collapsed ? "Out" : "Logout"}
         </Button>
       </div>
     </div>

@@ -1,17 +1,22 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Outlet } from "react-router-dom";
-import { SidebarProvider, useSidebar } from "@/components/ui/sidebar";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import AdminHeader from "@/components/admin/AdminHeader";
 
-const AdminLayoutContent = () => {
-  const { toggleSidebar } = useSidebar();
+const AdminLayout = () => {
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  const toggleSidebar = () => {
+    setSidebarCollapsed(!sidebarCollapsed);
+  };
 
   return (
     <div className="min-h-screen flex w-full bg-slate-50">
-      <AdminSidebar collapsed={false} />
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <AdminSidebar collapsed={sidebarCollapsed} />
+      <div className={`flex-1 flex flex-col transition-all duration-300 ${
+        sidebarCollapsed ? 'ml-16' : 'ml-64'
+      }`}>
         <AdminHeader 
           onSidebarToggle={toggleSidebar}
           title="Admin Dashboard"
@@ -23,14 +28,6 @@ const AdminLayoutContent = () => {
         </main>
       </div>
     </div>
-  );
-};
-
-const AdminLayout = () => {
-  return (
-    <SidebarProvider defaultOpen={true}>
-      <AdminLayoutContent />
-    </SidebarProvider>
   );
 };
 
