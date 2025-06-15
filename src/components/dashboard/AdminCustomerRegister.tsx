@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,8 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Users, Plus, Phone, Mail, MapPin, CreditCard, Star, MessageSquare, User, CheckCircle, AlertCircle } from "lucide-react";
+import { Users, Plus, Phone, Mail, MapPin, CreditCard, Star, MessageSquare, User, CheckCircle, AlertCircle, Shield, Eye, Settings } from "lucide-react";
 import { toast } from "sonner";
+import CustomerVerificationSystem from "./CustomerVerificationSystem";
+import CustomerCreditScoring from "./CustomerCreditScoring";
 
 interface Customer {
   id: string;
@@ -112,6 +113,13 @@ const AdminCustomerRegister: React.FC = () => {
     postcode: ""
   });
 
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [showCreditModal, setShowCreditModal] = useState(false);
+  const [selectedCustomerId, setSelectedCustomerId] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterType, setFilterType] = useState("all");
+  const [filterStatus, setFilterStatus] = useState("all");
+
   const customerTypes = ["Individual", "SME", "Corporate", "Government"];
   const malaysianStates = [
     "Johor", "Kedah", "Kelantan", "Kuala Lumpur", "Labuan", "Malacca", "Negeri Sembilan",
@@ -192,6 +200,33 @@ const AdminCustomerRegister: React.FC = () => {
     });
   };
 
+  const handleVerifyCustomer = (customerId: string) => {
+    setSelectedCustomerId(customerId);
+    setShowVerificationModal(true);
+  };
+
+  const handleCreditScoring = (customerId: string) => {
+    setSelectedCustomerId(customerId);
+    setShowCreditModal(true);
+  };
+
+  const handleVerificationComplete = (verificationData: any) => {
+    setCustomers(prev => prev.map(customer => 
+      customer.id === selectedCustomerId 
+        ? { ...customer, verificationStatus: "verified" }
+        : customer
+    ));
+    toast.success("Customer verification completed");
+  };
+
+  const handleCreditScoreUpdate = (score: number, rating: string) => {
+    setCustomers(prev => prev.map(customer => 
+      customer.id === selectedCustomerId 
+        ? { ...customer, creditScore: score, paymentHistory: rating as any }
+        : customer
+    ));
+  };
+
   const getCreditScoreColor = (score: number) => {
     if (score >= 800) return "text-green-600";
     if (score >= 700) return "text-blue-600";
@@ -212,13 +247,24 @@ const AdminCustomerRegister: React.FC = () => {
     }
   };
 
+  const filteredCustomers = customers.filter(customer => {
+    const matchesSearch = customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         customer.contacts[0]?.phone.includes(searchTerm) ||
+                         customer.contacts[0]?.email.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesType = filterType === "all" || customer.customerType === filterType;
+    const matchesStatus = filterStatus === "all" || customer.verificationStatus === filterStatus;
+    
+    return matchesSearch && matchesType && matchesStatus;
+  });
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
             <Users className="h-6 w-6 text-green-600" />
-            Customer Management
+            Customer Management System
           </h2>
           <p className="text-gray-600 mt-1">Comprehensive customer database with verification, contact hierarchy, and payment tracking</p>
         </div>
@@ -351,8 +397,130 @@ const AdminCustomerRegister: React.FC = () => {
         </Dialog>
       </div>
 
+      {/* Enhanced Filters */}
+      <Card className="bg-white/60 backdrop-blur-sm border border-white/30">
+        <CardContent className="p-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <Label>Search Customers</Label>
+              <Input
+                placeholder="Search by name, phone, or email..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label>Customer Type</Label>
+              <Select value={filterType} onValueChange={setFilterType}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Types</SelectItem>
+                  {customerTypes.map(type => (
+                    <SelectItem key={type} value={type}>{type}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Verification Status</Label>
+              <Select value={filterStatus} onValueChange={setFilterStatus}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="verified">Verified</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="rejected">Rejected</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-end">
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setSearchTerm("");
+                  setFilterType("all");
+                  setFilterStatus("all");
+                }}
+              >
+                Clear Filters
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Customer Statistics */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card className="bg-white/60 backdrop-blur-sm border border-white/30">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="bg-green-100 p-3 rounded-xl">
+                <Users className="h-6 w-6 text-green-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{customers.length}</p>
+                <p className="text-sm text-gray-600">Total Customers</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-white/60 backdrop-blur-sm border border-white/30">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="bg-blue-100 p-3 rounded-xl">
+                <Shield className="h-6 w-6 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-blue-600">
+                  {customers.filter(c => c.verificationStatus === 'verified').length}
+                </p>
+                <p className="text-sm text-gray-600">Verified</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-white/60 backdrop-blur-sm border border-white/30">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="bg-yellow-100 p-3 rounded-xl">
+                <AlertCircle className="h-6 w-6 text-yellow-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-yellow-600">
+                  {customers.filter(c => c.verificationStatus === 'pending').length}
+                </p>
+                <p className="text-sm text-gray-600">Pending Verification</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-white/60 backdrop-blur-sm border border-white/30">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="bg-purple-100 p-3 rounded-xl">
+                <CreditCard className="h-6 w-6 text-purple-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-purple-600">
+                  {Math.round(customers.reduce((sum, c) => sum + c.creditScore, 0) / customers.length)}
+                </p>
+                <p className="text-sm text-gray-600">Avg Credit Score</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Enhanced Customer Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {customers.map((customer) => (
+        {filteredCustomers.map((customer) => (
           <Card key={customer.id} className="bg-white/60 backdrop-blur-sm border border-white/30 shadow-lg hover:shadow-xl transition-shadow">
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -362,32 +530,36 @@ const AdminCustomerRegister: React.FC = () => {
                 </CardTitle>
                 {getVerificationBadge(customer.verificationStatus)}
               </div>
-              <Badge variant="outline" className="w-fit">{customer.customerType}</Badge>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="text-xs">{customer.customerType}</Badge>
+                {customer.rocNumber && (
+                  <Badge variant="outline" className="text-xs">ROC: {customer.rocNumber}</Badge>
+                )}
+              </div>
             </CardHeader>
             <CardContent className="space-y-3">
-              {customer.rocNumber && (
+              {/* Contact Information */}
+              <div className="space-y-2">
                 <div className="flex items-center gap-2 text-sm">
-                  <CreditCard className="h-4 w-4 text-gray-500" />
-                  <span>ROC: {customer.rocNumber}</span>
+                  <User className="h-4 w-4 text-gray-500" />
+                  <span>{customer.contacts[0]?.name} ({customer.contacts[0]?.role})</span>
                 </div>
-              )}
-              <div className="flex items-center gap-2 text-sm">
-                <User className="h-4 w-4 text-gray-500" />
-                <span>{customer.contacts[0]?.name} ({customer.contacts[0]?.role})</span>
+                <div className="flex items-center gap-2 text-sm">
+                  <Phone className="h-4 w-4 text-gray-500" />
+                  <span>{customer.contacts[0]?.phone}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <Mail className="h-4 w-4 text-gray-500" />
+                  <span>{customer.contacts[0]?.email}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <MapPin className="h-4 w-4 text-gray-500" />
+                  <span>{customer.addresses[0]?.city}, {customer.addresses[0]?.state}</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2 text-sm">
-                <Phone className="h-4 w-4 text-gray-500" />
-                <span>{customer.contacts[0]?.phone}</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <Mail className="h-4 w-4 text-gray-500" />
-                <span>{customer.contacts[0]?.email}</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <MapPin className="h-4 w-4 text-gray-500" />
-                <span>{customer.addresses[0]?.city}, {customer.addresses[0]?.state}</span>
-              </div>
-              <div className="pt-2 border-t">
+
+              {/* Customer Metrics */}
+              <div className="pt-2 border-t space-y-2">
                 <div className="flex items-center justify-between text-sm">
                   <span className="flex items-center gap-1">
                     <Star className="h-4 w-4 text-yellow-500" />
@@ -397,32 +569,86 @@ const AdminCustomerRegister: React.FC = () => {
                     {customer.creditScore}
                   </span>
                 </div>
-                <div className="flex items-center justify-between text-sm mt-1">
+                <div className="flex items-center justify-between text-sm">
                   <span>Payment History:</span>
                   <Badge variant="outline" className="text-xs">{customer.paymentHistory}</Badge>
                 </div>
-                <div className="flex items-center justify-between text-sm mt-1">
-                  <span>Total Orders:</span>
-                  <span className="font-semibold">{customer.totalOrders}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm mt-1">
-                  <span>Total Spent:</span>
-                  <span className="font-semibold">RM {customer.totalSpent.toLocaleString('en-MY', { minimumFractionDigits: 2 })}</span>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-gray-500">Orders:</span>
+                    <div className="font-semibold">{customer.totalOrders}</div>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Spent:</span>
+                    <div className="font-semibold">RM {customer.totalSpent.toLocaleString('en-MY', { minimumFractionDigits: 2 })}</div>
+                  </div>
                 </div>
               </div>
-              <div className="flex gap-2 mt-4">
-                <Button size="sm" variant="outline" className="flex-1">
-                  <MessageSquare className="h-4 w-4 mr-1" />
-                  Contact
+
+              {/* Action Buttons */}
+              <div className="grid grid-cols-2 gap-2 mt-4">
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={() => handleVerifyCustomer(customer.id)}
+                  className="text-xs"
+                >
+                  <Shield className="h-3 w-3 mr-1" />
+                  Verify
                 </Button>
-                <Button size="sm" variant="outline" className="flex-1">
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={() => handleCreditScoring(customer.id)}
+                  className="text-xs"
+                >
+                  <Star className="h-3 w-3 mr-1" />
+                  Credit
+                </Button>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <Button size="sm" variant="outline" className="text-xs">
+                  <Eye className="h-3 w-3 mr-1" />
                   View Profile
+                </Button>
+                <Button size="sm" variant="outline" className="text-xs">
+                  <Settings className="h-3 w-3 mr-1" />
+                  Manage
                 </Button>
               </div>
             </CardContent>
           </Card>
         ))}
       </div>
+
+      {/* Verification Modal */}
+      {selectedCustomerId && (
+        <CustomerVerificationSystem
+          isOpen={showVerificationModal}
+          onClose={() => setShowVerificationModal(false)}
+          customerId={selectedCustomerId}
+          customerPhone={customers.find(c => c.id === selectedCustomerId)?.contacts[0]?.phone || ""}
+          customerEmail={customers.find(c => c.id === selectedCustomerId)?.contacts[0]?.email || ""}
+          onVerificationComplete={handleVerificationComplete}
+        />
+      )}
+
+      {/* Credit Scoring Modal */}
+      <Dialog open={showCreditModal} onOpenChange={setShowCreditModal}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Credit Score Assessment</DialogTitle>
+          </DialogHeader>
+          {selectedCustomerId && (
+            <CustomerCreditScoring
+              customerId={selectedCustomerId}
+              customerType={customers.find(c => c.id === selectedCustomerId)?.customerType || "Individual"}
+              registrationDate={customers.find(c => c.id === selectedCustomerId)?.registrationDate || ""}
+              onScoreCalculated={handleCreditScoreUpdate}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
