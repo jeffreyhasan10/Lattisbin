@@ -12,20 +12,22 @@ const AdminLayout = () => {
   };
 
   return (
-    <div className="min-h-screen flex w-full bg-slate-50">
-      <AdminSidebar collapsed={sidebarCollapsed} />
-      <div className={`flex-1 flex flex-col transition-all duration-300 ${
-        sidebarCollapsed ? 'ml-16' : 'ml-64'
-      }`}>
-        <AdminHeader 
-          onSidebarToggle={toggleSidebar}
-          title="Admin Dashboard"
-        />
-        <main className="flex-1 overflow-auto bg-slate-50 p-4 lg:p-6">
-          <div className="h-full w-full max-w-7xl mx-auto">
-            <Outlet />
-          </div>
-        </main>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-indigo-50/20">
+      <div className="flex h-screen overflow-hidden">
+        <AdminSidebar collapsed={sidebarCollapsed} />
+        <div className={`flex-1 flex flex-col transition-all duration-300 ${
+          sidebarCollapsed ? 'ml-16' : 'ml-64'
+        }`}>
+          <AdminHeader 
+            onSidebarToggle={toggleSidebar}
+            title="Admin Dashboard"
+          />
+          <main className="flex-1 overflow-auto p-4 lg:p-6">
+            <div className="max-w-full">
+              <Outlet />
+            </div>
+          </main>
+        </div>
       </div>
     </div>
   );

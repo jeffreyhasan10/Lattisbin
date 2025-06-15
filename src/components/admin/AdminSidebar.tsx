@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useLocation, NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -163,38 +164,68 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ collapsed }) => {
   return (
     <div
       className={cn(
-        "flex flex-col border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 h-full fixed top-0 left-0 z-40 transition-all duration-300",
+        "fixed top-0 left-0 z-40 h-full bg-white/95 backdrop-blur-sm border-r border-gray-200/50 shadow-xl transition-all duration-300",
         collapsed ? "w-16" : "w-64"
       )}
     >
-      <div className="flex items-center justify-center h-16 border-b border-gray-200 dark:border-gray-700">
-        {!collapsed && <span className="text-lg font-semibold">Admin Panel</span>}
-        {collapsed && <span className="text-lg font-semibold">AP</span>}
+      {/* Header */}
+      <div className="flex items-center justify-center h-16 bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
+        {!collapsed && (
+          <div className="text-center">
+            <h1 className="text-lg font-bold">Admin Panel</h1>
+            <p className="text-xs text-blue-100">Bin Management</p>
+          </div>
+        )}
+        {collapsed && <span className="text-lg font-bold">AP</span>}
       </div>
-      <nav className="flex-1 py-4 overflow-y-auto">
-        <ul className="space-y-1">
+
+      {/* Navigation */}
+      <nav className="flex-1 py-4 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+        <ul className="space-y-1 px-2">
           {menuItems.map((item) => (
             <li key={item.id}>
               <NavLink
                 to={item.href}
                 className={({ isActive }) =>
                   cn(
-                    "flex items-center px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200",
-                    isActive && "bg-gray-100 dark:bg-gray-700 text-blue-600 dark:text-blue-500 font-bold",
+                    "flex items-center px-3 py-3 text-sm font-medium rounded-xl transition-all duration-200 group relative",
+                    isActive 
+                      ? "bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-lg" 
+                      : "text-gray-700 hover:bg-blue-50 hover:text-blue-600",
                     collapsed ? "justify-center" : "justify-start"
                   )
                 }
                 title={collapsed ? item.label : undefined}
               >
-                <item.icon className="w-4 h-4" />
-                {!collapsed && <span className="ml-2">{item.label}</span>}
+                <item.icon className={cn(
+                  "w-5 h-5 flex-shrink-0",
+                  collapsed ? "" : "mr-3"
+                )} />
+                {!collapsed && (
+                  <span className="truncate group-hover:text-current">
+                    {item.label}
+                  </span>
+                )}
+                {/* Active indicator */}
+                {isActive(item.href) && (
+                  <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-1 h-8 bg-white rounded-l-full" />
+                )}
               </NavLink>
             </li>
           ))}
         </ul>
       </nav>
-      <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-        <Button variant="outline" className="w-full" size={collapsed ? "sm" : "default"}>
+
+      {/* Footer */}
+      <div className="border-t border-gray-200/50 p-4">
+        <Button 
+          variant="outline" 
+          className={cn(
+            "w-full bg-gradient-to-r from-red-500 to-pink-500 text-white border-none hover:from-red-600 hover:to-pink-600 shadow-lg",
+            collapsed ? "px-2" : "px-4"
+          )}
+          size={collapsed ? "sm" : "default"}
+        >
           {collapsed ? "Out" : "Logout"}
         </Button>
       </div>

@@ -21,8 +21,7 @@ import InvoicingSystem from "./components/admin/InvoicingSystem";
 import CommissionManagement from "./components/admin/CommissionManagement";
 import RefundManagement from "./components/admin/RefundManagement";
 import ExpenseManagement from "./components/admin/ExpenseManagement";
-import ReportsAnalytics from "./components/admin/ReportsAnalytics";
-import PrintingSystem from "./components/admin/PrintingSystem";
+import EnhancedReportsAnalytics from "@/components/admin/EnhancedReportsAnalytics";
 import DriverLayout from "./components/layout/DriverLayout";
 import DriverDashboard from "./components/driver/DriverDashboard";
 import DriverOrders from "./components/driver/DriverOrders";
@@ -43,7 +42,7 @@ function App() {
       <OrderProvider>
         <TooltipProvider>
           <Router>
-            <div className="min-h-screen bg-gray-50">
+            <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-indigo-50/20">
               <Routes>
                 <Route path="/" element={<Index />} />
                 
@@ -59,6 +58,7 @@ function App() {
                   <Route path="inventory" element={<AdminInventoryManagement />} />
                   <Route path="drivers" element={<AdminDriverManagement />} />
                   <Route path="orders" element={<AdminOrderManagement />} />
+                  <Route path="driver-monitoring" element={<DriverMonitoring />} />
                   <Route path="fleet" element={<FleetManagement />} />
                   <Route path="external-lorries" element={<ExternalLorryNetwork />} />
                   <Route path="waste" element={<WasteManagement />} />
@@ -68,11 +68,10 @@ function App() {
                   <Route path="commission" element={<CommissionManagement />} />
                   <Route path="refunds" element={<RefundManagement />} />
                   <Route path="expenses" element={<ExpenseManagement />} />
-                  <Route path="reports" element={<ReportsAnalytics />} />
-                  <Route path="printing" element={<PrintingSystem />} />
-                  <Route path="driver-monitoring" element={<DriverMonitoring />} />
+                  <Route path="reports" element={<EnhancedReportsAnalytics />} />
                   <Route path="performance-analytics" element={<PerformanceAnalytics />} />
-                  <Route path="settings" element={<div className="p-8 text-center"><h2 className="text-2xl font-bold">System Settings</h2><p className="text-gray-600">Coming Soon</p></div>} />
+                  <Route path="printing" element={<PrintingSystem />} />
+                  <Route path="settings" element={<div className="p-6">Admin Settings</div>} />
                 </Route>
                 
                 {/* Driver Dashboard Routes */}

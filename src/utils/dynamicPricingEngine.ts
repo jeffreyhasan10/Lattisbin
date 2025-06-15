@@ -235,9 +235,7 @@ class DynamicPricingEngine {
     }
     
     // Seasonality multiplier
-    const seasonalityMultiplier = rules.seasonalityMultipliers[factors.season
-
-ality];
+    const seasonalityMultiplier = rules.seasonalityMultipliers[factors.seasonality];
     const seasonalityAdjustment = price * (seasonalityMultiplier - 1);
     price *= seasonalityMultiplier;
     breakdown.push(`Seasonality multiplier (${factors.seasonality}): ${seasonalityMultiplier > 1 ? '+' : ''}${(seasonalityAdjustment).toFixed(2)}`);
