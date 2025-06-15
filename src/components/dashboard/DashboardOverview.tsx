@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
 import { 
   Table,
   TableBody,
@@ -36,7 +36,14 @@ import {
   Download,
   Upload,
   Settings,
-  MoreVertical
+  MoreVertical,
+  Bell,
+  Star,
+  ArrowUp,
+  ArrowDown,
+  Zap,
+  Timer,
+  TrendingDown
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -85,7 +92,9 @@ const recentOrders = [
     status: "completed",
     amount: 350.00,
     date: "2024-01-15",
-    location: "KLCC, KL"
+    location: "KLCC, KL",
+    time: "08:30 AM",
+    priority: "high"
   },
   {
     id: "ORD002",
@@ -95,7 +104,9 @@ const recentOrders = [
     status: "in-progress",
     amount: 450.00,
     date: "2024-01-15",
-    location: "Genting Highlands"
+    location: "Genting Highlands",
+    time: "10:15 AM",
+    priority: "medium"
   },
   {
     id: "ORD003",
@@ -105,7 +116,155 @@ const recentOrders = [
     status: "pending",
     amount: 280.00,
     date: "2024-01-15",
-    location: "Petaling Jaya"
+    location: "Petaling Jaya",
+    time: "02:30 PM",
+    priority: "low"
+  },
+  {
+    id: "ORD004",
+    customer: "Tech Plaza Mall",
+    binType: "Commercial Waste",
+    driver: "Ahmad Rahman",
+    status: "scheduled",
+    amount: 520.00,
+    date: "2024-01-15",
+    location: "Mid Valley, KL",
+    time: "04:00 PM",
+    priority: "high"
+  }
+];
+
+// Enhanced recent activities with more detail
+const enhancedActivities = [
+  {
+    id: "ACT001",
+    type: "order_completed",
+    title: "Order Completed",
+    description: "ABC Construction waste collection finished",
+    customer: "ABC Construction Sdn Bhd",
+    driver: "Ahmad Rahman",
+    amount: 350.00,
+    location: "KLCC, KL",
+    time: "2 minutes ago",
+    status: "success"
+  },
+  {
+    id: "ACT002",
+    type: "driver_assigned",
+    title: "Driver Assigned",
+    description: "New driver assigned to Green Valley route",
+    customer: "Green Valley Resort",
+    driver: "Lim Wei Ming",
+    amount: 450.00,
+    location: "Genting Highlands",
+    time: "15 minutes ago",
+    status: "info"
+  },
+  {
+    id: "ACT003",
+    type: "payment_received",
+    title: "Payment Received",
+    description: "Payment confirmed for Sunshine Apartments",
+    customer: "Sunshine Apartments",
+    driver: "Raj Kumar",
+    amount: 280.00,
+    location: "Petaling Jaya",
+    time: "32 minutes ago",
+    status: "success"
+  },
+  {
+    id: "ACT004",
+    type: "route_optimized",
+    title: "Route Optimized",
+    description: "Delivery route updated for efficiency",
+    customer: "Tech Plaza Mall",
+    driver: "Ahmad Rahman",
+    amount: 520.00,
+    location: "Mid Valley, KL",
+    time: "1 hour ago",
+    status: "info"
+  },
+  {
+    id: "ACT005",
+    type: "maintenance_alert",
+    title: "Maintenance Alert",
+    description: "Vehicle DRV003 requires scheduled maintenance",
+    customer: null,
+    driver: "Raj Kumar",
+    amount: null,
+    location: "Service Center",
+    time: "2 hours ago",
+    status: "warning"
+  }
+];
+
+// Enhanced performance metrics with real-time data
+const performanceMetrics = [
+  {
+    id: "completion_rate",
+    title: "Order Completion Rate",
+    value: 96.8,
+    target: 95,
+    trend: 2.3,
+    isPositive: true,
+    icon: CheckCircle,
+    color: "green",
+    description: "Orders completed successfully"
+  },
+  {
+    id: "on_time_delivery",
+    title: "On-Time Delivery Rate",
+    value: 94.2,
+    target: 90,
+    trend: 1.8,
+    isPositive: true,
+    icon: Timer,
+    color: "blue",
+    description: "Deliveries completed on schedule"
+  },
+  {
+    id: "customer_satisfaction",
+    title: "Customer Satisfaction",
+    value: 98.5,
+    target: 95,
+    trend: 0.8,
+    isPositive: true,
+    icon: Star,
+    color: "purple",
+    description: "Average customer rating"
+  },
+  {
+    id: "revenue_growth",
+    title: "Monthly Revenue Growth",
+    value: 15.2,
+    target: 12,
+    trend: 3.1,
+    isPositive: true,
+    icon: TrendingUp,
+    color: "orange",
+    description: "Revenue increase vs last month"
+  },
+  {
+    id: "efficiency_score",
+    title: "Operational Efficiency",
+    value: 87.4,
+    target: 85,
+    trend: -1.2,
+    isPositive: false,
+    icon: Zap,
+    color: "indigo",
+    description: "Overall operational efficiency"
+  },
+  {
+    id: "fuel_savings",
+    title: "Fuel Efficiency",
+    value: 92.1,
+    target: 88,
+    trend: 4.2,
+    isPositive: true,
+    icon: Truck,
+    color: "emerald",
+    description: "Route optimization savings"
   }
 ];
 
@@ -114,16 +273,51 @@ const DashboardOverview = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const [selectedActivity, setSelectedActivity] = useState<string | null>(null);
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case "completed": return "bg-green-100 text-green-700 border-green-200";
       case "in-progress": return "bg-blue-100 text-blue-700 border-blue-200";
       case "pending": return "bg-orange-100 text-orange-700 border-orange-200";
+      case "scheduled": return "bg-purple-100 text-purple-700 border-purple-200";
       case "Active": return "bg-green-100 text-green-700 border-green-200";
       case "Inactive": return "bg-gray-100 text-gray-700 border-gray-200";
       default: return "bg-gray-100 text-gray-700 border-gray-200";
     }
+  };
+
+  const getActivityIcon = (type: string) => {
+    switch (type) {
+      case "order_completed": return CheckCircle;
+      case "driver_assigned": return Users;
+      case "payment_received": return DollarSign;
+      case "route_optimized": return MapPin;
+      case "maintenance_alert": return AlertCircle;
+      default: return Activity;
+    }
+  };
+
+  const getActivityColor = (status: string) => {
+    switch (status) {
+      case "success": return "text-green-600 bg-green-50 border-green-200";
+      case "info": return "text-blue-600 bg-blue-50 border-blue-200";
+      case "warning": return "text-orange-600 bg-orange-50 border-orange-200";
+      case "error": return "text-red-600 bg-red-50 border-red-200";
+      default: return "text-gray-600 bg-gray-50 border-gray-200";
+    }
+  };
+
+  const getMetricColor = (color: string) => {
+    const colors = {
+      green: "from-emerald-500 to-emerald-600",
+      blue: "from-blue-500 to-blue-600",
+      purple: "from-purple-500 to-purple-600",
+      orange: "from-orange-500 to-orange-600",
+      indigo: "from-indigo-500 to-indigo-600",
+      emerald: "from-teal-500 to-teal-600"
+    };
+    return colors[color as keyof typeof colors] || colors.blue;
   };
 
   const filteredDrivers = driverMetrics.filter(driver =>
@@ -137,8 +331,8 @@ const DashboardOverview = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
-      {/* Professional Header */}
+    <div className="min-h-screen bg-gray-50/30">
+      {/* Enhanced Professional Header */}
       <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 rounded-xl p-6 mb-6 shadow-xl border border-blue-300">
         <div className="flex items-center justify-between">
           <div>
@@ -147,7 +341,7 @@ const DashboardOverview = () => {
               Dashboard Overview
             </h1>
             <p className="text-blue-100 text-lg font-medium">
-              Comprehensive business analytics and management center
+              Real-time business analytics and performance insights
             </p>
           </div>
           <div className="flex items-center gap-4">
@@ -187,7 +381,7 @@ const DashboardOverview = () => {
       )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <div className="bg-white rounded-xl p-2 shadow-lg border border-blue-200">
+        <div className="bg-white rounded-xl p-2 shadow-lg border border-gray-200">
           <TabsList className="grid w-full grid-cols-4 bg-transparent">
             <TabsTrigger 
               value="overview" 
@@ -217,7 +411,7 @@ const DashboardOverview = () => {
         </div>
 
         <TabsContent value="overview" className="space-y-6">
-          {/* Professional Stats Cards */}
+          {/* Enhanced Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <Card className="bg-gradient-to-br from-emerald-500 to-emerald-600 border-0 shadow-xl hover:shadow-2xl transition-all duration-300 text-white transform hover:-translate-y-1">
               <CardContent className="p-6">
@@ -292,91 +486,147 @@ const DashboardOverview = () => {
             </Card>
           </div>
 
-          {/* Professional Overview Cards */}
+          {/* Enhanced Overview Cards */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card className="bg-white border-2 border-blue-200 shadow-xl">
-              <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-100 border-b-2 border-blue-200 pb-4">
+            {/* Enhanced Recent Activity */}
+            <Card className="bg-white border-2 border-gray-200 shadow-xl">
+              <CardHeader className="bg-gradient-to-r from-gray-50 to-blue-50 border-b-2 border-gray-200 pb-4">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-xl flex items-center gap-3 font-bold text-blue-900">
+                  <CardTitle className="text-xl flex items-center gap-3 font-bold text-gray-900">
                     <Activity className="h-6 w-6 text-blue-600" />
                     Recent Activity
                   </CardTitle>
-                  <Button variant="outline" size="sm" className="border-blue-300 text-blue-600 hover:bg-blue-50">
-                    <Eye className="h-4 w-4 mr-2" />
-                    View All
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" className="border-blue-300 text-blue-600 hover:bg-blue-50">
+                      <Bell className="h-4 w-4 mr-2" />
+                      Notifications
+                    </Button>
+                    <Button variant="outline" size="sm" className="border-blue-300 text-blue-600 hover:bg-blue-50">
+                      <Eye className="h-4 w-4 mr-2" />
+                      View All
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
-              <CardContent className="p-6">
-                <div className="space-y-4">
-                  {recentOrders.slice(0, 4).map((order) => (
-                    <div key={order.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200 hover:bg-blue-50 transition-colors cursor-pointer">
-                      <div className="flex items-center gap-4">
-                        <div className="p-3 bg-blue-100 rounded-xl">
-                          <Package className="h-5 w-5 text-blue-600" />
-                        </div>
-                        <div>
-                          <p className="font-semibold text-gray-900">{order.customer}</p>
-                          <p className="text-sm text-gray-600">{order.binType}</p>
-                          <p className="text-xs text-blue-600 font-medium">{order.location}</p>
+              <CardContent className="p-0 max-h-96 overflow-y-auto">
+                <div className="space-y-0">
+                  {enhancedActivities.map((activity, index) => {
+                    const IconComponent = getActivityIcon(activity.type);
+                    return (
+                      <div 
+                        key={activity.id} 
+                        className={`p-4 border-b border-gray-100 hover:bg-blue-50/50 transition-all duration-200 cursor-pointer ${
+                          selectedActivity === activity.id ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
+                        } ${index === enhancedActivities.length - 1 ? 'border-b-0' : ''}`}
+                        onClick={() => setSelectedActivity(selectedActivity === activity.id ? null : activity.id)}
+                      >
+                        <div className="flex items-start gap-4">
+                          <div className={`p-3 rounded-xl border-2 ${getActivityColor(activity.status)}`}>
+                            <IconComponent className="h-5 w-5" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between mb-2">
+                              <p className="font-bold text-gray-900 text-sm">{activity.title}</p>
+                              <span className="text-xs text-gray-500 font-medium">{activity.time}</span>
+                            </div>
+                            <p className="text-sm text-gray-600 mb-2">{activity.description}</p>
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3 text-xs text-gray-500">
+                                {activity.customer && (
+                                  <span className="font-medium">{activity.customer}</span>
+                                )}
+                                {activity.driver && (
+                                  <span className="text-blue-600">• {activity.driver}</span>
+                                )}
+                                <span className="text-gray-400">• {activity.location}</span>
+                              </div>
+                              {activity.amount && (
+                                <span className="text-sm font-bold text-green-600">
+                                  RM {activity.amount.toFixed(2)}
+                                </span>
+                              )}
+                            </div>
+                            {selectedActivity === activity.id && (
+                              <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200 animate-fade-in">
+                                <div className="grid grid-cols-2 gap-4 text-xs">
+                                  <div>
+                                    <span className="font-semibold text-gray-700">Activity ID:</span>
+                                    <span className="ml-2 text-blue-600">{activity.id}</span>
+                                  </div>
+                                  <div>
+                                    <span className="font-semibold text-gray-700">Status:</span>
+                                    <Badge className={`ml-2 text-xs ${getStatusColor(activity.status)}`}>
+                                      {activity.status}
+                                    </Badge>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <Badge className={`${getStatusColor(order.status)} border font-medium`}>
-                          {order.status}
-                        </Badge>
-                        <p className="text-sm font-bold text-green-600 mt-1">RM {order.amount.toFixed(2)}</p>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-white border-2 border-blue-200 shadow-xl">
-              <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-100 border-b-2 border-blue-200 pb-4">
+            {/* Enhanced Performance Metrics */}
+            <Card className="bg-white border-2 border-gray-200 shadow-xl">
+              <CardHeader className="bg-gradient-to-r from-gray-50 to-blue-50 border-b-2 border-gray-200 pb-4">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-xl flex items-center gap-3 font-bold text-blue-900">
+                  <CardTitle className="text-xl flex items-center gap-3 font-bold text-gray-900">
                     <Target className="h-6 w-6 text-blue-600" />
                     Performance Metrics
                   </CardTitle>
                   <Button variant="outline" size="sm" className="border-blue-300 text-blue-600 hover:bg-blue-50">
                     <BarChart3 className="h-4 w-4 mr-2" />
-                    Details
+                    Detailed View
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent className="p-6">
-                <div className="space-y-6">
-                  <div className="flex justify-between items-center p-4 bg-green-50 rounded-xl border border-green-200">
-                    <div className="flex items-center gap-3">
-                      <CheckCircle className="h-5 w-5 text-green-600" />
-                      <span className="font-semibold text-gray-700">Completion Rate</span>
+              <CardContent className="p-6 space-y-6 max-h-96 overflow-y-auto">
+                {performanceMetrics.map((metric) => {
+                  const IconComponent = metric.icon;
+                  return (
+                    <div key={metric.id} className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className={`p-2 rounded-lg bg-gradient-to-br ${getMetricColor(metric.color)} text-white`}>
+                            <IconComponent className="h-4 w-4" />
+                          </div>
+                          <div>
+                            <span className="text-sm font-semibold text-gray-700">{metric.title}</span>
+                            <p className="text-xs text-gray-500">{metric.description}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg font-bold text-gray-900">{metric.value}%</span>
+                            <div className={`flex items-center text-xs font-medium ${
+                              metric.isPositive ? 'text-green-600' : 'text-red-600'
+                            }`}>
+                              {metric.isPositive ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+                              {Math.abs(metric.trend)}%
+                            </div>
+                          </div>
+                          <p className="text-xs text-gray-500">Target: {metric.target}%</p>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Progress 
+                          value={metric.value} 
+                          className="h-2"
+                        />
+                        <div className="flex justify-between text-xs text-gray-500">
+                          <span>0%</span>
+                          <span className="font-medium">Target: {metric.target}%</span>
+                          <span>100%</span>
+                        </div>
+                      </div>
                     </div>
-                    <span className="text-xl font-bold text-green-600">96.8%</span>
-                  </div>
-                  <div className="flex justify-between items-center p-4 bg-blue-50 rounded-xl border border-blue-200">
-                    <div className="flex items-center gap-3">
-                      <Clock className="h-5 w-5 text-blue-600" />
-                      <span className="font-semibold text-gray-700">On-Time Delivery</span>
-                    </div>
-                    <span className="text-xl font-bold text-blue-600">94.2%</span>
-                  </div>
-                  <div className="flex justify-between items-center p-4 bg-purple-50 rounded-xl border border-purple-200">
-                    <div className="flex items-center gap-3">
-                      <Users className="h-5 w-5 text-purple-600" />
-                      <span className="font-semibold text-gray-700">Customer Satisfaction</span>
-                    </div>
-                    <span className="text-xl font-bold text-purple-600">98.5%</span>
-                  </div>
-                  <div className="flex justify-between items-center p-4 bg-orange-50 rounded-xl border border-orange-200">
-                    <div className="flex items-center gap-3">
-                      <TrendingUp className="h-5 w-5 text-orange-600" />
-                      <span className="font-semibold text-gray-700">Revenue Growth</span>
-                    </div>
-                    <span className="text-xl font-bold text-orange-600">+15.2%</span>
-                  </div>
-                </div>
+                  );
+                })}
               </CardContent>
             </Card>
           </div>
@@ -384,7 +634,7 @@ const DashboardOverview = () => {
 
         <TabsContent value="drivers" className="space-y-6">
           {/* Professional Search and Controls */}
-          <Card className="bg-white border-2 border-blue-200 shadow-lg">
+          <Card className="bg-white border-2 border-gray-200 shadow-lg">
             <CardContent className="p-6">
               <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
                 <div className="flex-1 w-full lg:max-w-md">
@@ -394,7 +644,7 @@ const DashboardOverview = () => {
                       placeholder="Search drivers by name, ID, or location..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 h-12 border-blue-200 focus:border-blue-500 text-base"
+                      className="pl-10 h-12 border-gray-200 focus:border-blue-500 text-base"
                     />
                   </div>
                 </div>
@@ -417,10 +667,10 @@ const DashboardOverview = () => {
           </Card>
 
           {/* Professional Drivers Table */}
-          <Card className="bg-white border-2 border-blue-200 shadow-xl">
-            <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-100 border-b-2 border-blue-200 pb-4">
+          <Card className="bg-white border-2 border-gray-200 shadow-xl">
+            <CardHeader className="bg-gradient-to-r from-gray-50 to-blue-50 border-b-2 border-gray-200 pb-4">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-xl flex items-center gap-3 font-bold text-blue-900">
+                <CardTitle className="text-xl flex items-center gap-3 font-bold text-gray-900">
                   <Users className="h-6 w-6 text-blue-600" />
                   Driver Management ({filteredDrivers.length})
                 </CardTitle>
@@ -435,14 +685,14 @@ const DashboardOverview = () => {
             <CardContent className="p-0">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-blue-50 border-b-2 border-blue-200">
-                    <TableHead className="font-bold text-blue-900 text-left p-4">Driver Details</TableHead>
-                    <TableHead className="font-bold text-blue-900 text-left p-4">Status</TableHead>
-                    <TableHead className="font-bold text-blue-900 text-left p-4">Performance</TableHead>
-                    <TableHead className="font-bold text-blue-900 text-left p-4">Earnings</TableHead>
-                    <TableHead className="font-bold text-blue-900 text-left p-4">Rating</TableHead>
-                    <TableHead className="font-bold text-blue-900 text-left p-4">Location</TableHead>
-                    <TableHead className="font-bold text-blue-900 text-left p-4">Actions</TableHead>
+                  <TableRow className="bg-gray-50 border-b-2 border-gray-200">
+                    <TableHead className="font-bold text-gray-900 text-left p-4">Driver Details</TableHead>
+                    <TableHead className="font-bold text-gray-900 text-left p-4">Status</TableHead>
+                    <TableHead className="font-bold text-gray-900 text-left p-4">Performance</TableHead>
+                    <TableHead className="font-bold text-gray-900 text-left p-4">Earnings</TableHead>
+                    <TableHead className="font-bold text-gray-900 text-left p-4">Rating</TableHead>
+                    <TableHead className="font-bold text-gray-900 text-left p-4">Location</TableHead>
+                    <TableHead className="font-bold text-gray-900 text-left p-4">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -524,7 +774,7 @@ const DashboardOverview = () => {
 
         <TabsContent value="orders" className="space-y-6">
           {/* Professional Search and Controls */}
-          <Card className="bg-white border-2 border-blue-200 shadow-lg">
+          <Card className="bg-white border-2 border-gray-200 shadow-lg">
             <CardContent className="p-6">
               <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
                 <div className="flex-1 w-full lg:max-w-md">
@@ -534,7 +784,7 @@ const DashboardOverview = () => {
                       placeholder="Search orders by customer, ID, or location..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 h-12 border-blue-200 focus:border-blue-500 text-base"
+                      className="pl-10 h-12 border-gray-200 focus:border-blue-500 text-base"
                     />
                   </div>
                 </div>
@@ -557,10 +807,10 @@ const DashboardOverview = () => {
           </Card>
 
           {/* Professional Orders Table */}
-          <Card className="bg-white border-2 border-blue-200 shadow-xl">
-            <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-100 border-b-2 border-blue-200 pb-4">
+          <Card className="bg-white border-2 border-gray-200 shadow-xl">
+            <CardHeader className="bg-gradient-to-r from-gray-50 to-blue-50 border-b-2 border-gray-200 pb-4">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-xl flex items-center gap-3 font-bold text-blue-900">
+                <CardTitle className="text-xl flex items-center gap-3 font-bold text-gray-900">
                   <Package className="h-6 w-6 text-blue-600" />
                   Order Management ({filteredOrders.length})
                 </CardTitle>
@@ -575,15 +825,15 @@ const DashboardOverview = () => {
             <CardContent className="p-0">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-blue-50 border-b-2 border-blue-200">
-                    <TableHead className="font-bold text-blue-900 text-left p-4">Order Details</TableHead>
-                    <TableHead className="font-bold text-blue-900 text-left p-4">Customer</TableHead>
-                    <TableHead className="font-bold text-blue-900 text-left p-4">Service</TableHead>
-                    <TableHead className="font-bold text-blue-900 text-left p-4">Driver</TableHead>
-                    <TableHead className="font-bold text-blue-900 text-left p-4">Status</TableHead>
-                    <TableHead className="font-bold text-blue-900 text-left p-4">Amount</TableHead>
-                    <TableHead className="font-bold text-blue-900 text-left p-4">Location</TableHead>
-                    <TableHead className="font-bold text-blue-900 text-left p-4">Actions</TableHead>
+                  <TableRow className="bg-gray-50 border-b-2 border-gray-200">
+                    <TableHead className="font-bold text-gray-900 text-left p-4">Order Details</TableHead>
+                    <TableHead className="font-bold text-gray-900 text-left p-4">Customer</TableHead>
+                    <TableHead className="font-bold text-gray-900 text-left p-4">Service</TableHead>
+                    <TableHead className="font-bold text-gray-900 text-left p-4">Driver</TableHead>
+                    <TableHead className="font-bold text-gray-900 text-left p-4">Status</TableHead>
+                    <TableHead className="font-bold text-gray-900 text-left p-4">Amount</TableHead>
+                    <TableHead className="font-bold text-gray-900 text-left p-4">Location</TableHead>
+                    <TableHead className="font-bold text-gray-900 text-left p-4">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -649,9 +899,9 @@ const DashboardOverview = () => {
 
         <TabsContent value="analytics" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card className="bg-white border-2 border-blue-200 shadow-xl">
-              <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-100 border-b-2 border-blue-200 pb-4">
-                <CardTitle className="text-xl flex items-center gap-3 font-bold text-blue-900">
+            <Card className="bg-white border-2 border-gray-200 shadow-xl">
+              <CardHeader className="bg-gradient-to-r from-gray-50 to-blue-50 border-b-2 border-gray-200 pb-4">
+                <CardTitle className="text-xl flex items-center gap-3 font-bold text-gray-900">
                   <BarChart3 className="h-6 w-6 text-blue-600" />
                   Revenue Analytics
                 </CardTitle>
@@ -679,9 +929,9 @@ const DashboardOverview = () => {
               </CardContent>
             </Card>
 
-            <Card className="bg-white border-2 border-blue-200 shadow-xl">
-              <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-100 border-b-2 border-blue-200 pb-4">
-                <CardTitle className="text-xl flex items-center gap-3 font-bold text-blue-900">
+            <Card className="bg-white border-2 border-gray-200 shadow-xl">
+              <CardHeader className="bg-gradient-to-r from-gray-50 to-blue-50 border-b-2 border-gray-200 pb-4">
+                <CardTitle className="text-xl flex items-center gap-3 font-bold text-gray-900">
                   <Activity className="h-6 w-6 text-blue-600" />
                   Operational Metrics
                 </CardTitle>
