@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -96,6 +95,118 @@ const RefundManagement: React.FC = () => {
   const [showRefundModal, setShowRefundModal] = useState(false);
   const [showAnalyticsModal, setShowAnalyticsModal] = useState(false);
   const [showPolicyModal, setShowPolicyModal] = useState(false);
+
+  // State for new refund form
+  const [newRefund, setNewRefund] = useState({
+    orderNumber: "",
+    customerName: "",
+    category: "",
+    originalAmount: "",
+    description: ""
+  });
+  const [aiPrediction, setAiPrediction] = useState<any | null>(null);
+
+  // State for viewing order details
+  const [viewOrder, setViewOrder] = useState<RefundRequest | null>(null);
+
+  // Helper to get policy by category
+  const getPolicyByCategory = (category: string) => policies.find((p: any) => p.category === category);
+
+  // Update AI prediction when form changes
+  React.useEffect(() => {
+    if (
+      newRefund.category &&
+      newRefund.originalAmount &&
+      !isNaN(Number(newRefund.originalAmount))
+    ) {
+      const policy = getPolicyByCategory(newRefund.category);
+      if (policy) {
+        const mockRequest = {
+          id: "TEMP",
+          orderId: newRefund.orderNumber || "TEMP",
+          customerId: newRefund.customerName || "TEMP",
+          amount: Number(newRefund.originalAmount),
+          reason: "",
+          category: newRefund.category,
+          description: newRefund.description,
+          requestDate: new Date(),
+          status: "pending" as const
+        };
+        const result = RefundEngine.processRefundRequest(mockRequest);
+        setAiPrediction(result);
+      } else {
+        setAiPrediction(null);
+      }
+    } else {
+      setAiPrediction(null);
+    }
+  }, [newRefund]);
+
+  // Handle input changes in modal
+  const handleNewRefundChange = (field: string, value: string) => {
+    setNewRefund((prev) => ({ ...prev, [field]: value }));
+  };
+
+  // Add new refund
+  const handleProcessNewRefund = () => {
+    if (!newRefund.orderNumber || !newRefund.customerName || !newRefund.category || !newRefund.originalAmount) return;
+    const policy = getPolicyByCategory(newRefund.category);
+    if (!policy) return;
+    const mockRequest = {
+      id: `REF${(refunds.length + 1).toString().padStart(3, "0")}`,
+      orderId: newRefund.orderNumber,
+      customerId: newRefund.customerName,
+      amount: Number(newRefund.originalAmount),
+      reason: "",
+      category: newRefund.category,
+      description: newRefund.description,
+      requestDate: new Date(),
+      status: "pending" as const
+    };
+    const result = RefundEngine.processRefundRequest(mockRequest);
+    setRefunds([
+      {
+        id: mockRequest.id,
+        orderNumber: mockRequest.orderId,
+        customerName: mockRequest.customerId,
+        requestDate: mockRequest.requestDate.toISOString().slice(0, 10),
+        reason: mockRequest.reason,
+        category: mockRequest.category,
+        description: mockRequest.description,
+        originalAmount: mockRequest.amount,
+        refundAmount: result.refundAmount,
+        processingFee: result.processingFee,
+        netRefund: result.netRefund,
+        status: result.approved ? "approved" : "rejected",
+        approvedBy: result.autoProcessed ? "System Auto-Approval" : result.approved ? "Manual Review" : null,
+        processedDate: null,
+        refundMethod: "original_payment",
+        impactAnalysis: result.impactAnalysis,
+        autoProcessed: result.autoProcessed,
+        preventionRecommendations: result.impactAnalysis.preventionRecommendations
+      },
+      ...refunds
+    ]);
+    setShowRefundModal(false);
+    setNewRefund({ orderNumber: "", customerName: "", category: "", originalAmount: "", description: "" });
+    setAiPrediction(null);
+  };
+
+  // Reject handler
+  const handleRejectRefund = (refundId: string) => {
+    setRefunds(refunds.map(r => r.id === refundId ? { ...r, status: "rejected", approvedBy: "Manual Review" } : r));
+  };
+
+  // Process Payment handler
+  const handleProcessPayment = (refundId: string) => {
+    setRefunds(refunds.map(r => r.id === refundId ? { ...r, status: "processed", processedDate: new Date().toISOString().slice(0, 10) } : r));
+  };
+
+  // View Order handler (opens dialog)
+  const handleViewOrder = (orderNumber: string) => {
+    const found = refunds.find(r => r.orderNumber === orderNumber);
+    if (found) setViewOrder(found);
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -293,15 +404,15 @@ const RefundManagement: React.FC = () => {
               <div className="grid grid-cols-2 gap-4 py-4">
                 <div className="space-y-2">
                   <Label>Order Number</Label>
-                  <Input placeholder="ORD001" />
+                  <Input placeholder="ORD001" value={newRefund.orderNumber} onChange={e => handleNewRefundChange("orderNumber", e.target.value)} />
                 </div>
                 <div className="space-y-2">
                   <Label>Customer Name</Label>
-                  <Input placeholder="Customer name" />
+                  <Input placeholder="Customer name" value={newRefund.customerName} onChange={e => handleNewRefundChange("customerName", e.target.value)} />
                 </div>
                 <div className="space-y-2">
                   <Label>Refund Category</Label>
-                  <Select>
+                  <Select value={newRefund.category} onValueChange={val => handleNewRefundChange("category", val)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
@@ -316,11 +427,11 @@ const RefundManagement: React.FC = () => {
                 </div>
                 <div className="space-y-2">
                   <Label>Original Amount (RM)</Label>
-                  <Input type="number" placeholder="850.00" />
+                  <Input type="number" placeholder="850.00" value={newRefund.originalAmount} onChange={e => handleNewRefundChange("originalAmount", e.target.value)} />
                 </div>
                 <div className="col-span-2 space-y-2">
                   <Label>Description</Label>
-                  <Textarea placeholder="Detailed description of the refund reason" />
+                  <Textarea placeholder="Detailed description of the refund reason" value={newRefund.description} onChange={e => handleNewRefundChange("description", e.target.value)} />
                 </div>
                 <div className="col-span-2">
                   <div className="bg-blue-50 p-3 rounded">
@@ -328,26 +439,30 @@ const RefundManagement: React.FC = () => {
                       <Brain className="h-4 w-4 inline mr-1" />
                       AI Impact Prediction
                     </p>
-                    <div className="grid grid-cols-3 gap-2 text-xs">
-                      <div className="text-center">
-                        <p className="text-gray-600">Financial Impact</p>
-                        <p className="font-bold">RM 127.50</p>
+                    {aiPrediction ? (
+                      <div className="grid grid-cols-3 gap-2 text-xs">
+                        <div className="text-center">
+                          <p className="text-gray-600">Financial Impact</p>
+                          <p className="font-bold">RM {aiPrediction.impactAnalysis.financialImpact.toFixed(2)}</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-gray-600">Customer Retention</p>
+                          <p className="font-bold text-green-600">{(getPolicyByCategory(newRefund.category)?.impactFactors.customerRetention * 100).toFixed(0)}%</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-gray-600">Auto-Process</p>
+                          <p className="font-bold text-blue-600">{aiPrediction.autoProcessed ? "Yes" : "No"}</p>
+                        </div>
                       </div>
-                      <div className="text-center">
-                        <p className="text-gray-600">Customer Retention</p>
-                        <p className="font-bold text-green-600">95%</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-gray-600">Auto-Process</p>
-                        <p className="font-bold text-blue-600">Yes</p>
-                      </div>
-                    </div>
+                    ) : (
+                      <div className="text-xs text-gray-500">Enter details to see prediction</div>
+                    )}
                   </div>
                 </div>
               </div>
               <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setShowRefundModal(false)}>Cancel</Button>
-                <Button onClick={() => setShowRefundModal(false)}>Process Refund</Button>
+                <Button variant="outline" onClick={() => { setShowRefundModal(false); setNewRefund({ orderNumber: "", customerName: "", category: "", originalAmount: "", description: "" }); setAiPrediction(null); }}>Cancel</Button>
+                <Button onClick={handleProcessNewRefund} disabled={!newRefund.orderNumber || !newRefund.customerName || !newRefund.category || !newRefund.originalAmount}>Process Refund</Button>
               </div>
             </DialogContent>
           </Dialog>
@@ -531,13 +646,13 @@ const RefundManagement: React.FC = () => {
               </div>
 
               <div className="flex justify-end gap-2 mt-4">
-                <Button size="sm" variant="outline">
+                <Button size="sm" variant="outline" onClick={() => handleViewOrder(refund.orderNumber)}>
                   <FileText className="h-3 w-3 mr-1" />
                   View Order
                 </Button>
                 {refund.status === 'pending' && (
                   <>
-                    <Button size="sm" variant="outline">
+                    <Button size="sm" variant="outline" onClick={() => handleRejectRefund(refund.id)}>
                       Reject
                     </Button>
                     <Button size="sm" onClick={() => handleProcessRefund(refund)}>
@@ -547,7 +662,7 @@ const RefundManagement: React.FC = () => {
                   </>
                 )}
                 {refund.status === 'approved' && (
-                  <Button size="sm">
+                  <Button size="sm" onClick={() => handleProcessPayment(refund.id)}>
                     Process Payment
                   </Button>
                 )}
@@ -556,6 +671,59 @@ const RefundManagement: React.FC = () => {
           </Card>
         ))}
       </div>
+
+      {/* View Order Dialog */}
+      <Dialog open={!!viewOrder} onOpenChange={open => !open && setViewOrder(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Order Details</DialogTitle>
+          </DialogHeader>
+          {viewOrder && (
+            <div className="space-y-3">
+              <div className="flex justify-between">
+                <span className="font-medium">Order Number:</span>
+                <span>{viewOrder.orderNumber}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="font-medium">Customer Name:</span>
+                <span>{viewOrder.customerName}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="font-medium">Category:</span>
+                <span>{viewOrder.category}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="font-medium">Request Date:</span>
+                <span>{viewOrder.requestDate}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="font-medium">Original Amount:</span>
+                <span>RM {viewOrder.originalAmount.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="font-medium">Refund Amount:</span>
+                <span>RM {viewOrder.refundAmount.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="font-medium">Processing Fee:</span>
+                <span>RM {viewOrder.processingFee.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="font-medium">Net Refund:</span>
+                <span>RM {viewOrder.netRefund.toFixed(2)}</span>
+              </div>
+              <div>
+                <span className="font-medium">Description:</span>
+                <div className="text-sm text-gray-700 mt-1">{viewOrder.description}</div>
+              </div>
+              <div>
+                <span className="font-medium">Status:</span>
+                <span className="ml-2">{getStatusBadge(viewOrder.status)}</span>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -1,4 +1,3 @@
-
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
@@ -35,6 +34,7 @@ import DriverProfile from "./components/driver/DriverProfile";
 import DriverMonitoring from "./components/admin/DriverMonitoring";
 import PerformanceAnalytics from "./components/admin/PerformanceAnalytics";
 import { OrderProvider } from "./contexts/OrderContext";
+import Settings from "./components/dashboard/Settings";
 
 const queryClient = new QueryClient();
 
@@ -73,7 +73,7 @@ function App() {
                   <Route path="reports" element={<EnhancedReportsAnalytics />} />
                   <Route path="performance-analytics" element={<PerformanceAnalytics />} />
                   <Route path="printing" element={<PrintingSystem />} />
-                  <Route path="settings" element={<div className="p-6">Admin Settings</div>} />
+                  <Route path="settings" element={<Settings />} />
                 </Route>
                 
                 {/* Driver Dashboard Routes */}

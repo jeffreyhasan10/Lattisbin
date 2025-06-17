@@ -366,7 +366,7 @@ const AdminInventoryManagement: React.FC = () => {
         <div>
           <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
             <Package className="h-6 w-6 text-purple-600" />
-            Phase 4: Advanced Inventory Management
+             Advanced Inventory Management
           </h2>
           <p className="text-gray-600 mt-1">Real-time GPS tracking, predictive analytics, and automated maintenance scheduling</p>
         </div>

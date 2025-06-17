@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -118,6 +117,138 @@ const EnhancedReportsAnalytics: React.FC = () => {
       frequency: "Bi-weekly",
       format: "PDF Report",
       subscribers: 4,
+      status: "active"
+    },
+    {
+      id: "RPT005",
+      name: "Customer Detail",
+      category: "Customer",
+      description: "Detailed information of all customers including contact and activity history.",
+      lastGenerated: "2024-03-15",
+      frequency: "Monthly",
+      format: "PDF + Excel",
+      subscribers: 10,
+      status: "active"
+    },
+    {
+      id: "RPT006",
+      name: "Inventory Bin Record",
+      category: "Inventory",
+      description: "Inventory records for all bins, including status and location.",
+      lastGenerated: "2024-03-15",
+      frequency: "Weekly",
+      format: "Excel",
+      subscribers: 7,
+      status: "active"
+    },
+    {
+      id: "RPT007",
+      name: "Lorry",
+      category: "Fleet",
+      description: "List and status of all lorries in the fleet.",
+      lastGenerated: "2024-03-15",
+      frequency: "Monthly",
+      format: "PDF",
+      subscribers: 6,
+      status: "active"
+    },
+    {
+      id: "RPT008",
+      name: "Rentable Lorry",
+      category: "Fleet",
+      description: "Details of lorries available for rent, including rates and availability.",
+      lastGenerated: "2024-03-15",
+      frequency: "Weekly",
+      format: "PDF + Excel",
+      subscribers: 4,
+      status: "active"
+    },
+    {
+      id: "RPT009",
+      name: "Add Item",
+      category: "Inventory",
+      description: "Record of items added to inventory, with timestamps and responsible staff.",
+      lastGenerated: "2024-03-15",
+      frequency: "Daily",
+      format: "Excel",
+      subscribers: 5,
+      status: "active"
+    },
+    {
+      id: "RPT010",
+      name: "Driver",
+      category: "HR",
+      description: "Driver details, license status, and performance summary.",
+      lastGenerated: "2024-03-15",
+      frequency: "Monthly",
+      format: "PDF",
+      subscribers: 8,
+      status: "active"
+    },
+    {
+      id: "RPT011",
+      name: "Booking Bin",
+      category: "Operations",
+      description: "All bin bookings, customer info, and booking status.",
+      lastGenerated: "2024-03-15",
+      frequency: "Daily",
+      format: "PDF + Excel",
+      subscribers: 9,
+      status: "active"
+    },
+    {
+      id: "RPT012",
+      name: "Deliver Order",
+      category: "Operations",
+      description: "Delivery orders, assigned drivers, and delivery status.",
+      lastGenerated: "2024-03-15",
+      frequency: "Daily",
+      format: "PDF",
+      subscribers: 7,
+      status: "active"
+    },
+    {
+      id: "RPT013",
+      name: "Invoice",
+      category: "Financial",
+      description: "All invoices issued, payment status, and customer details.",
+      lastGenerated: "2024-03-15",
+      frequency: "Weekly",
+      format: "PDF + Excel",
+      subscribers: 10,
+      status: "active"
+    },
+    {
+      id: "RPT014",
+      name: "Commission",
+      category: "Financial",
+      description: "Commission calculations for drivers and agents.",
+      lastGenerated: "2024-03-15",
+      frequency: "Monthly",
+      format: "Excel",
+      subscribers: 3,
+      status: "active"
+    },
+    {
+      id: "RPT015",
+      name: "Refund, Cancel Job",
+      category: "Operations",
+      description: "Records of refunds and cancelled jobs, with reasons and status.",
+      lastGenerated: "2024-03-15",
+      frequency: "Weekly",
+      format: "PDF",
+      subscribers: 2,
+      status: "active"
+    },
+    {
+      id: "RPT016",
+      name: "Expenses (View Only)",
+      category: "Financial",
+      description: "Expense records for viewing only. No tally or calculations included.",
+      lastGenerated: "2024-03-15",
+      frequency: "Monthly",
+      format: "PDF",
+      subscribers: 1,
       status: "active"
     }
   ];

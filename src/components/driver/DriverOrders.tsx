@@ -44,6 +44,7 @@ import {
   Info,
   Play,
   Square,
+  Edit,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -77,6 +78,16 @@ interface OrderType {
   completedTime?: string;
   cancelledTime?: string;
   cancelReason?: string;
+  lorryId?: string;
+  binCollectionLocation?: 'warehouse' | 'customer';
+  binSerialNumber?: string;
+  doBookNumber?: string;
+  binSize?: 'small' | 'medium' | 'large';
+  binPrice?: number;
+  paymentMethod?: 'cash' | 'online' | 'cheque' | 'cdm' | 'term';
+  binCollectionConfirmed?: boolean;
+  releaseStatus?: 'pending' | 'released';
+  invoiceStatus?: 'pending' | 'issued' | 'paid';
 }
 
 const DriverOrders = () => {
@@ -86,6 +97,11 @@ const DriverOrders = () => {
   const [activeTab, setActiveTab] = useState("all");
   const [selectedOrder, setSelectedOrder] = useState<OrderType | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [showOrderModal, setShowOrderModal] = useState(false);
+  const [modalMode, setModalMode] = useState<'start' | 'complete' | 'edit' | null>(null);
+  const [editingOrder, setEditingOrder] = useState<OrderType | null>(null);
+  const [orderForm, setOrderForm] = useState<Partial<OrderType>>({});
+  const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
   
   // State for orders with proper typing
   const [orders, setOrders] = useState<OrderType[]>([
@@ -105,14 +121,24 @@ const DriverOrders = () => {
       distance: "12.5 km",
       estimatedDuration: "45 min",
       notes: "Handle with care - fragile materials included",
-      paymentStatus: "confirmed",
+      paymentStatus: "received",
       nearestBin: {
         name: "Central Waste Collection Point",
         distance: "2.3 km",
         location: "Jalan Sultan Ismail, KL",
         capacity: "Large",
         type: "Mixed Waste"
-      }
+      },
+      lorryId: "VEH001",
+      binCollectionLocation: "warehouse",
+      binSerialNumber: "ASR001234",
+      doBookNumber: "DOBOOK001",
+      binSize: "large",
+      binPrice: 500,
+      paymentMethod: "cash",
+      binCollectionConfirmed: true,
+      releaseStatus: "released",
+      invoiceStatus: "issued"
     },
     {
       id: "JOB002",
@@ -300,6 +326,48 @@ const DriverOrders = () => {
     toast.success(`Opening navigation to nearest bin at ${binLocation}`);
   };
 
+  const openOrderModal = (order: OrderType, mode: 'start' | 'complete' | 'edit') => {
+    setEditingOrder(order);
+    setModalMode(mode);
+    setOrderForm({ ...order });
+    setFormErrors({});
+    setShowOrderModal(true);
+  };
+
+  const handleOrderFormChange = (field: keyof OrderType, value: any) => {
+    setOrderForm(prev => ({ ...prev, [field]: value }));
+  };
+
+  const validateOrderForm = () => {
+    const errors: { [key: string]: string } = {};
+    if (!orderForm.lorryId) errors.lorryId = 'Required';
+    if (!orderForm.binSerialNumber) errors.binSerialNumber = 'Required';
+    if (!orderForm.paymentMethod) errors.paymentMethod = 'Required';
+    if (!orderForm.paymentStatus) errors.paymentStatus = 'Required';
+    if (modalMode === 'complete' && !orderForm.binCollectionConfirmed) errors.binCollectionConfirmed = 'Confirm bin collection';
+    return errors;
+  };
+
+  const handleOrderFormSave = () => {
+    const errors = validateOrderForm();
+    setFormErrors(errors);
+    if (Object.keys(errors).length > 0) return;
+    if (editingOrder) {
+      setOrders(prev => prev.map(o => o.id === editingOrder.id ? {
+        ...o,
+        ...orderForm,
+        status: modalMode === 'start' ? 'in-progress' : modalMode === 'complete' ? 'completed' : o.status,
+        paymentStatus: orderForm.paymentStatus,
+        releaseStatus: modalMode === 'complete' ? 'released' : o.releaseStatus,
+        binCollectionConfirmed: orderForm.binCollectionConfirmed,
+        lorryId: orderForm.lorryId,
+        binSerialNumber: orderForm.binSerialNumber,
+        paymentMethod: orderForm.paymentMethod,
+      } : o));
+    }
+    setShowOrderModal(false);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-4 lg:p-6">
       {/* Breadcrumbs */}
@@ -434,6 +502,25 @@ const DriverOrders = () => {
                                 {getStatusIcon(order.status)}
                                 {order.status.replace('-', ' ').toUpperCase()}
                               </Badge>
+                              {/* Payment Status Badge */}
+                              {order.paymentStatus && (
+                                <Badge className={
+                                  order.paymentStatus === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                  order.paymentStatus === 'received' ? 'bg-blue-100 text-blue-800' :
+                                  order.paymentStatus === 'confirmed' ? 'bg-green-100 text-green-800' :
+                                  'bg-gray-100 text-gray-800'
+                                }>
+                                  Payment: {order.paymentStatus.charAt(0).toUpperCase() + order.paymentStatus.slice(1)}
+                                </Badge>
+                              )}
+                              {/* Release Status Badge */}
+                              {order.releaseStatus && (
+                                <Badge className={
+                                  order.releaseStatus === 'pending' ? 'bg-orange-100 text-orange-800' : 'bg-green-100 text-green-800'
+                                }>
+                                  {order.releaseStatus === 'pending' ? 'Not Released' : 'Released'}
+                                </Badge>
+                              )}
                             </div>
                           </div>
 
@@ -557,24 +644,22 @@ const DriverOrders = () => {
 
                               {/* Order Action Buttons */}
                               {order.status === "assigned" && (
-                                <Button
-                                  onClick={() => handleStartOrder(order.id)}
-                                  className="w-full bg-green-600 hover:bg-green-700 text-white font-medium"
-                                >
+                                <Button onClick={() => openOrderModal(order, 'start')} className="w-full bg-green-600 hover:bg-green-700 text-white font-medium">
                                   <Play className="h-4 w-4 mr-2" />
                                   Start Order
                                 </Button>
                               )}
                               
                               {order.status === "in-progress" && (
-                                <Button
-                                  onClick={() => handleFinishOrder(order.id)}
-                                  className="w-full bg-red-600 hover:bg-red-700 text-white font-medium"
-                                >
+                                <Button onClick={() => openOrderModal(order, 'complete')} className="w-full bg-red-600 hover:bg-red-700 text-white font-medium">
                                   <Square className="h-4 w-4 mr-2" />
                                   Finish Order
                                 </Button>
                               )}
+                              <Button variant="outline" onClick={() => openOrderModal(order, 'edit')} className="w-full border-gray-300 text-gray-600 hover:bg-gray-50">
+                                <Edit className="h-4 w-4 mr-2" />
+                                Edit
+                              </Button>
                             </>
                           )}
                         </div>
@@ -859,6 +944,52 @@ const DriverOrders = () => {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* DO Start/Complete/Edit Modal */}
+      <Dialog open={showOrderModal} onOpenChange={setShowOrderModal}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>
+              {modalMode === 'start' && 'Start Delivery Order'}
+              {modalMode === 'complete' && 'Complete Delivery Order'}
+              {modalMode === 'edit' && 'Edit Delivery Order'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {/* Lorry Selection */}
+            <div>
+              <Input placeholder="Lorry ID" value={orderForm.lorryId || ''} onChange={e => handleOrderFormChange('lorryId', e.target.value)} />
+              {formErrors.lorryId && <span className="text-red-500 text-xs">{formErrors.lorryId}</span>}
+            </div>
+            {/* Bin Serial Number */}
+            <div>
+              <Input placeholder="Bin Serial Number" value={orderForm.binSerialNumber || ''} onChange={e => handleOrderFormChange('binSerialNumber', e.target.value)} />
+              {formErrors.binSerialNumber && <span className="text-red-500 text-xs">{formErrors.binSerialNumber}</span>}
+            </div>
+            {/* Payment Method & Status */}
+            <div>
+              <Input placeholder="Payment Method (cash/online/cheque/cdm/term)" value={orderForm.paymentMethod || ''} onChange={e => handleOrderFormChange('paymentMethod', e.target.value)} />
+              {formErrors.paymentMethod && <span className="text-red-500 text-xs">{formErrors.paymentMethod}</span>}
+              <Input placeholder="Payment Status (pending/received/confirmed)" value={orderForm.paymentStatus || ''} onChange={e => handleOrderFormChange('paymentStatus', e.target.value)} />
+              {formErrors.paymentStatus && <span className="text-red-500 text-xs">{formErrors.paymentStatus}</span>}
+            </div>
+            {/* Bin Collection Confirmation (for complete) */}
+            {modalMode === 'complete' && (
+              <div>
+                <label className="flex items-center gap-2">
+                  <input type="checkbox" checked={!!orderForm.binCollectionConfirmed} onChange={e => handleOrderFormChange('binCollectionConfirmed', e.target.checked)} />
+                  Bin Collected
+                </label>
+                {formErrors.binCollectionConfirmed && <span className="text-red-500 text-xs">{formErrors.binCollectionConfirmed}</span>}
+              </div>
+            )}
+            <div className="flex justify-end gap-2 mt-6">
+              <Button variant="outline" onClick={() => setShowOrderModal(false)}>Cancel</Button>
+              <Button onClick={handleOrderFormSave}>{modalMode === 'start' ? 'Start Order' : modalMode === 'complete' ? 'Complete Order' : 'Save Changes'}</Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

@@ -178,7 +178,7 @@ const WasteManagement: React.FC = () => {
         <div>
           <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
             <Trash2 className="h-6 w-6 text-green-600" />
-            Phase 6: Comprehensive Waste Management System
+             Comprehensive Waste Management System
           </h2>
           <p className="text-gray-600 mt-1">Advanced waste classification, photo documentation, and environmental compliance tracking</p>
         </div>

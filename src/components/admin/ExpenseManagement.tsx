@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -95,6 +94,34 @@ const ExpenseManagement: React.FC = () => {
   const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
   const [ocrResults, setOcrResults] = useState<any[]>([]);
 
+  // --- STATE FOR ADD/EDIT EXPENSE FORM ---
+  const [expenseForm, setExpenseForm] = useState<Omit<Expense, 'amount'> & { amount: string }>({
+    id: '',
+    category: '',
+    categoryId: '',
+    subcategory: '',
+    description: '',
+    amount: '',
+    date: '',
+    vendor: '',
+    paymentMethod: '',
+    status: 'pending',
+    approvedBy: null,
+    receipts: [],
+    budgetCategory: '',
+    recurring: false,
+    ocrProcessed: false,
+  });
+  const [isEditing, setIsEditing] = useState(false);
+
+  // --- STATE FOR RECEIPT MODAL ---
+  const [showReceiptsModal, setShowReceiptsModal] = useState(false);
+  const [receiptsToShow, setReceiptsToShow] = useState<any[]>([]);
+
+  // --- STATE FOR OCR EDIT ---
+  const [editingOcrIndex, setEditingOcrIndex] = useState<number | null>(null);
+  const [ocrEditForm, setOcrEditForm] = useState<any>(null);
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "draft":
@@ -141,6 +168,118 @@ const ExpenseManagement: React.FC = () => {
         : exp
     );
     setExpenses(updatedExpenses);
+    setShowApprovalModal(false);
+  };
+
+  // --- HANDLERS ---
+  const resetExpenseForm = () => {
+    setExpenseForm({
+      id: '',
+      category: '',
+      categoryId: '',
+      subcategory: '',
+      description: '',
+      amount: '',
+      date: '',
+      vendor: '',
+      paymentMethod: '',
+      status: 'pending',
+      approvedBy: null,
+      receipts: [],
+      budgetCategory: '',
+      recurring: false,
+      ocrProcessed: false,
+    });
+    setIsEditing(false);
+  };
+
+  const handleOpenAddExpense = () => {
+    resetExpenseForm();
+    setShowExpenseModal(true);
+  };
+
+  const handleExpenseFormChange = (field: keyof typeof expenseForm, value: any) => {
+    setExpenseForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleAddOrEditExpense = () => {
+    if (!expenseForm.category || !expenseForm.subcategory || !expenseForm.amount || !expenseForm.date || !expenseForm.vendor || !expenseForm.paymentMethod) {
+      alert('Please fill in all required fields.');
+      return;
+    }
+    const safeStatus = expenseForm.status as Expense['status'];
+    if (isEditing) {
+      setExpenses((prev) => prev.map(exp => exp.id === expenseForm.id ? { ...expenseForm, amount: parseFloat(expenseForm.amount), status: safeStatus } as Expense : exp));
+    } else {
+      setExpenses((prev) => [
+        ...prev,
+        {
+          ...expenseForm,
+          id: `EXP${Math.floor(Math.random() * 100000)}`,
+          amount: parseFloat(expenseForm.amount),
+          receipts: expenseForm.receipts || [],
+          ocrProcessed: expenseForm.ocrProcessed || false,
+          status: safeStatus,
+          approvedBy: null,
+        } as Expense,
+      ]);
+    }
+    setShowExpenseModal(false);
+    resetExpenseForm();
+  };
+
+  const handleEditExpense = (expense: Expense) => {
+    setExpenseForm({ ...expense, amount: expense.amount.toString() });
+    setIsEditing(true);
+    setShowExpenseModal(true);
+  };
+
+  const handleViewReceipts = (receipts: any[]) => {
+    setReceiptsToShow(receipts);
+    setShowReceiptsModal(true);
+  };
+
+  const handleOcrEdit = (index: number) => {
+    setEditingOcrIndex(index);
+    setOcrEditForm({ ...ocrResults[index].extractedData });
+  };
+
+  const handleOcrEditChange = (field: string, value: any) => {
+    setOcrEditForm((prev: any) => ({ ...prev, [field]: value }));
+  };
+
+  const handleOcrEditSave = () => {
+    if (editingOcrIndex !== null && ocrEditForm) {
+      setOcrResults((prev) => prev.map((r, i) => i === editingOcrIndex ? { ...r, extractedData: { ...ocrEditForm, amount: parseFloat(ocrEditForm.amount) } } : r));
+      setEditingOcrIndex(null);
+      setOcrEditForm(null);
+    }
+  };
+
+  const handleOcrAccept = (result: any) => {
+    setExpenseForm({
+      id: '',
+      category: '',
+      categoryId: '',
+      subcategory: '',
+      description: '',
+      amount: result.extractedData.amount.toString(),
+      date: result.extractedData.date || '',
+      vendor: result.extractedData.vendor || '',
+      paymentMethod: '',
+      status: 'pending',
+      approvedBy: null,
+      receipts: [{ id: `REC${Math.floor(Math.random() * 100000)}`, filename: result.filename, extractedData: result.extractedData }],
+      budgetCategory: '',
+      recurring: false,
+      ocrProcessed: true,
+    });
+    setShowExpenseModal(true);
+    setIsEditing(false);
+  };
+
+  const handleRejectExpense = (expense: Expense) => {
+    setExpenses((prev) => prev.map(exp => exp.id === expense.id ? { ...exp, status: 'rejected', approvedBy: null } : exp));
     setShowApprovalModal(false);
   };
 
@@ -217,8 +356,8 @@ const ExpenseManagement: React.FC = () => {
                               </div>
                               <Progress value={result.extractedData.confidence * 100} className="mb-2" />
                               <div className="flex gap-2">
-                                <Button size="sm" variant="outline">Edit</Button>
-                                <Button size="sm">Accept</Button>
+                                <Button size="sm" variant="outline" onClick={() => handleOcrEdit(index)}>Edit</Button>
+                                <Button size="sm" onClick={() => handleOcrAccept(result)}>Accept</Button>
                               </div>
                             </div>
                           </div>
@@ -233,7 +372,7 @@ const ExpenseManagement: React.FC = () => {
           
           <Dialog open={showExpenseModal} onOpenChange={setShowExpenseModal}>
             <DialogTrigger asChild>
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+              <Button className="bg-blue-600 hover:bg-blue-700 text-white" onClick={handleOpenAddExpense}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Expense
               </Button>
@@ -245,7 +384,7 @@ const ExpenseManagement: React.FC = () => {
               <div className="grid grid-cols-2 gap-4 py-4">
                 <div className="space-y-2">
                   <Label>Category</Label>
-                  <Select>
+                  <Select value={expenseForm.categoryId} onValueChange={v => handleExpenseFormChange('categoryId', v)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
@@ -260,23 +399,23 @@ const ExpenseManagement: React.FC = () => {
                 </div>
                 <div className="space-y-2">
                   <Label>Subcategory</Label>
-                  <Input placeholder="e.g., Fuel, Repairs, etc." />
+                  <Input value={expenseForm.subcategory} onChange={e => handleExpenseFormChange('subcategory', e.target.value)} />
                 </div>
                 <div className="space-y-2">
                   <Label>Amount (RM)</Label>
-                  <Input type="number" placeholder="1000.00" />
+                  <Input type="number" value={expenseForm.amount} onChange={e => handleExpenseFormChange('amount', e.target.value)} />
                 </div>
                 <div className="space-y-2">
                   <Label>Date</Label>
-                  <Input type="date" />
+                  <Input type="date" value={expenseForm.date} onChange={e => handleExpenseFormChange('date', e.target.value)} />
                 </div>
                 <div className="space-y-2">
                   <Label>Vendor</Label>
-                  <Input placeholder="Vendor name" />
+                  <Input value={expenseForm.vendor} onChange={e => handleExpenseFormChange('vendor', e.target.value)} />
                 </div>
                 <div className="space-y-2">
                   <Label>Payment Method</Label>
-                  <Select>
+                  <Select value={expenseForm.paymentMethod} onValueChange={v => handleExpenseFormChange('paymentMethod', v)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select method" />
                     </SelectTrigger>
@@ -290,12 +429,12 @@ const ExpenseManagement: React.FC = () => {
                 </div>
                 <div className="col-span-2 space-y-2">
                   <Label>Description</Label>
-                  <Textarea placeholder="Detailed description of the expense" />
+                  <Textarea value={expenseForm.description} onChange={e => handleExpenseFormChange('description', e.target.value)} />
                 </div>
               </div>
               <div className="flex justify-end gap-2">
                 <Button variant="outline" onClick={() => setShowExpenseModal(false)}>Cancel</Button>
-                <Button onClick={() => setShowExpenseModal(false)}>Add Expense</Button>
+                <Button onClick={handleAddOrEditExpense}>{isEditing ? 'Save Changes' : 'Add Expense'}</Button>
               </div>
             </DialogContent>
           </Dialog>
@@ -555,7 +694,7 @@ const ExpenseManagement: React.FC = () => {
               )}
 
               <div className="flex justify-end gap-2 mt-4">
-                <Button size="sm" variant="outline">
+                <Button size="sm" variant="outline" onClick={() => handleViewReceipts(expense.receipts)}>
                   <FileText className="h-3 w-3 mr-1" />
                   View Receipts
                 </Button>
@@ -580,7 +719,7 @@ const ExpenseManagement: React.FC = () => {
                     </Button>
                   </>
                 )}
-                <Button size="sm" variant="outline">
+                <Button size="sm" variant="outline" onClick={() => handleEditExpense(expense)}>
                   Edit Expense
                 </Button>
               </div>
@@ -630,7 +769,7 @@ const ExpenseManagement: React.FC = () => {
               </div>
               <div className="flex justify-end gap-2">
                 <Button variant="outline" onClick={() => setShowApprovalModal(false)}>Cancel</Button>
-                <Button variant="outline">Reject</Button>
+                <Button variant="outline" onClick={() => handleRejectExpense(selectedExpense!)}>Reject</Button>
                 <Button onClick={() => handleApproveExpense(selectedExpense, "Department Manager")}>
                   Approve
                 </Button>
@@ -639,6 +778,55 @@ const ExpenseManagement: React.FC = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Receipts Modal */}
+      <Dialog open={showReceiptsModal} onOpenChange={setShowReceiptsModal}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Receipts</DialogTitle>
+          </DialogHeader>
+          {receiptsToShow.map((receipt) => (
+            <div key={receipt.id} className="space-y-2">
+              <p className="font-medium">{receipt.filename}</p>
+              {receipt.filename.match(/\.(jpg|jpeg|png)$/i) ? (
+                <img src={receipt.filename} alt={receipt.filename} className="max-h-64 rounded border" />
+              ) : receipt.filename.match(/\.pdf$/i) ? (
+                <a href={receipt.filename} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">View PDF</a>
+              ) : null}
+            </div>
+          ))}
+          <div className="flex justify-end gap-2 mt-4">
+            <Button variant="outline" onClick={() => setShowReceiptsModal(false)}>Close</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* OCR Edit Modal */}
+      {editingOcrIndex !== null && (
+        <Dialog open={true} onOpenChange={() => { setEditingOcrIndex(null); setOcrEditForm(null); }}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Edit OCR Data</DialogTitle>
+            </DialogHeader>
+            {ocrEditForm && (
+              <div className="space-y-2">
+                <Label>Vendor</Label>
+                <Input value={ocrEditForm.vendor || ''} onChange={e => handleOcrEditChange('vendor', e.target.value)} />
+                <Label>Amount</Label>
+                <Input type="number" value={ocrEditForm.amount || ''} onChange={e => handleOcrEditChange('amount', e.target.value)} />
+                <Label>Date</Label>
+                <Input type="date" value={ocrEditForm.date || ''} onChange={e => handleOcrEditChange('date', e.target.value)} />
+                <Label>Confidence</Label>
+                <Input type="number" step="0.01" value={ocrEditForm.confidence || ''} onChange={e => handleOcrEditChange('confidence', e.target.value)} />
+              </div>
+            )}
+            <div className="flex justify-end gap-2 mt-4">
+              <Button variant="outline" onClick={() => { setEditingOcrIndex(null); setOcrEditForm(null); }}>Cancel</Button>
+              <Button onClick={handleOcrEditSave}>Save</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };

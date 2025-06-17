@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useLocation, NavLink } from "react-router-dom";
+import { useLocation, NavLink, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +18,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
   onToggleMobile
 }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const currentPath = location.pathname;
   const {
     orders,
@@ -77,16 +78,18 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
         variant: "success",
         pulse: true
       } : null
-    }, {
-      id: "orders",
-      label: "Order Management",
-      icon: FileText,
-      href: "/admin/orders",
-      badge: pendingOrders > 0 ? {
-        text: pendingOrders.toString(),
-        variant: "warning"
-      } : null
-    }, {
+    }, 
+    // {
+    //   id: "orders",
+    //   label: "Order Management",
+    //   icon: FileText,
+    //   href: "/admin/orders",
+    //   badge: pendingOrders > 0 ? {
+    //     text: pendingOrders.toString(),
+    //     variant: "warning"
+    //   } : null
+    // }, 
+    {
       id: "fleet",
       label: "Fleet Management",
       icon: Truck,
@@ -184,6 +187,11 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
         return "bg-gray-100 text-gray-700 border-gray-200";
     }
   };
+  // Add logout handler
+  const handleLogout = () => {
+    // Clear any admin session if needed here
+    navigate("/");
+  };
   return <>
       {/* Desktop Sidebar */}
       <div className={cn("fixed top-0 left-0 z-40 h-full bg-white/95 backdrop-blur-xl border-r border-gray-200/60 shadow-2xl transition-all duration-300 ease-in-out", "hidden lg:flex flex-col", collapsed ? "w-20" : "w-72")}>
@@ -242,7 +250,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
 
         {/* Footer */}
         <div className="border-t border-gray-200/50 p-4">
-          <Button variant="outline" className={cn("w-full bg-gradient-to-r from-red-500 to-rose-500 text-white border-none hover:from-red-600 hover:to-rose-600 shadow-lg hover:shadow-xl transition-all duration-200", collapsed ? "px-2" : "px-4")} size={collapsed ? "sm" : "default"}>
+          <Button variant="outline" className={cn("w-full bg-gradient-to-r from-red-500 to-rose-500 text-white border-none hover:from-red-600 hover:to-rose-600 shadow-lg hover:shadow-xl transition-all duration-200", collapsed ? "px-2" : "px-4")} size={collapsed ? "sm" : "default"} onClick={handleLogout}>
             <LogOut className={cn("h-4 w-4", !collapsed && "mr-2")} />
             {!collapsed && "Logout"}
           </Button>
@@ -294,7 +302,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
 
         {/* Mobile Footer */}
         <div className="border-t border-gray-200/50 p-4">
-          <Button variant="outline" className="w-full bg-gradient-to-r from-red-500 to-rose-500 text-white border-none hover:from-red-600 hover:to-rose-600 shadow-lg">
+          <Button variant="outline" className="w-full bg-gradient-to-r from-red-500 to-rose-500 text-white border-none hover:from-red-600 hover:to-rose-600 shadow-lg" onClick={handleLogout}>
             <LogOut className="h-4 w-4 mr-2" />
             Logout
           </Button>

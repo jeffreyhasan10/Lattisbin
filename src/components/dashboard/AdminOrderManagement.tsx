@@ -17,14 +17,17 @@ import {
   AlertCircle,
   PlayCircle,
   XCircle,
-  Plus
+  Plus,
+  Truck
 } from "lucide-react";
 import { useOrders } from "@/contexts/OrderContext";
+import { useNavigate } from "react-router-dom";
 
 const AdminOrderManagement: React.FC = () => {
   const { orders, drivers, assignOrderToDriver } = useOrders();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const navigate = useNavigate();
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -96,7 +99,7 @@ const AdminOrderManagement: React.FC = () => {
           </h2>
           <p className="text-gray-600 mt-1">Monitor and manage all delivery orders in real-time</p>
         </div>
-        <Button className="bg-green-600 hover:bg-green-700 text-white">
+        <Button className="bg-green-600 hover:bg-green-700 text-white" onClick={() => navigate("/admin/bookings") }>
           <Plus className="h-4 w-4 mr-2" />
           New Order
         </Button>
@@ -191,109 +194,132 @@ const AdminOrderManagement: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Orders Table */}
-      <Card className="bg-white/60 backdrop-blur-sm border border-white/30 shadow-lg">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-gray-900">
-            <FileText className="h-5 w-5 text-yellow-600" />
-            All Orders ({filteredOrders.length})
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Order Info</TableHead>
-                  <TableHead className="hidden sm:table-cell">Customer</TableHead>
-                  <TableHead className="hidden md:table-cell">Location</TableHead>
-                  <TableHead className="hidden lg:table-cell">Assigned Driver</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="hidden lg:table-cell">Payment</TableHead>
-                  <TableHead className="hidden lg:table-cell">Amount</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredOrders.map((order) => {
-                  const StatusIcon = getStatusIcon(order.status);
-                  
-                  return (
-                    <TableRow key={order.id} className="hover:bg-white/50 transition-colors">
-                      <TableCell>
-                        <div>
-                          <div className="font-medium text-gray-900 flex items-center gap-2">
-                            <StatusIcon className="h-4 w-4" />
-                            {order.id}
-                          </div>
-                          <div className="text-sm text-gray-500">{order.date} - {order.time}</div>
-                          <div className="text-xs text-gray-400">{order.wasteType}</div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="hidden sm:table-cell">
-                        <div>
-                          <div className="font-medium text-gray-900">{order.customer}</div>
-                          <div className="text-xs text-gray-500">{order.customerPhone}</div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell">
-                        <div className="flex items-center gap-1 text-sm">
-                          <MapPin className="h-3 w-3" />
-                          <span className="truncate max-w-32">{order.location}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="hidden lg:table-cell">
-                        {order.assignedDriverName ? (
-                          <div className="text-sm">
-                            <div className="font-medium">{order.assignedDriverName}</div>
-                            <div className="text-xs text-gray-500">Assigned {order.assignedDate}</div>
-                          </div>
-                        ) : (
-                          <Select onValueChange={(driverId) => handleAssignDriver(order.id, driverId)}>
-                            <SelectTrigger className="w-32 h-8">
-                              <SelectValue placeholder="Assign" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {drivers.filter(d => d.status === 'active').map(driver => (
-                                <SelectItem key={driver.id} value={driver.id}>
-                                  {driver.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={`${getStatusColor(order.status)} capitalize border`}>
-                          {order.status.replace('-', ' ')}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="hidden lg:table-cell">
-                        <Badge className={`${getPaymentStatusColor(order.paymentStatus)} capitalize border`}>
-                          {order.paymentStatus}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="hidden lg:table-cell">
-                        <div className="font-bold text-green-600">RM {order.amount.toFixed(2)}</div>
-                      </TableCell>
-                      <TableCell>
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => handleViewOrder(order.id)}
-                          className="bg-white/80 backdrop-blur-sm border-white/30 hover:bg-white/90"
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Orders Card List */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {filteredOrders.map((order) => (
+          <Card key={order.id} className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <FileText className="h-5 w-5 text-yellow-600" />
+                  <CardTitle className="flex items-center gap-2">
+                    {order.customerName || order.customer}
+                    <Badge className="ml-2 capitalize border">
+                      {order.status.replace("-", " ")}
+                    </Badge>
+                  </CardTitle>
+                </div>
+                {order.assignedDriverName && (
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <Truck className="h-4 w-4" />
+                    <span>Assigned: {order.assignedDriverName}</span>
+                  </div>
+                )}
+                <div className="flex items-center gap-2">
+                  <Badge className={`${getPaymentStatusColor(order.paymentStatus)} capitalize border`}>
+                    {order.paymentStatus}
+                  </Badge>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 gap-2">
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs text-gray-500">Order ID</span>
+                  <span className="font-mono text-sm">{order.id}</span>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs text-gray-500">Date & Time</span>
+                  <span>{order.date} {order.time}</span>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs text-gray-500">Location</span>
+                  <span>{order.location}</span>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs text-gray-500">Amount</span>
+                  <span className="font-bold text-green-600">RM {order.amount.toFixed(2)}</span>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs text-gray-500">Owner/Manager/Supervisor</span>
+                  <span>{order.ownerManagerSupervisor || '-'}</span>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs text-gray-500">Introducer</span>
+                  <span>{order.introducer || '-'}</span>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs text-gray-500">Job Ref</span>
+                  <span>{order.jobReference || '-'}</span>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs text-gray-500">Area</span>
+                  <span>{order.area || '-'}</span>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs text-gray-500">State</span>
+                  <span>{order.state || '-'}</span>
+                </div>
+                {order.assignedDriverId ? (
+                  <div className="flex flex-col gap-1">
+                    <span className="text-xs text-gray-500">Assigned Driver</span>
+                    <Select
+                      value={order.assignedDriverId}
+                      onValueChange={(driverId) => handleAssignDriver(order.id, driverId)}
+                    >
+                      <SelectTrigger className="w-full text-sm">
+                        <SelectValue placeholder="Select Driver" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {drivers.map((driver) => (
+                          <SelectItem key={driver.id} value={driver.id}>
+                            {driver.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-1">
+                    <span className="text-xs text-gray-500">Assign Driver</span>
+                    <Select
+                      value=""
+                      onValueChange={(driverId) => handleAssignDriver(order.id, driverId)}
+                    >
+                      <SelectTrigger className="w-full text-sm">
+                        <SelectValue placeholder="Assign Driver" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {drivers.map((driver) => (
+                          <SelectItem key={driver.id} value={driver.id}>
+                            {driver.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                {order.manualBookingByDriver && (
+                  <div className="flex flex-col gap-1">
+                    <span className="text-xs text-gray-500">Manual Book by Driver</span>
+                    <span className="text-xs">Name: {order.manualBookingByDriver.name}</span>
+                    <span className="text-xs">Phone: {order.manualBookingByDriver.phone}</span>
+                    <span className="text-xs">Bin#: {order.manualBookingByDriver.binNumber}</span>
+                    <span className="text-xs">Size: {order.manualBookingByDriver.binSize}</span>
+                    <span className="text-xs">Amount: RM {order.manualBookingByDriver.amount}</span>
+                  </div>
+                )}
+              </div>
+              <div className="flex justify-end gap-2 mt-4">
+                <Button size="sm" variant="outline">
+                  <Eye className="h-4 w-4 mr-1" />
+                  View
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 };

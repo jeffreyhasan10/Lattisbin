@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +10,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { CalendarRange, Plus, Phone, Globe, MessageSquare, MapPin, Clock, DollarSign, User, AlertCircle, Zap, Repeat, Bell, TrendingUp, CheckCircle, Navigation, Smartphone } from "lucide-react";
 import DynamicPricingEngine from "@/utils/dynamicPricingEngine";
+import { useOrders } from "@/contexts/OrderContext";
+import { useLocation, useNavigate } from "react-router-dom";
 
 interface Booking {
   id: string;
@@ -26,8 +28,8 @@ interface Booking {
   zone: string;
   scheduledDate: string;
   scheduledTime: string;
-  status: "pending" | "confirmed" | "in-progress" | "completed" | "cancelled";
-  priority: "normal" | "high" | "emergency";
+  status: "pending" | "in-progress" | "completed" | "cancelled" | "assigned";
+  priority: "high" | "medium" | "low";
   recurringBooking: boolean;
   recurringFrequency?: "weekly" | "bi-weekly" | "monthly";
   dynamicPricing: number;
@@ -48,12 +50,36 @@ interface Booking {
   confirmationSent: boolean;
   trackingId: string;
   estimatedDuration: number;
+  // New fields for advanced booking/order management
+  ownerManagerSupervisor?: string;
+  introducer?: string;
+  jobReference?: string;
+  area?: string;
+  state?: string;
+  manualBookingByDriver?: {
+    name: string;
+    phone: string;
+    binNumber: string;
+    binSize: string;
+    amount: number;
+  };
+  doNumber: string; // Delivery Order Number (mandatory)
+  // New fields for driver assignment
+  assignedDriverName?: string;
+  assignedDriverId?: string;
+  assignedDate?: string; // Date when driver was assigned
+  lorryType?: string;
+  paymentStatus?: "pending" | "paid" | "overdue";
 }
 
 const BookingSystem: React.FC = () => {
+  const { addOrder, updateOrder } = useOrders();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [bookings, setBookings] = useState<Booking[]>([
     {
       id: "BOOK001",
+      doNumber: "DO-0001",
       customerName: "ABC Construction Sdn Bhd",
       customerType: "Corporate",
       contactPerson: "Ahmad Rahman",
@@ -67,8 +93,8 @@ const BookingSystem: React.FC = () => {
       zone: "Central KL",
       scheduledDate: "2024-06-15",
       scheduledTime: "09:00",
-      status: "confirmed",
-      priority: "normal",
+      status: "assigned",
+      priority: "medium",
       recurringBooking: false,
       dynamicPricing: 850,
       basePricing: 750,
@@ -91,6 +117,7 @@ const BookingSystem: React.FC = () => {
     },
     {
       id: "BOOK002",
+      doNumber: "DO-0002",
       customerName: "Sarah Lim",
       customerType: "Individual",
       contactPerson: "Sarah Lim",
@@ -105,7 +132,7 @@ const BookingSystem: React.FC = () => {
       scheduledDate: "2024-06-16",
       scheduledTime: "14:00",
       status: "pending",
-      priority: "emergency",
+      priority: "high",
       recurringBooking: true,
       recurringFrequency: "monthly",
       dynamicPricing: 420,
@@ -135,6 +162,43 @@ const BookingSystem: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
 
+  // New state for Assign Driver Modal
+  const [showAssignDriverModal, setShowAssignDriverModal] = useState(false);
+  const [assignDriverBookingId, setAssignDriverBookingId] = useState<string | null>(null);
+  const [assignedDriverNameInput, setAssignedDriverNameInput] = useState("");
+  const [assignedDriverIdInput, setAssignedDriverIdInput] = useState("");
+
+  // Form state for booking fields
+  const [customerName, setCustomerName] = useState("");
+  const [customerType, setCustomerType] = useState("");
+  const [contactPerson, setContactPerson] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [bookingChannel, setBookingChannel] = useState("");
+  const [serviceType, setServiceType] = useState("");
+  const [binSize, setBinSize] = useState("");
+  const [locationField, setLocationField] = useState("");
+  const [zone, setZone] = useState("");
+  const [scheduledDateField, setScheduledDateField] = useState("");
+  const [scheduledTime, setScheduledTime] = useState("");
+  const [priority, setPriority] = useState("");
+  const [recurringBooking, setRecurringBooking] = useState(false);
+  const [recurringFrequency, setRecurringFrequency] = useState("");
+  const [dynamicPricing, setDynamicPricing] = useState(0);
+  const [basePricing, setBasePricing] = useState(0);
+  const [notes, setNotes] = useState("");
+  const [ownerManagerSupervisor, setOwnerManagerSupervisor] = useState("");
+  const [introducer, setIntroducer] = useState("");
+  const [jobReference, setJobReference] = useState("");
+  const [area, setArea] = useState("");
+  const [stateField, setStateField] = useState("");
+  const [manualDriverName, setManualDriverName] = useState("");
+  const [manualDriverPhone, setManualDriverPhone] = useState("");
+  const [manualBinNumber, setManualBinNumber] = useState("");
+  const [manualBinSize, setManualBinSize] = useState("");
+  const [manualAmount, setManualAmount] = useState(0);
+  const [doNumber, setDoNumber] = useState("");
+
   // Zone-based pricing and availability
   const zones = [
     { id: "central-kl", name: "Central KL", multiplier: 1.2, demandLevel: "high" },
@@ -158,7 +222,7 @@ const BookingSystem: React.FC = () => {
   const calculateDynamicPrice = (
     baseBinPrice: number,
     zoneMultiplier: number,
-    priority: string,
+    priority: "high" | "medium" | "low",
     timeSlot: string,
     isRecurring: boolean
   ) => {
@@ -169,8 +233,8 @@ const BookingSystem: React.FC = () => {
     if (isPeakHour) totalPrice *= 1.2;
     
     // Priority pricing
-    if (priority === "emergency") totalPrice += 150;
-    else if (priority === "high") totalPrice += 50;
+    if (priority === "high") totalPrice += 150; // High priority
+    else if (priority === "medium") totalPrice += 50;
     
     // Recurring discount
     if (isRecurring) totalPrice *= 0.9;
@@ -184,8 +248,8 @@ const BookingSystem: React.FC = () => {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "confirmed":
-        return <Badge className="bg-green-100 text-green-800">Confirmed</Badge>;
+      case "assigned":
+        return <Badge className="bg-green-100 text-green-800">Assigned</Badge>;
       case "pending":
         return <Badge className="bg-orange-100 text-orange-800">Pending</Badge>;
       case "in-progress":
@@ -201,15 +265,15 @@ const BookingSystem: React.FC = () => {
 
   const getPriorityBadge = (priority: string) => {
     switch (priority) {
-      case "emergency":
+      case "high":
         return <Badge className="bg-red-100 text-red-800 flex items-center gap-1">
           <Zap className="h-3 w-3" />
-          Emergency
+          High Priority
         </Badge>;
-      case "high":
-        return <Badge className="bg-orange-100 text-orange-800">High Priority</Badge>;
-      case "normal":
-        return <Badge className="bg-gray-100 text-gray-800">Normal</Badge>;
+      case "medium":
+        return <Badge className="bg-orange-100 text-orange-800">Medium Priority</Badge>;
+      case "low":
+        return <Badge className="bg-gray-100 text-gray-800">Low Priority</Badge>;
       default:
         return <Badge variant="secondary">Unknown</Badge>;
     }
@@ -254,13 +318,197 @@ const BookingSystem: React.FC = () => {
     }
   };
 
+  // Prefill logic
+  useEffect(() => {
+    if (location.state && showAddModal) {
+      setCustomerName(location.state.customerName || "");
+      setCustomerType(location.state.customerType || "");
+      setContactPerson(location.state.contactPerson || "");
+      setPhone(location.state.phone || "");
+      setEmail(location.state.email || "");
+      setBookingChannel(location.state.bookingChannel || "");
+      setServiceType(location.state.serviceType || "");
+      setBinSize(location.state.binSize || "");
+      setLocationField(location.state.location || "");
+      setZone(location.state.zone || "");
+      setScheduledDateField(location.state.scheduledDate || "");
+      setScheduledTime(location.state.scheduledTime || "");
+      setPriority(location.state.priority || "");
+      setRecurringBooking(location.state.recurringBooking || false);
+      setRecurringFrequency(location.state.recurringFrequency || "");
+      setDynamicPricing(location.state.dynamicPricing || 0);
+      setBasePricing(location.state.basePricing || 0);
+      setNotes(location.state.notes || "");
+      setOwnerManagerSupervisor(location.state.ownerManagerSupervisor || "");
+      setIntroducer(location.state.introducer || "");
+      setJobReference(location.state.jobReference || "");
+      setArea(location.state.area || "");
+      setStateField(location.state.state || "");
+      setManualDriverName(location.state.manualDriverName || "");
+      setManualDriverPhone(location.state.manualDriverPhone || "");
+      setManualBinNumber(location.state.manualBinNumber || "");
+      setManualBinSize(location.state.manualBinSize || "");
+      setManualAmount(location.state.manualAmount || 0);
+      setDoNumber(location.state.doNumber || "");
+    }
+  }, [location.state, showAddModal]);
+
+  // Add useEffect for dynamic pricing calculation
+  useEffect(() => {
+    // Find selected bin size object
+    const selectedBin = binSizeOptions.find((bin) => bin.id === binSize);
+    // Find selected zone object
+    const selectedZone = zones.find((z) => z.id === zone);
+    const baseBinPrice = selectedBin ? selectedBin.basePrice : 0;
+    const zoneMultiplier = selectedZone ? selectedZone.multiplier : 1;
+    // Determine if recurring
+    const isRecurringBooking = recurringBooking;
+    // Calculate price
+    setBasePricing(baseBinPrice);
+    setDynamicPricing(
+      calculateDynamicPrice(
+        baseBinPrice,
+        zoneMultiplier,
+        priority as "high" | "medium" | "low",
+        scheduledTime,
+        isRecurringBooking
+      )
+    );
+  }, [binSize, zone, priority, scheduledTime, recurringBooking]);
+
+  // Helper to map serviceType to binType for OrderContext
+  const mapServiceTypeToBinType = (service: string): "Recycling" | "Waste" | "Compost" => {
+    switch (service.toLowerCase()) {
+      case "household items":
+      case "office cleanout":
+        return "Recycling"; 
+      case "construction debris removal":
+      case "industrial waste":
+      case "renovation waste":
+        return "Waste";
+      case "hazardous materials":
+        return "Waste"; 
+      default:
+        return "Waste"; // Default to Waste if type is unknown
+    }
+  };
+
+  const handleCreateBooking = () => {
+    if (!doNumber.trim()) {
+      alert("DO Number is required!");
+      return;
+    }
+    const order = {
+      doNumber,
+      customerName,
+      pickupAddress: locationField,
+      deliveryAddress: "",
+      status: "pending" as "pending" | "in-progress" | "completed" | "cancelled" | "assigned",
+      binType: mapServiceTypeToBinType(serviceType), 
+      scheduledDate: scheduledDateField,
+      price: dynamicPricing,
+      driverName: "",
+      estimatedDuration: 1,
+      priority: priority as "high" | "medium" | "low",
+      customer: customerName,
+      customerPhone: phone,
+      location: locationField,
+      date: scheduledDateField,
+      time: scheduledTime,
+      wasteType: serviceType, 
+      lorryType: "",
+      assignedDriverName: "",
+      assignedDriverId: "",
+      assignedDate: "",
+      paymentStatus: "pending" as "pending" | "paid" | "overdue",
+      amount: dynamicPricing,
+      ownerManagerSupervisor,
+      introducer,
+      jobReference,
+      area,
+      state: stateField,
+      manualBookingByDriver: manualDriverName || manualDriverPhone || manualBinNumber || manualBinSize || manualAmount ? {
+        name: manualDriverName,
+        phone: manualDriverPhone,
+        binNumber: manualBinNumber,
+        binSize: manualBinSize,
+        amount: manualAmount,
+      } : undefined,
+    };
+    addOrder(order);
+    setShowAddModal(false);
+    navigate("/admin/orders");
+  };
+
+  const handleAssignDriver = () => {
+    if (!assignDriverBookingId) return;
+
+    // Find the current booking to get existing data
+    const currentBooking = bookings.find(b => b.id === assignDriverBookingId);
+    if (!currentBooking) return;
+
+    // Update the local bookings state first
+    setBookings((prevBookings) =>
+      prevBookings.map((booking) =>
+        booking.id === assignDriverBookingId
+          ? {
+              ...booking,
+              assignedDriverName: assignedDriverNameInput,
+              assignedDriverId: assignedDriverIdInput,
+              assignedDate: new Date().toISOString().split('T')[0],
+              status: "assigned" 
+            }
+          : booking
+      )
+    );
+
+    // Prepare updated order for OrderContext
+    const updatedOrderForContext = {
+      doNumber: currentBooking.doNumber,
+      customerName: currentBooking.customerName,
+      pickupAddress: currentBooking.location,
+      deliveryAddress: "",
+      status: "assigned" as "pending" | "in-progress" | "completed" | "cancelled" | "assigned",
+      binType: mapServiceTypeToBinType(currentBooking.serviceType), 
+      scheduledDate: currentBooking.scheduledDate,
+      price: currentBooking.dynamicPricing,
+      driverName: assignedDriverNameInput, 
+      estimatedDuration: currentBooking.estimatedDuration,
+      priority: currentBooking.priority, 
+      customer: currentBooking.customerName,
+      customerPhone: currentBooking.phone,
+      location: currentBooking.location,
+      date: currentBooking.scheduledDate,
+      time: currentBooking.scheduledTime,
+      wasteType: currentBooking.serviceType, 
+      lorryType: currentBooking.lorryType || "",
+      assignedDriverName: assignedDriverNameInput,
+      assignedDriverId: assignedDriverIdInput,
+      assignedDate: new Date().toISOString().split('T')[0],
+      paymentStatus: currentBooking.paymentStatus || "pending",
+      amount: currentBooking.dynamicPricing,
+      ownerManagerSupervisor: currentBooking.ownerManagerSupervisor,
+      introducer: currentBooking.introducer,
+      jobReference: currentBooking.jobReference,
+      area: currentBooking.area,
+      state: currentBooking.state,
+      manualBookingByDriver: currentBooking.manualBookingByDriver,
+    };
+    updateOrder(currentBooking.id, updatedOrderForContext);
+
+    setShowAssignDriverModal(false);
+    setAssignDriverBookingId(null);
+    setAssignedDriverNameInput("");
+    setAssignedDriverIdInput("");
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
             <CalendarRange className="h-6 w-6 text-blue-600" />
-            Phase 7: Advanced Multi-Channel Booking System
+            Advanced Multi-Channel Booking System
           </h2>
           <p className="text-gray-600 mt-1">Multi-channel integration with dynamic pricing, zone optimization, and automated customer management</p>
         </div>
@@ -412,8 +660,12 @@ const BookingSystem: React.FC = () => {
               <div className="grid grid-cols-2 gap-6 py-4">
                 <div className="space-y-4">
                   <div className="space-y-2">
+                    <Label>DO Number <span className="text-red-500">*</span></Label>
+                    <Input value={doNumber} onChange={e => setDoNumber(e.target.value)} placeholder="Enter DO Number" required />
+                  </div>
+                  <div className="space-y-2">
                     <Label>Booking Channel</Label>
-                    <Select>
+                    <Select value={bookingChannel} onValueChange={setBookingChannel}>
                       <SelectTrigger>
                         <SelectValue placeholder="How did they book?" />
                       </SelectTrigger>
@@ -427,11 +679,11 @@ const BookingSystem: React.FC = () => {
                   </div>
                   <div className="space-y-2">
                     <Label>Customer Name</Label>
-                    <Input placeholder="Company/Individual name" />
+                    <Input value={customerName} onChange={(e) => setCustomerName(e.target.value)} placeholder="Company/Individual name" />
                   </div>
                   <div className="space-y-2">
                     <Label>Customer Type</Label>
-                    <Select>
+                    <Select value={customerType} onValueChange={setCustomerType}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select type" />
                       </SelectTrigger>
@@ -445,19 +697,19 @@ const BookingSystem: React.FC = () => {
                   </div>
                   <div className="space-y-2">
                     <Label>Contact Person</Label>
-                    <Input placeholder="Contact person name" />
+                    <Input value={contactPerson} onChange={(e) => setContactPerson(e.target.value)} placeholder="Contact person name" />
                   </div>
                   <div className="space-y-2">
                     <Label>Phone Number</Label>
-                    <Input placeholder="+60123456789" />
+                    <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+60123456789" />
                   </div>
                   <div className="space-y-2">
                     <Label>Email Address</Label>
-                    <Input type="email" placeholder="customer@example.com" />
+                    <Input value={email} onChange={(e) => setEmail(e.target.value)} type="email" placeholder="customer@example.com" />
                   </div>
                   <div className="space-y-2">
                     <Label>Service Type</Label>
-                    <Select>
+                    <Select value={serviceType} onValueChange={setServiceType}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select service" />
                       </SelectTrigger>
@@ -476,7 +728,7 @@ const BookingSystem: React.FC = () => {
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label>Bin Size with Dynamic Pricing</Label>
-                    <Select>
+                    <Select value={binSize} onValueChange={setBinSize}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select bin size" />
                       </SelectTrigger>
@@ -491,8 +743,8 @@ const BookingSystem: React.FC = () => {
                   </div>
                   <div className="space-y-2">
                     <Label>Collection Address & Zone</Label>
-                    <Textarea placeholder="Complete address with landmarks" />
-                    <Select>
+                    <Textarea value={locationField} onChange={(e) => setLocationField(e.target.value)} placeholder="Complete address with landmarks" />
+                    <Select value={zone} onValueChange={setZone}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select zone" />
                       </SelectTrigger>
@@ -516,7 +768,7 @@ const BookingSystem: React.FC = () => {
                   </div>
                   <div className="space-y-2">
                     <Label>Preferred Time Slot</Label>
-                    <Select>
+                    <Select value={scheduledTime} onValueChange={setScheduledTime}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select time slot" />
                       </SelectTrigger>
@@ -532,69 +784,70 @@ const BookingSystem: React.FC = () => {
                   </div>
                   <div className="space-y-2">
                     <Label>Priority Level</Label>
-                    <Select>
+                    <Select value={priority} onValueChange={setPriority}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select priority" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="normal">Normal</SelectItem>
-                        <SelectItem value="high">High (+RM 50)</SelectItem>
-                        <SelectItem value="emergency">Emergency (+RM 150)</SelectItem>
+                        <SelectItem value="low">Low</SelectItem>
+                        <SelectItem value="medium">Medium (+RM 50)</SelectItem>
+                        <SelectItem value="high">High (+RM 150)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
 
                 <div className="col-span-2 space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-3 gap-4">
                     <div className="space-y-2">
-                      <Label>Recurring Booking</Label>
-                      <Select>
-                        <SelectTrigger>
-                          <SelectValue placeholder="One-time or recurring?" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="one-time">One-time booking</SelectItem>
-                          <SelectItem value="weekly">Weekly (-10% discount)</SelectItem>
-                          <SelectItem value="bi-weekly">Bi-weekly (-10% discount)</SelectItem>
-                          <SelectItem value="monthly">Monthly (-10% discount)</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <Label>Owner/Manager/Supervisor Bin</Label>
+                      <Input value={ownerManagerSupervisor} onChange={(e) => setOwnerManagerSupervisor(e.target.value)} placeholder="Assign owner/manager/supervisor" />
                     </div>
                     <div className="space-y-2">
-                      <Label>Communication Preference</Label>
-                      <Select>
-                        <SelectTrigger>
-                          <SelectValue placeholder="How to send updates?" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="sms">SMS Text</SelectItem>
-                          <SelectItem value="email">Email</SelectItem>
-                          <SelectItem value="whatsapp">WhatsApp</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <Label>Introducer</Label>
+                      <Input value={introducer} onChange={(e) => setIntroducer(e.target.value)} placeholder="Introducer name" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Job Reference (for commission)</Label>
+                      <Input value={jobReference} onChange={(e) => setJobReference(e.target.value)} placeholder="Job reference code" />
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label>Customer Preferences & Special Instructions</Label>
-                    <Textarea placeholder="Preferred time slots, access instructions, special requirements..." />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Area</Label>
+                      <Input value={area} onChange={(e) => setArea(e.target.value)} placeholder="Area (e.g. Ampang, PJ)" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>State</Label>
+                      <Input value={stateField} onChange={(e) => setStateField(e.target.value)} placeholder="State (e.g. Selangor, KL)" />
+                    </div>
+                  </div>
+                  <div className="p-4 bg-gray-50 rounded-lg space-y-2">
+                    <h4 className="font-semibold mb-2">Manual Booking by Driver (if applicable)</h4>
+                    <div className="grid grid-cols-5 gap-2">
+                      <Input value={manualDriverName} onChange={(e) => setManualDriverName(e.target.value)} placeholder="Driver Name" />
+                      <Input value={manualDriverPhone} onChange={(e) => setManualDriverPhone(e.target.value)} placeholder="Phone Number" />
+                      <Input value={manualBinNumber} onChange={(e) => setManualBinNumber(e.target.value)} placeholder="Bin Number" />
+                      <Input value={manualBinSize} onChange={(e) => setManualBinSize(e.target.value)} placeholder="Bin Size" />
+                      <Input value={manualAmount} onChange={(e) => setManualAmount(Number(e.target.value))} type="number" />
+                    </div>
                   </div>
                   <div className="p-4 bg-blue-50 rounded-lg">
                     <h4 className="font-semibold mb-2">Dynamic Price Preview</h4>
                     <div className="text-sm space-y-1">
-                      <div>Base Rate: RM 280</div>
+                      <div>Base Rate: RM {basePricing}</div>
                       <div>Zone Multiplier (Central KL): +20%</div>
                       <div>Peak Hour Surcharge: +20%</div>
                       <div>High Priority: +RM 50</div>
                       <div>Recurring Discount: -10%</div>
-                      <div className="font-bold border-t pt-1 text-lg">Final Price: RM 388</div>
+                      <div className="font-bold border-t pt-1 text-lg">Final Price: RM {dynamicPricing}</div>
                     </div>
                   </div>
                 </div>
               </div>
               <div className="flex justify-end gap-2">
                 <Button variant="outline" onClick={() => setShowAddModal(false)}>Cancel</Button>
-                <Button onClick={() => setShowAddModal(false)}>Create Booking</Button>
+                <Button onClick={handleCreateBooking}>Create Booking</Button>
               </div>
             </DialogContent>
           </Dialog>
@@ -619,8 +872,8 @@ const BookingSystem: React.FC = () => {
             <div className="flex items-center gap-2">
               <Zap className="h-5 w-5 text-red-600" />
               <div>
-                <p className="text-sm text-gray-600">Emergency</p>
-                <p className="text-2xl font-bold">{bookings.filter(b => b.priority === 'emergency').length}</p>
+                <p className="text-sm text-gray-600">High Priority</p>
+                <p className="text-2xl font-bold">{bookings.filter(b => b.priority === 'high').length}</p>
               </div>
             </div>
           </CardContent>
@@ -698,7 +951,7 @@ const BookingSystem: React.FC = () => {
                 <div className="flex items-center gap-2">
                   {getPriorityBadge(booking.priority)}
                   {getStatusBadge(booking.status)}
-                  {!booking.confirmationSent && (
+                  {booking.status === 'pending' && !booking.confirmationSent && (
                     <Badge className="bg-orange-100 text-orange-800">
                       Confirmation Pending
                     </Badge>
@@ -708,6 +961,10 @@ const BookingSystem: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                  <p className="text-sm text-gray-500">DO Number</p>
+                  <p className="font-medium text-blue-700">{booking.doNumber}</p>
+                </div>
                 <div>
                   <p className="text-sm text-gray-500">Service & Bin Size</p>
                   <p className="font-medium">{booking.serviceType}</p>
@@ -799,7 +1056,7 @@ const BookingSystem: React.FC = () => {
                   <MapPin className="h-3 w-3 mr-1" />
                   Route Planning
                 </Button>
-                {!booking.confirmationSent && (
+                {booking.status === 'pending' && !booking.confirmationSent && (
                   <Button 
                     size="sm" 
                     onClick={() => sendBookingConfirmation(booking.id)}
@@ -808,7 +1065,16 @@ const BookingSystem: React.FC = () => {
                     Send Confirmation
                   </Button>
                 )}
-                <Button size="sm">
+                {/* Assign Driver Button */}
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    setAssignDriverBookingId(booking.id);
+                    setAssignedDriverNameInput(booking.assignedDriverName || "");
+                    setAssignedDriverIdInput(booking.assignedDriverId || "");
+                    setShowAssignDriverModal(true);
+                  }}
+                >
                   Assign Driver
                 </Button>
               </div>
@@ -816,6 +1082,41 @@ const BookingSystem: React.FC = () => {
           </Card>
         ))}
       </div>
+
+      {/* Assign Driver Dialog */}
+      <Dialog open={showAssignDriverModal} onOpenChange={setShowAssignDriverModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Assign Driver to Booking</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="driverName">Driver Name</Label>
+              <Input
+                id="driverName"
+                value={assignedDriverNameInput}
+                onChange={(e) => setAssignedDriverNameInput(e.target.value)}
+                placeholder="Enter driver's name"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="driverId">Driver ID (Optional)</Label>
+              <Input
+                id="driverId"
+                value={assignedDriverIdInput}
+                onChange={(e) => setAssignedDriverIdInput(e.target.value)}
+                placeholder="Enter driver's ID"
+              />
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setShowAssignDriverModal(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleAssignDriver}>Assign</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -1,10 +1,10 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Bell, CheckCircle, Clock, AlertTriangle, Truck, MapPin, DollarSign, X } from "lucide-react";
 import { useOrders } from "@/contexts/OrderContext";
+import ReactDOM from "react-dom";
 
 interface Notification {
   id: string;
@@ -24,6 +24,8 @@ const LiveNotifications: React.FC = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
+  const [dropdownPosition, setDropdownPosition] = useState<{ top: number; left: number } | null>(null);
+  const buttonRef = React.useRef<HTMLButtonElement>(null);
 
   // Generate real-time notifications
   useEffect(() => {
@@ -147,12 +149,42 @@ const LiveNotifications: React.FC = () => {
     }
   };
 
+  // Open dropdown and set position
+  const handleOpen = () => {
+    setIsOpen((prev) => {
+      if (!prev && buttonRef.current) {
+        const rect = buttonRef.current.getBoundingClientRect();
+        setDropdownPosition({
+          top: rect.bottom + window.scrollY,
+          left: rect.right - 384 + window.scrollX, // 384px = w-96
+        });
+      }
+      return !prev;
+    });
+  };
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleClick = (e: MouseEvent) => {
+      if (
+        buttonRef.current &&
+        !buttonRef.current.contains(e.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [isOpen]);
+
   return (
     <div className="relative">
       <Button
+        ref={buttonRef}
         variant="ghost"
         size="sm"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={handleOpen}
         className="relative"
       >
         <Bell className="h-5 w-5" />
@@ -163,8 +195,11 @@ const LiveNotifications: React.FC = () => {
         )}
       </Button>
 
-      {isOpen && (
-        <Card className="absolute right-0 top-full mt-2 w-96 max-h-96 overflow-hidden shadow-lg z-50">
+      {isOpen && dropdownPosition && ReactDOM.createPortal(
+        <Card
+          className="fixed w-96 max-h-96 overflow-hidden shadow-lg z-[9999]"
+          style={{ top: dropdownPosition.top, left: dropdownPosition.left }}
+        >
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg flex items-center gap-2">
@@ -226,7 +261,6 @@ const LiveNotifications: React.FC = () => {
                         <p className="text-xs text-gray-400 mt-1">
                           {notification.timestamp.toLocaleTimeString()}
                         </p>
-                        
                         {notification.actionable && (
                           <div className="mt-2 flex gap-2">
                             <Button size="sm" variant="outline" className="text-xs">
@@ -241,7 +275,8 @@ const LiveNotifications: React.FC = () => {
               )}
             </div>
           </CardContent>
-        </Card>
+        </Card>,
+        document.body
       )}
     </div>
   );

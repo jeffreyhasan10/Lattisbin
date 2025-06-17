@@ -196,7 +196,7 @@ const ExternalLorryNetwork: React.FC = () => {
         <div>
           <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
             <MapPin className="h-6 w-6 text-blue-600" />
-            Phase 6: External Lorry Network & Vendor Management
+              Lorry Network & Vendor Management
           </h2>
           <p className="text-gray-600 mt-1">Advanced third-party rental management with dynamic pricing, SLA monitoring, and performance analytics</p>
         </div>

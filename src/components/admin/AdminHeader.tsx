@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,6 +25,7 @@ import {
 } from "lucide-react";
 import LiveNotifications from "./LiveNotifications";
 import { useOrders } from "@/contexts/OrderContext";
+import { useNavigate } from "react-router-dom";
 
 interface AdminHeaderProps {
   onSidebarToggle: () => void;
@@ -39,6 +39,7 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({
   title 
 }) => {
   const { orders, drivers } = useOrders();
+  const navigate = useNavigate();
   
   // Real-time stats for header
   const activeOrders = orders.filter(o => ['assigned', 'in-progress'].includes(o.status)).length;
@@ -154,7 +155,10 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({
               <span>Security</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-red-600 hover:bg-red-50 focus:bg-red-50">
+            <DropdownMenuItem 
+              className="text-red-600 hover:bg-red-50 focus:bg-red-50"
+              onClick={() => navigate("/")}
+            >
               <LogOut className="mr-2 h-4 w-4" />
               <span>Log out</span>
             </DropdownMenuItem>
