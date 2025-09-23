@@ -47,19 +47,19 @@ const ContactSection = () => {
   };
 
   return (
-    <section id="contact" className="py-16 bg-gray-50">
+    <section id="contact" className="py-20 bg-gradient-to-br from-gray-50 to-blue-50/20">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-4">Get in <span className="text-gradient">Touch</span></h2>
-          <p className="text-lg text-gray-700 max-w-3xl mx-auto">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl sm:text-4xl font-bold mb-6">Get in <span className="text-gradient">Touch</span></h2>
+          <p className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
             Have questions about our services or the Bin Management System? We're here to help.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Left column - Contact Form */}
-          <div className="bg-white rounded-2xl shadow-md p-8 opacity-0 animate-fade-in">
-            <h3 className="text-2xl font-semibold mb-6">Send us a Message</h3>
+          <div className="bg-white rounded-3xl shadow-lg p-10 opacity-0 animate-fade-in">
+            <h3 className="text-2xl font-bold mb-8 text-gray-900">Send us a Message</h3>
             
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="space-y-2">
@@ -121,57 +121,57 @@ const ContactSection = () => {
           
           {/* Right column - Contact Info & Map */}
           <div className="opacity-0 animate-fade-in animate-delay-200">
-            <div className="bg-white rounded-2xl shadow-md p-8 mb-8">
-              <h3 className="text-2xl font-semibold mb-6">Contact Information</h3>
+            <div className="bg-white rounded-3xl shadow-lg p-10 mb-8">
+              <h3 className="text-2xl font-bold mb-8 text-gray-900">Contact Information</h3>
               
-              <div className="space-y-6">
-                <div className="flex">
-                  <div className="bg-simatex-purple/10 p-3 rounded-full mr-4">
-                    <Phone className="text-simatex-purple" size={20} />
+              <div className="space-y-8">
+                <div className="flex items-start">
+                  <div className="bg-gradient-to-br from-blue-100 to-purple-100 p-4 rounded-xl mr-6">
+                    <Phone className="text-blue-600" size={24} />
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-700">Phone</p>
-                    <p>+60 3-2345 6789</p>
+                    <p className="font-semibold text-gray-900 text-lg">Phone</p>
+                    <p className="text-gray-700">+60 3-2345 6789</p>
                     <p className="text-sm text-gray-500">Mon-Fri, 9:00 AM - 6:00 PM</p>
                   </div>
                 </div>
                 
-                <div className="flex">
-                  <div className="bg-simatex-purple/10 p-3 rounded-full mr-4">
-                    <Mail className="text-simatex-purple" size={20} />
+                <div className="flex items-start">
+                  <div className="bg-gradient-to-br from-blue-100 to-purple-100 p-4 rounded-xl mr-6">
+                    <Mail className="text-blue-600" size={24} />
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-700">Email</p>
-                    <p>info@lattisbin.com.my</p>
+                    <p className="font-semibold text-gray-900 text-lg">Email</p>
+                    <p className="text-gray-700">info@lattisbin.com.my</p>
                     <p className="text-sm text-gray-500">We reply within 24 hours</p>
                   </div>
                 </div>
                 
-                <div className="flex">
-                  <div className="bg-simatex-purple/10 p-3 rounded-full mr-4">
-                    <MapPin className="text-simatex-purple" size={20} />
+                <div className="flex items-start">
+                  <div className="bg-gradient-to-br from-blue-100 to-purple-100 p-4 rounded-xl mr-6">
+                    <MapPin className="text-blue-600" size={24} />
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-700">Office</p>
-                    <p>123 Jalan Ampang, 50450 Kuala Lumpur, Malaysia</p>
+                    <p className="font-semibold text-gray-900 text-lg">Office</p>
+                    <p className="text-gray-700">123 Jalan Ampang, 50450 Kuala Lumpur, Malaysia</p>
                     <p className="text-sm text-gray-500">Our headquarters</p>
                   </div>
                 </div>
                 
-                <div className="flex">
-                  <div className="bg-simatex-purple/10 p-3 rounded-full mr-4">
-                    <MessageSquare className="text-simatex-purple" size={20} />
+                <div className="flex items-start">
+                  <div className="bg-gradient-to-br from-blue-100 to-purple-100 p-4 rounded-xl mr-6">
+                    <MessageSquare className="text-blue-600" size={24} />
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-700">WhatsApp</p>
-                    <p>+60 12-345 6789</p>
+                    <p className="font-semibold text-gray-900 text-lg">WhatsApp</p>
+                    <p className="text-gray-700">+60 12-345 6789</p>
                     <p className="text-sm text-gray-500">Quick response for urgent inquiries</p>
                   </div>
                 </div>
               </div>
             </div>
             
-            <div className="rounded-2xl overflow-hidden h-64 shadow-md">
+            <div className="rounded-3xl overflow-hidden h-80 shadow-lg">
               {/* Google Maps iframe - Replace with your actual location */}
               <iframe
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3983.7588367302054!2d101.7125631147513!3d3.1518936541363086!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31cc37d0606db20d%3A0x75f1a5250f75b1e1!2sJalan%20Ampang%2C%20Kuala%20Lumpur%2C%20Federal%20Territory%20of%20Kuala%20Lumpur!5e0!3m2!1sen!2smy!4v1619049520346!5m2!1sen!2smy"

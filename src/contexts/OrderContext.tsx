@@ -18,13 +18,13 @@ interface OrderContextType {
   updateDriver: (id: string, updates: Partial<DriverType>) => void;
   deleteDriver: (id: string) => void;
   assignOrderToDriver: (orderId: string, driverId: string) => void;
-  optimizeRoutes: (driverId: string) => any;
+  optimizeRoutes: (driverId: string) => unknown;
   calculateDynamicPrice: (order: Order) => number;
   scheduleMaintenanceAlert: (vehicleId: string) => void;
-  scanQRCode: (qrData: string) => Promise<any>;
+  scanQRCode: (qrData: string) => Promise<unknown>;
   capturePhoto: (file: File) => Promise<string>;
   syncOfflineData: () => Promise<void>;
-  getDriverByCredentials: (username: string, password: string) => DriverType | null;
+  getDriverByCredentials: (driverId: string, lorryNumber: string) => DriverType | null;
   startOrder: (orderId: string) => void;
   completeOrder: (orderId: string) => void;
   cancelOrder: (orderId: string, reason: string) => void;
@@ -106,6 +106,8 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         vehicle: "Truck-001",
         location: "Downtown",
         icNumber: "920815-14-5678",
+        driverIdPermanent: "DRV001",
+        assignedLorryNumbers: ["LORRY-1001", "LORRY-1002"],
         completedOrders: 245,
         totalEarnings: 5000
       },
@@ -121,6 +123,8 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         vehicle: "Truck-002",
         location: "Uptown",
         icNumber: "880422-05-1234",
+        driverIdPermanent: "DRV002",
+        assignedLorryNumbers: ["LORRY-2001"],
         completedOrders: 180,
         totalEarnings: 4200
       }
@@ -183,7 +187,7 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
-  const optimizeRoutes = (driverId: string) => {
+  const optimizeRoutes = (driverId: string): unknown => {
     const driverOrders = orders.filter(o => 
       o.status === "assigned" && 
       drivers.find(d => d.id === driverId)?.name === o.driverName
@@ -207,7 +211,7 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setMaintenanceSchedules(prev => [...prev, schedule]);
   };
 
-  const scanQRCode = async (qrData: string) => {
+  const scanQRCode = async (qrData: string): Promise<unknown> => {
     return await mobileIntegrationService.processQRScan(qrData);
   };
 
@@ -219,8 +223,14 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     await mobileIntegrationService.syncOfflineData();
   };
 
-  const getDriverByCredentials = (username: string, password: string): DriverType | null => {
-    return drivers.find(d => d.email === username || d.name === username) || null;
+  const getDriverByCredentials = (driverId: string, lorryNumber: string): DriverType | null => {
+    const normalizedId = driverId.trim().toUpperCase();
+    const normalizedLorry = lorryNumber.trim().toUpperCase();
+    const found = drivers.find(d => 
+      (d.driverIdPermanent?.toUpperCase() === normalizedId) &&
+      (d.assignedLorryNumbers || []).map(x => x.toUpperCase()).includes(normalizedLorry)
+    );
+    return found || null;
   };
 
   const startOrder = (orderId: string) => {
@@ -235,8 +245,8 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     updateOrder(orderId, { status: "cancelled" });
   };
 
-  const updatePaymentStatus = (orderId: string, status: string) => {
-    updateOrder(orderId, { paymentStatus: status as any });
+  const updatePaymentStatus = (orderId: string, status: Order['paymentStatus']) => {
+    updateOrder(orderId, { paymentStatus: status });
   };
 
   const value: OrderContextType = {

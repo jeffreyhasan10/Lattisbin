@@ -41,6 +41,10 @@ export interface Driver {
   completedOrders?: number;
   totalEarnings?: number;
   
+  // Authentication fields
+  driverIdPermanent?: string; // Permanent Driver ID used for login
+  assignedLorryNumbers?: string[]; // List of lorry numbers the driver may operate
+  
   // Enhanced driver profile fields
   address?: string;
   emergencyContact?: string;

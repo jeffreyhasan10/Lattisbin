@@ -12,8 +12,8 @@ const HeroSection = () => {
   return (
     <section id="home" className="relative pt-28 pb-24 overflow-hidden">
       {/* Animated background elements */}
-      <div className="absolute top-40 right-0 w-96 h-96 bg-simatex-purple/5 rounded-full filter blur-3xl animate-pulse-light"></div>
-      <div className="absolute bottom-0 left-20 w-72 h-72 bg-simatex-blue/5 rounded-full filter blur-3xl animate-pulse-light"></div>
+      <div className="absolute top-40 right-0 w-96 h-96 bg-simatex-purple/10 rounded-full filter blur-3xl animate-pulse-light"></div>
+      <div className="absolute bottom-0 left-20 w-72 h-72 bg-simatex-blue/10 rounded-full filter blur-3xl animate-pulse-light"></div>
       
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="flex flex-col lg:flex-row items-center">
@@ -24,8 +24,8 @@ const HeroSection = () => {
               <span className="text-gradient">Lattis Bin</span>
             </h1>
             <p className="text-lg text-gray-700 mb-8 animate-fade-in animate-delay-200">
-              Premier Malaysian waste disposal services with innovative bin management solutions. 
-              From scrap metal to bulk trash, we handle it all with efficiency and sustainability.
+              Malaysia’s trusted bin management platform for businesses and communities. 
+              From recycling to bulk waste, we deliver fast, reliable and sustainable service.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 animate-fade-in animate-delay-300">
               <Button 
@@ -59,8 +59,8 @@ const HeroSection = () => {
               {/* Main image */}
               <div className="rounded-2xl overflow-hidden shadow-xl animate-fade-in animate-delay-200">
                 <img
-                  src="./assets/lattis2.jpg" 
-                  alt="Simatex Bin Management System Dashboard Preview"
+                  src="/assets/lattis2.jpg" 
+                  alt="Lattis Bin Management System preview"
                   className="w-full h-auto"
                 />
               </div>

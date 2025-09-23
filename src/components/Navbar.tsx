@@ -33,8 +33,8 @@ const Navbar = () => {
       <nav
         className={`fixed w-full z-50 transition-all duration-300 ${
           isScrolled
-            ? "bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-200/20"
-            : "bg-white/90 backdrop-blur-sm shadow-sm border-b border-white/20"
+            ? "bg-white/90 backdrop-blur-md shadow-lg border-b border-gray-200/40"
+            : "bg-transparent"
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -60,7 +60,7 @@ const Navbar = () => {
                 <a
                   key={item.name}
                   href={item.href}
-                  className="font-medium transition-colors hover:text-blue-600 text-gray-700"
+                  className="relative font-medium text-gray-700/90 hover:text-blue-700 transition-colors after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-0 hover:after:w-full after:bg-blue-600 after:transition-all after:duration-300"
                 >
                   {item.name}
                 </a>
@@ -72,13 +72,13 @@ const Navbar = () => {
               <Button
                 variant="ghost"
                 onClick={() => setShowLoginModal(true)}
-                className="font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50"
+                className="font-medium text-gray-700 hover:text-blue-700 hover:bg-blue-50"
               >
                 Login
               </Button>
               <Button
                 onClick={() => setShowSignupModal(true)}
-                className="bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transition-all duration-300"
+                className="rounded-full px-5 bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transition-all duration-300"
               >
                 Get Started
               </Button>

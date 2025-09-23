@@ -7,8 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Shield, Truck, User, Phone, CreditCard } from "lucide-react";
+import { Shield, Truck, User } from "lucide-react";
 import { toast } from "sonner";
+import { useOrders } from "@/contexts/OrderContext";
 
 interface UnifiedLoginProps {
   isOpen: boolean;
@@ -21,10 +22,10 @@ const UnifiedLogin = ({ isOpen, onClose }: UnifiedLoginProps) => {
     email: "",
     password: ""
   });
+  const { getDriverByCredentials } = useOrders();
   const [driverCredentials, setDriverCredentials] = useState({
-    driverName: "",
-    icNumber: "",
-    phoneNumber: ""
+    driverId: "",
+    lorryNumber: ""
   });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -54,32 +55,20 @@ const UnifiedLogin = ({ isOpen, onClose }: UnifiedLoginProps) => {
     setTimeout(() => {
       setIsLoading(false);
       
-      if (driverCredentials.driverName === "Ahmad Rahman" && 
-          driverCredentials.icNumber === "920815-14-5678" && 
-          driverCredentials.phoneNumber === "012-3456789") {
+      const driver = getDriverByCredentials(driverCredentials.driverId, driverCredentials.lorryNumber);
+      if (driver) {
         toast.success("Driver login successful!");
         localStorage.setItem("driverSession", JSON.stringify({
-          name: "Ahmad Rahman",
-          ic: "920815-14-5678",
-          phone: "012-3456789",
-          driverId: "DRV001"
-        }));
-        onClose();
-        navigate("/driver/dashboard");
-      } else if (driverCredentials.driverName === "Lim Wei Ming" && 
-                 driverCredentials.icNumber === "880422-05-1234" && 
-                 driverCredentials.phoneNumber === "017-8901234") {
-        toast.success("Driver login successful!");
-        localStorage.setItem("driverSession", JSON.stringify({
-          name: "Lim Wei Ming",
-          ic: "880422-05-1234",
-          phone: "017-8901234",
-          driverId: "DRV002"
+          name: driver.name,
+          driverIdPermanent: driver.driverIdPermanent,
+          lorryNumber: driverCredentials.lorryNumber,
+          phone: driver.phone,
+          driverId: driver.id
         }));
         onClose();
         navigate("/driver/dashboard");
       } else {
-        toast.error("Invalid driver credentials. Try Ahmad Rahman / 920815-14-5678 / 012-3456789");
+        toast.error("Invalid driver credentials. Use Driver ID + Lorry Number from demo.");
       }
     }, 1000);
   };
@@ -155,52 +144,38 @@ const UnifiedLogin = ({ isOpen, onClose }: UnifiedLoginProps) => {
               <CardContent className="p-0">
                 <form onSubmit={handleDriverLogin} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="driver-name" className="text-sm font-medium flex items-center gap-2">
+                    <Label htmlFor="driver-id" className="text-sm font-medium flex items-center gap-2">
                       <User className="h-4 w-4" />
-                      Full Name
+                      Driver ID
                     </Label>
                     <Input
-                      id="driver-name"
+                      id="driver-id"
                       type="text"
-                      placeholder="Enter your full name"
-                      value={driverCredentials.driverName}
-                      onChange={(e) => setDriverCredentials(prev => ({...prev, driverName: e.target.value}))}
+                      placeholder="e.g. DRV001"
+                      value={driverCredentials.driverId}
+                      onChange={(e) => setDriverCredentials(prev => ({...prev, driverId: e.target.value}))}
                       className="h-11"
                       required
                     />
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="driver-ic" className="text-sm font-medium flex items-center gap-2">
-                      <CreditCard className="h-4 w-4" />
-                      IC Number
+                    <Label htmlFor="lorry-number" className="text-sm font-medium flex items-center gap-2">
+                      <Truck className="h-4 w-4" />
+                      Lorry Number
                     </Label>
                     <Input
-                      id="driver-ic"
+                      id="lorry-number"
                       type="text"
-                      placeholder="YYMMDD-PB-XXXX"
-                      value={driverCredentials.icNumber}
-                      onChange={(e) => setDriverCredentials(prev => ({...prev, icNumber: e.target.value}))}
+                      placeholder="e.g. LORRY-1001"
+                      value={driverCredentials.lorryNumber}
+                      onChange={(e) => setDriverCredentials(prev => ({...prev, lorryNumber: e.target.value}))}
                       className="h-11"
                       required
                     />
                   </div>
                   
-                  <div className="space-y-2">
-                    <Label htmlFor="driver-phone" className="text-sm font-medium flex items-center gap-2">
-                      <Phone className="h-4 w-4" />
-                      Phone Number
-                    </Label>
-                    <Input
-                      id="driver-phone"
-                      type="tel"
-                      placeholder="012-3456789"
-                      value={driverCredentials.phoneNumber}
-                      onChange={(e) => setDriverCredentials(prev => ({...prev, phoneNumber: e.target.value}))}
-                      className="h-11"
-                      required
-                    />
-                  </div>
+                  
                   
                   <Button 
                     type="submit" 
@@ -214,8 +189,8 @@ const UnifiedLogin = ({ isOpen, onClose }: UnifiedLoginProps) => {
                 <div className="mt-4 p-3 bg-green-50 rounded-md border border-green-200">
                   <p className="text-sm text-green-800 font-medium">Demo Credentials:</p>
                   <div className="text-xs text-green-600 space-y-1 mt-1">
-                    <p>Ahmad Rahman / 920815-14-5678 / 012-3456789</p>
-                    <p>Lim Wei Ming / 880422-05-1234 / 017-8901234</p>
+                    <p>Driver ID: DRV001  —  Lorry: LORRY-1001 or LORRY-1002</p>
+                    <p>Driver ID: DRV002  —  Lorry: LORRY-2001</p>
                   </div>
                 </div>
               </CardContent>

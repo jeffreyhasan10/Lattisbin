@@ -71,11 +71,11 @@ const TestimonialsSection = () => {
   }, []);
 
   return (
-    <section id="testimonials" className="py-16">
+    <section id="testimonials" className="py-20 bg-white">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-4">Client <span className="text-gradient">Testimonials</span></h2>
-          <p className="text-lg text-gray-700 max-w-3xl mx-auto">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl sm:text-4xl font-bold mb-6">Client <span className="text-gradient">Testimonials</span></h2>
+          <p className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
             See what our clients throughout Malaysia have to say about our waste management services.
           </p>
         </div>
@@ -101,7 +101,7 @@ const TestimonialsSection = () => {
           {/* Testimonial carousel */}
           <div 
             ref={containerRef} 
-            className="overflow-hidden rounded-2xl shadow-lg border border-gray-100"
+            className="overflow-hidden rounded-3xl shadow-xl border border-gray-100"
           >
             <div 
               className="flex transition-transform duration-500 ease-in-out"
@@ -110,11 +110,11 @@ const TestimonialsSection = () => {
               {testimonials.map((testimonial, index) => (
                 <div 
                   key={index} 
-                  className="min-w-full bg-white p-8 md:p-12"
+                  className="min-w-full bg-gradient-to-br from-white to-gray-50/50 p-10 md:p-16"
                 >
                   <div className="flex flex-col md:flex-row items-start gap-8">
                     <div className="flex-shrink-0">
-                      <div className="w-20 h-20 md:w-24 md:h-24 rounded-full overflow-hidden border-4 border-simatex-purple/20">
+                      <div className="w-20 h-20 md:w-24 md:h-24 rounded-full overflow-hidden border-4 border-blue-200 shadow-lg">
                         {testimonial.image ? (
                           <img 
                             src={testimonial.image} 
@@ -122,8 +122,8 @@ const TestimonialsSection = () => {
                             className="w-full h-full object-cover"
                           />
                         ) : (
-                          <div className="w-full h-full bg-simatex-purple/20 flex items-center justify-center">
-                            <span className="text-xl font-semibold text-simatex-purple">
+                          <div className="w-full h-full bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
+                            <span className="text-xl font-semibold text-blue-600">
                               {testimonial.name.charAt(0)}
                             </span>
                           </div>
@@ -142,12 +142,12 @@ const TestimonialsSection = () => {
                         ))}
                       </div>
                       
-                      <blockquote className="text-xl italic text-gray-700 mb-6">
+                      <blockquote className="text-xl italic text-gray-700 mb-8 leading-relaxed">
                         "{testimonial.quote}"
                       </blockquote>
                       
                       <div>
-                        <p className="font-semibold text-lg">{testimonial.name}</p>
+                        <p className="font-semibold text-lg text-gray-900">{testimonial.name}</p>
                         <p className="text-gray-600">
                           {testimonial.position}, {testimonial.company}
                         </p>

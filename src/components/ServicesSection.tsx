@@ -1,122 +1,212 @@
 
-import { Trash2, TruckIcon, Recycle, Database } from "lucide-react";
-import { useState } from "react";
+import { Trash2, TruckIcon, Recycle, Database, MapPin, PhoneCall } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 interface BinSize {
   name: string;
   dimensions: string;
   capacity: string;
   bestFor: string;
+  approxWeight?: string;
+  totalVolume?: string;
 }
 
 const ServicesSection = () => {
   const [selectedBin, setSelectedBin] = useState<BinSize | null>(null);
-  
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
+
   const binSizes: BinSize[] = [
     {
-      name: "4 Yard",
+      name: "4 Yard Dumpster",
+      approxWeight: "1,500lbs",
       dimensions: "10 ft x 2 ft x 5.5 ft",
+      totalVolume: "4 Cubic Yards",
       capacity: "1,500 lbs",
-      bestFor: "Small businesses, residential projects"
+      bestFor: "Small businesses, residential projects",
     },
     {
-      name: "10 Yard",
-      dimensions: "10 ft x 4 ft x 6.5 ft",
-      capacity: "2,200 lbs",
-      bestFor: "Medium renovation projects, small cleanouts"
+      name: "6 Yard Dumpster",
+      approxWeight: "1,700lbs",
+      dimensions: "10 ft x 3 ft x 5.5 ft",
+      totalVolume: "6 Cubic Yards",
+      capacity: "1,700 lbs",
+      bestFor: "Shops, cafes, modest renovations",
     },
     {
-      name: "15 Yard",
-      dimensions: "10.5 ft x 5 ft x 7 ft",
-      capacity: "2,700 lbs",
-      bestFor: "Construction debris, commercial use"
+      name: "10 Yard Dumpster",
+      approxWeight: "2,220lbs",
+      dimensions: "10 ft x 4 ft x 7 ft",
+      totalVolume: "10 Cubic Yards",
+      capacity: "2,220 lbs",
+      bestFor: "Medium renovation projects, small cleanouts",
     },
     {
-      name: "20 Yard",
+      name: "15 Yard Dumpster",
+      approxWeight: "2,620lbs",
+      dimensions: "11 ft x 4.5 ft x 8 ft",
+      totalVolume: "14.8 Cubic Yards",
+      capacity: "2,620 lbs",
+      bestFor: "Construction debris, commercial use",
+    },
+    {
+      name: "20 Yard Dumpster",
+      approxWeight: "3,040lbs",
       dimensions: "11 ft x 6 ft x 8 ft",
+      totalVolume: "20 Cubic Yards",
       capacity: "3,040 lbs",
-      bestFor: "Large renovations, industrial waste"
-    }
+      bestFor: "Large renovations, industrial waste",
+    },
   ];
+
+  const serviceLocations = useMemo(
+    () => [
+      "Kuala Lumpur",
+      "Petaling Jaya",
+      "Shah Alam",
+      "Subang Jaya",
+      "Putrajaya",
+      "Cyberjaya",
+      "George Town (Penang)",
+      "Ipoh",
+      "Johor Bahru",
+      "Melaka",
+      "Seremban",
+      "Kota Kinabalu",
+      "Kuching",
+    ],
+    []
+  );
+
+  const buildWhatsAppUrl = (bin: BinSize, location?: string | null) => {
+    const targetNumber = "82202323"; // Given number
+    const message = `Hello, I'd like to book a bin.\n\nBin: ${bin.name}\nDimensions: ${bin.dimensions}${
+      bin.approxWeight ? `\nApprox. Weight: ${bin.approxWeight}` : ""
+    }${bin.totalVolume ? `\nTotal Volume: ${bin.totalVolume}` : ""}${
+      location ? `\nPreferred Service Location: ${location}` : ""
+    }\n\nPlease advise on availability and pricing.`;
+    const encoded = encodeURIComponent(message);
+    return `https://wa.me/${targetNumber}?text=${encoded}`;
+  };
+
+  const handleBinClick = (bin: BinSize) => {
+    setSelectedBin(bin);
+    const url = buildWhatsAppUrl(bin, selectedLocation);
+    window.open(url, "_blank");
+  };
 
   const services = [
     {
       icon: <Trash2 size={40} className="text-simatex-purple" />,
       title: "General Waste",
-      description: "Comprehensive disposal solutions for all types of general waste with same-day collection options."
+      description: "Comprehensive disposal solutions for all types of general waste with same-day collection options.",
     },
     {
       icon: <Recycle size={40} className="text-simatex-purple" />,
       title: "Recycling Services",
-      description: "Specialized collection for plastics, scrap metal, and other recyclable materials."
+      description: "Specialized collection for plastics, scrap metal, and other recyclable materials.",
     },
     {
       icon: <TruckIcon size={40} className="text-simatex-purple" />,
       title: "RoRo Containers",
-      description: "Roll-on/roll-off container services for larger waste management projects."
+      description: "Roll-on/roll-off container services for larger waste management projects.",
     },
     {
       icon: <Database size={40} className="text-simatex-purple" />,
       title: "Bulk Trash",
-      description: "Efficient removal of large items and bulk waste for residential and commercial clients."
-    }
+      description: "Efficient removal of large items and bulk waste for residential and commercial clients.",
+    },
   ];
 
   return (
-    <section id="services" className="py-16">
+    <section id="services" className="py-20 bg-white">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-4">Our <span className="text-gradient">Services</span></h2>
-          <p className="text-lg text-gray-700 max-w-3xl mx-auto">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl sm:text-4xl font-bold mb-6">Our <span className="text-gradient">Services</span></h2>
+          <p className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
             Comprehensive waste management solutions tailored to meet your specific needs with the latest technology.
           </p>
+          <div className="mt-6 flex items-center justify-center gap-3">
+            <Button
+              onClick={() => setIsLocationModalOpen(true)}
+              variant="outline"
+              className="border-simatex-purple text-simatex-purple hover:bg-simatex-purple/10"
+            >
+              <MapPin className="mr-2 h-4 w-4" /> Choose Service Location
+            </Button>
+            {selectedLocation && (
+              <span className="inline-flex items-center px-3 py-1 rounded-full bg-simatex-purple/10 text-simatex-purple text-sm">
+                <MapPin className="mr-1 h-4 w-4" /> {selectedLocation}
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Services Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-20">
           {services.map((service, index) => (
-            <div 
-              key={index} 
-              className="service-card opacity-0 animate-fade-in" 
-              style={{ animationDelay: `${index * 100}ms` }}
+            <div
+              key={index}
+              className="group bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-lg hover:border-blue-200/50 transition-all duration-300 hover:-translate-y-1 opacity-0 animate-fade-in"
+              style={{ animationDelay: `${index * 150}ms` }}
             >
-              <div className="mb-4">{service.icon}</div>
-              <h3 className="text-xl font-semibold mb-2">{service.title}</h3>
-              <p className="text-gray-700">{service.description}</p>
+              <div className="mb-6 group-hover:scale-110 transition-transform duration-300">{service.icon}</div>
+              <h3 className="text-xl font-semibold mb-3 text-gray-900">{service.title}</h3>
+              <p className="text-gray-600 leading-relaxed">{service.description}</p>
             </div>
           ))}
         </div>
 
         {/* Bin Sizes */}
-        <div className="bg-gray-50 rounded-3xl p-6 lg:p-10 opacity-0 animate-fade-in animate-delay-300">
-          <h3 className="text-2xl font-semibold mb-6 text-center">Available Bin Sizes</h3>
-          
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-gradient-to-br from-gray-50 to-blue-50/30 rounded-3xl p-8 lg:p-12 opacity-0 animate-fade-in animate-delay-500">
+          <h3 className="text-3xl font-bold mb-8 text-center text-gray-900">Available Bin Sizes</h3>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
             {binSizes.map((bin, index) => (
-              <div 
+              <div
                 key={index}
-                className={`border rounded-xl p-4 cursor-pointer transition-all duration-200 ${
-                  selectedBin?.name === bin.name 
-                  ? 'border-simatex-purple bg-simatex-purple/5 shadow-md' 
-                  : 'border-gray-200 hover:border-simatex-purple/50'
+                className={`group bg-white border rounded-2xl p-6 cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1 ${
+                  selectedBin?.name === bin.name
+                    ? "border-blue-500 bg-blue-50/50 shadow-lg"
+                    : "border-gray-200 hover:border-blue-300"
                 }`}
-                onClick={() => setSelectedBin(bin)}
+                onClick={() => handleBinClick(bin)}
               >
                 <div className="text-center">
                   <h4 className="text-lg font-semibold">{bin.name}</h4>
                   <p className="text-sm text-gray-600">{bin.dimensions}</p>
+                  <div className="mt-2 text-xs text-gray-500">
+                    {bin.approxWeight && <p>Approx. Weight: {bin.approxWeight}</p>}
+                    {bin.totalVolume && <p>Volume: {bin.totalVolume}</p>}
+                  </div>
+                  <div className="mt-3 inline-flex items-center text-simatex-purple text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                    <PhoneCall className="h-4 w-4 mr-1" /> Book via WhatsApp
+                  </div>
                 </div>
               </div>
             ))}
           </div>
-          
+
           {selectedBin && (
             <div className="mt-8 bg-white rounded-xl p-6 shadow-md animate-fade-in">
               <div className="flex flex-col md:flex-row justify-between">
                 <div className="mb-4 md:mb-0">
-                  <h4 className="text-xl font-semibold text-simatex-purple">{selectedBin.name} Bin</h4>
+                  <h4 className="text-xl font-semibold text-simatex-purple">{selectedBin.name}</h4>
                   <p className="text-gray-700">Dimensions: {selectedBin.dimensions}</p>
-                  <p className="text-gray-700">Capacity: {selectedBin.capacity}</p>
+                  {selectedBin.approxWeight && (
+                    <p className="text-gray-700">Approx. Weight: {selectedBin.approxWeight}</p>
+                  )}
+                  {selectedBin.totalVolume && (
+                    <p className="text-gray-700">Total Volume: {selectedBin.totalVolume}</p>
+                  )}
                   <p className="text-gray-700">Best for: {selectedBin.bestFor}</p>
                 </div>
                 <div className="flex items-center justify-center bg-gray-100 rounded-lg p-4 aspect-square">
@@ -128,10 +218,59 @@ const ServicesSection = () => {
                   </div>
                 </div>
               </div>
+              <div className="mt-6 flex flex-col sm:flex-row gap-3">
+                <Button
+                  className="bg-simatex-purple hover:bg-simatex-purple-dark"
+                  onClick={() => window.open(buildWhatsAppUrl(selectedBin, selectedLocation), "_blank")}
+                >
+                  <PhoneCall className="mr-2 h-4 w-4" /> Book {selectedBin.name} via WhatsApp
+                </Button>
+                <Button
+                  variant="outline"
+                  className="border-simatex-purple text-simatex-purple hover:bg-simatex-purple/10"
+                  onClick={() => setIsLocationModalOpen(true)}
+                >
+                  <MapPin className="mr-2 h-4 w-4" /> {selectedLocation ? `Change Location (${selectedLocation})` : "Choose Service Location"}
+                </Button>
+              </div>
             </div>
           )}
         </div>
       </div>
+
+      {/* Service Location Modal */}
+      <Dialog open={isLocationModalOpen} onOpenChange={setIsLocationModalOpen}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle>Select Service Location</DialogTitle>
+            <DialogDescription>
+              Choose from popular areas in Malaysia. We service additional locations on request.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
+            {serviceLocations.map((loc) => (
+              <button
+                key={loc}
+                className={`text-left border rounded-lg p-3 hover:border-simatex-purple hover:bg-simatex-purple/5 transition-colors ${
+                  selectedLocation === loc ? "border-simatex-purple bg-simatex-purple/10" : "border-gray-200"
+                }`}
+                onClick={() => {
+                  setSelectedLocation(loc);
+                  setIsLocationModalOpen(false);
+                }}
+              >
+                <div className="flex items-start gap-2">
+                  <MapPin className="h-4 w-4 mt-0.5 text-simatex-purple" />
+                  <div>
+                    <p className="font-medium">{loc}</p>
+                    <p className="text-xs text-gray-500">Malaysia</p>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 };

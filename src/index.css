@@ -139,6 +139,19 @@
   .bg-cream {
     @apply bg-[#f8f1e9];
   }
+  
+  /* Gradients used across landing */
+  .bg-glass-gradient {
+    background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.7) 0%,
+      rgba(255, 255, 255, 0.45) 100%
+    );
+  }
+
+  .bg-card-gradient {
+    background: linear-gradient(180deg, #ffffff 0%, #fafafc 100%);
+  }
 
   /* Dashboard pattern */
   .dashboard-bg {
@@ -341,6 +354,14 @@
     transform: translateX(20px);
     animation: fadeInRight 0.6s ease-out forwards;
   }
+  
+  .animate-float {
+    animation: floatY 6s ease-in-out infinite;
+  }
+  
+  .animate-pulse-light {
+    animation: pulse 3.5s ease-in-out infinite;
+  }
 
   /* Enhanced hover effects */
   .hover-lift {
@@ -415,6 +436,12 @@
     opacity: 1;
     transform: translateX(0);
   }
+}
+ 
+@keyframes floatY {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+  100% { transform: translateY(0); }
 }
 
 /* Enhanced loading animations */
