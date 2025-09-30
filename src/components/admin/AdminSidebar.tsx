@@ -68,17 +68,18 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
         text: activeDrivers.toString(),
         variant: "success"
       } : null
-    }, {
-      id: "driver-monitoring",
-      label: "Live Monitoring",
-      icon: Activity,
-      href: "/admin/driver-monitoring",
-      badge: activeDrivers > 0 ? {
-        text: "Live",
-        variant: "success",
-        pulse: true
-      } : null
-    }, 
+    },
+    // {
+    //   id: "driver-monitoring",
+    //   label: "Live Monitoring",
+    //   icon: Activity,
+    //   href: "/admin/driver-monitoring",
+    //   badge: activeDrivers > 0 ? {
+    //     text: "Live",
+    //     variant: "success",
+    //     pulse: true
+    //   } : null
+    // }, 
     // {
     //   id: "orders",
     //   label: "Order Management",
@@ -226,7 +227,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
                       
                       {!collapsed && <>
                           <span className="truncate flex-1">{item.label}</span>
-                          {item.badge && <Badge className={cn("ml-2 text-xs px-2 py-0.5 border", getBadgeVariant(item.badge.variant || "default"), item.badge.pulse && "animate-pulse")}>
+                          {item.badge && <Badge className={cn("ml-2 text-xs px-2 py-0.5 border", getBadgeVariant(item.badge.variant || "default")  && "animate-pulse")}>
                               {item.badge.text}
                             </Badge>}
                         </>}
@@ -290,7 +291,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
                         <item.icon className="w-5 h-5 mr-3" />
                         <span>{item.label}</span>
                       </div>
-                      {item.badge && <Badge className={cn("text-xs px-2 py-0.5 border", getBadgeVariant(item.badge.variant || "default"), item.badge.pulse && "animate-pulse")}>
+                      {item.badge && <Badge className={cn("text-xs px-2 py-0.5 border", getBadgeVariant(item.badge.variant || "default") && "animate-pulse")}>
                           {item.badge.text}
                         </Badge>}
                     </NavLink>)}

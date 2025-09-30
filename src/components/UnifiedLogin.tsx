@@ -75,7 +75,7 @@ const UnifiedLogin = ({ isOpen, onClose }: UnifiedLoginProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="w-[92vw] max-w-md sm:max-w-md p-4 sm:p-6 gap-4 sm:gap-6" aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle className="text-center text-2xl font-bold text-gray-900">
             Login to Lattis Bin
@@ -83,7 +83,7 @@ const UnifiedLogin = ({ isOpen, onClose }: UnifiedLoginProps) => {
         </DialogHeader>
         
         <Tabs defaultValue="admin" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-6">
+          <TabsList className="grid w-full grid-cols-2 mb-4 sm:mb-6">
             <TabsTrigger value="admin" className="flex items-center gap-2">
               <Shield className="h-4 w-4" />
               Admin
@@ -97,7 +97,7 @@ const UnifiedLogin = ({ isOpen, onClose }: UnifiedLoginProps) => {
           <TabsContent value="admin" className="space-y-4">
             <Card className="border-0 shadow-none">
               <CardContent className="p-0">
-                <form onSubmit={handleAdminLogin} className="space-y-4">
+                <form onSubmit={handleAdminLogin} className="space-y-3 sm:space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="admin-email" className="text-sm font-medium">Email</Label>
                     <Input
@@ -142,7 +142,7 @@ const UnifiedLogin = ({ isOpen, onClose }: UnifiedLoginProps) => {
           <TabsContent value="driver" className="space-y-4">
             <Card className="border-0 shadow-none">
               <CardContent className="p-0">
-                <form onSubmit={handleDriverLogin} className="space-y-4">
+                <form onSubmit={handleDriverLogin} className="space-y-3 sm:space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="driver-id" className="text-sm font-medium flex items-center gap-2">
                       <User className="h-4 w-4" />

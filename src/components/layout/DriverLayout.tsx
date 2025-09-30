@@ -17,7 +17,7 @@ const DriverLayoutContent = () => {
           onSidebarToggle={toggleSidebar}
           title="Driver Dashboard"
         />
-        <main className="flex-1 overflow-auto bg-slate-50 p-4 lg:p-6">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden bg-slate-50 p-4 sm:p-5 lg:p-6">
           <div className="h-full w-full max-w-7xl mx-auto">
             <Outlet />
           </div>
