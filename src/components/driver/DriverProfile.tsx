@@ -4,9 +4,24 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbPage } from "@/components/ui/breadcrumb";
-import { ArrowLeft, User, Phone, CreditCard, MapPin, Calendar, Award, Edit, Save, X, Mail, Clock, Star, TrendingUp, Shield, LogOut } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import { 
+  User, 
+  Phone, 
+  CreditCard, 
+  MapPin, 
+  Mail, 
+  Shield,
+  Edit,
+  Save,
+  X,
+  Lock,
+  Eye,
+  EyeOff,
+  KeyRound,
+  AlertCircle,
+  ArrowLeft
+} from "lucide-react";
 import { toast } from "sonner";
 
 interface DriverSession {
@@ -20,6 +35,11 @@ const DriverProfile = () => {
   const navigate = useNavigate();
   const [driverSession, setDriverSession] = useState<DriverSession | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   const [editData, setEditData] = useState({
     phone: "",
     address: "",
@@ -28,49 +48,11 @@ const DriverProfile = () => {
     email: ""
   });
 
-  // Driver performance data
-  const [performanceData] = useState({
-    totalJobs: 156,
-    completedJobs: 148,
-    onTimeDeliveries: 142,
-    customerRating: 4.8,
-    totalEarnings: 12450.00,
-    thisMonthJobs: 23,
-    thisMonthEarnings: 1850.00,
-    joinDate: "2023-06-15",
-    experienceYears: 8
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: ""
   });
-
-  // Recent job history
-  const [jobHistory] = useState([
-    {
-      id: "JOB045",
-      date: "2024-01-15",
-      customer: "ABC Construction",
-      binType: "ASR100",
-      status: "completed",
-      amount: 350.00,
-      rating: 5
-    },
-    {
-      id: "JOB044",
-      date: "2024-01-15",
-      customer: "Green Valley Resort",
-      binType: "LASR100",
-      status: "completed",
-      amount: 450.00,
-      rating: 5
-    },
-    {
-      id: "JOB043",
-      date: "2024-01-14",
-      customer: "Sunshine Apartments",
-      binType: "PWD100",
-      status: "completed",
-      amount: 280.00,
-      rating: 4
-    }
-  ]);
 
   useEffect(() => {
     const session = localStorage.getItem("driverSession");
@@ -90,7 +72,6 @@ const DriverProfile = () => {
   }, [navigate]);
 
   const handleSave = () => {
-    // In a real app, this would update the backend
     toast.success("Profile updated successfully!");
     setIsEditing(false);
     
@@ -115,336 +96,428 @@ const DriverProfile = () => {
     setIsEditing(false);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("driverSession");
-    toast.success("Logged out successfully!");
-    navigate("/");
+  const handlePasswordChange = () => {
+    if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
+      toast.error("Please fill in all password fields");
+      return;
+    }
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast.error("New passwords do not match");
+      return;
+    }
+
+    if (passwordData.newPassword.length < 8) {
+      toast.error("Password must be at least 8 characters long");
+      return;
+    }
+
+    // In a real app, this would call the backend
+    toast.success("Password changed successfully!");
+    setIsChangingPassword(false);
+    setPasswordData({
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: ""
+    });
+  };
+
+  const handleBackToDashboard = () => {
+    navigate("/driver/dashboard");
   };
 
   if (!driverSession) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
       </div>
     );
   }
 
-  const completionRate = ((performanceData.completedJobs / performanceData.totalJobs) * 100).toFixed(1);
-  const onTimeRate = ((performanceData.onTimeDeliveries / performanceData.completedJobs) * 100).toFixed(1);
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto p-4 lg:p-6">
-        {/* Clean Breadcrumbs */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-6">
-          <div className="px-6 py-4">
-            <Breadcrumb>
-              <BreadcrumbList>
-                <BreadcrumbItem>
-                  <BreadcrumbPage className="text-blue-600 font-semibold text-lg">
-                    My Profile
-                  </BreadcrumbPage>
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
+    <div className="p-4 sm:p-5 lg:p-6 max-w-screen-xl mx-auto overflow-x-hidden">
+      {/* Header */}
+      <div className="mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center gap-3">
+              <User className="h-7 w-7 sm:h-8 sm:w-8 text-blue-600" />
+              My Profile
+            </h1>
+            <p className="text-sm text-gray-600 mt-1">
+              Manage your personal information and account security
+            </p>
           </div>
+          <Button
+            variant="outline"
+            onClick={handleBackToDashboard}
+            className="w-full sm:w-auto"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Dashboard
+          </Button>
         </div>
+      </div>
 
-        {/* Clean Header Card */}
-        <Card className="bg-gradient-to-r from-blue-600 to-blue-700 border-0 shadow-xl mb-8">
-          <CardContent className="p-8">
-            <div className="flex items-center justify-between text-white">
-              <div className="flex items-center gap-6">
-                <div className="relative">
-                  <div className="w-20 h-20 bg-white/20 rounded-xl flex items-center justify-center border border-white/30 backdrop-blur-sm">
-                    <User className="h-10 w-10" />
-                  </div>
-                  <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-400 rounded-full border-2 border-white"></div>
+      {/* Profile Header Card */}
+      <Card className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 border-0 shadow-xl mb-6 overflow-hidden relative">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
+        <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full -ml-12 -mb-12"></div>
+        <CardContent className="p-6 relative overflow-hidden">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="relative">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white/20 rounded-2xl flex items-center justify-center border-2 border-white/30 backdrop-blur-sm shadow-lg">
+                  <span className="text-3xl sm:text-4xl font-bold text-white">A</span>
                 </div>
-                <div>
-                  <h1 className="text-3xl font-bold mb-2">{driverSession.name}</h1>
-                  <p className="text-blue-100 font-medium text-lg mb-1">Professional Driver</p>
-                  <p className="text-blue-200 text-sm font-medium">ID: {driverSession.driverId}</p>
-                  <div className="flex items-center gap-3 mt-3">
-                    <div className="flex items-center gap-2 bg-white/20 rounded-full px-3 py-1 backdrop-blur-sm">
-                      <Star className="h-4 w-4 text-yellow-300 fill-current" />
-                      <span className="text-sm font-semibold">{performanceData.customerRating}/5.0</span>
-                    </div>
-                    <div className="flex items-center gap-2 bg-white/20 rounded-full px-3 py-1 backdrop-blur-sm">
-                      <Shield className="h-4 w-4 text-green-300" />
-                      <span className="text-sm font-semibold">Verified</span>
-                    </div>
-                  </div>
-                </div>
+                <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-400 rounded-full border-2 border-white shadow-sm"></div>
               </div>
-              <div className="flex flex-col gap-3">
-                <Button
-                  onClick={() => setIsEditing(!isEditing)}
-                  className="bg-white text-blue-600 hover:bg-gray-100 border-0 shadow-md font-semibold"
-                >
-                  <Edit className="h-4 w-4 mr-2" />
-                  {isEditing ? "Cancel Edit" : "Edit Profile"}
-                </Button>
-                <Button
-                  onClick={handleLogout}
-                  className="bg-white text-red-600 hover:bg-red-50 border-0 shadow-md font-semibold"
-                >
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Logout
-                </Button>
+              <div className="text-white">
+                <h2 className="text-2xl sm:text-3xl font-bold">{driverSession.name}</h2>
+                <p className="text-blue-100 font-medium text-sm sm:text-base">Professional Driver</p>
+                <p className="text-blue-200 text-xs sm:text-sm font-medium mt-1">ID: {driverSession.driverId}</p>
               </div>
             </div>
-          </CardContent>
-        </Card>
+            <Button
+              onClick={() => setIsEditing(!isEditing)}
+              className="bg-white text-blue-600 hover:bg-blue-50 border-0 shadow-md font-semibold w-full sm:w-auto h-11 rounded-xl active:scale-95 transition-transform"
+            >
+              <Edit className="h-4 w-4 mr-2" />
+              {isEditing ? "Cancel Edit" : "Edit Profile"}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-          {/* Left Column - Personal Info */}
-          <div className="xl:col-span-2 space-y-8">
-            {/* Basic Information */}
-            <Card className="shadow-md border-0 bg-white">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-xl flex items-center gap-3 text-gray-800">
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    <User className="h-5 w-5 text-blue-600" />
-                  </div>
-                  Basic Information
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                      <div className="flex items-center gap-3">
-                        <CreditCard className="h-5 w-5 text-gray-600" />
-                        <div>
-                          <p className="text-sm text-gray-600 font-medium">IC Number</p>
-                          <p className="font-semibold text-gray-900">{driverSession.ic}</p>
-                        </div>
-                      </div>
-                    </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Personal Information */}
+        <div className="lg:col-span-2 space-y-6">
+          <Card className="bg-white shadow-xl border-0 overflow-hidden">
+            <div className="bg-gradient-to-r from-indigo-500 to-purple-600 px-5 py-4">
+              <CardTitle className="flex items-center gap-3 text-white">
+                <div className="p-2 bg-white/20 backdrop-blur-sm rounded-xl">
+                  <User className="h-5 w-5 text-white" />
+                </div>
+                <span className="font-bold">Personal Information</span>
+              </CardTitle>
+            </div>
+            <CardContent className="pt-4 px-5 space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name" className="text-sm font-medium text-gray-700">
+                    Full Name
+                  </Label>
+                  <Input
+                    id="name"
+                    value={driverSession.name}
+                    disabled
+                    className="bg-gray-50"
+                  />
+                </div>
 
-                    <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                      <div className="flex items-center gap-3">
-                        <Phone className="h-5 w-5 text-gray-600" />
-                        <div className="flex-1">
-                          <p className="text-sm text-gray-600 font-medium">Phone Number</p>
-                          {isEditing ? (
-                            <Input
-                              value={editData.phone}
-                              onChange={(e) => setEditData(prev => ({...prev, phone: e.target.value}))}
-                              className="mt-1"
-                            />
-                          ) : (
-                            <p className="font-semibold text-gray-900">{editData.phone}</p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                      <div className="flex items-center gap-3">
-                        <Mail className="h-5 w-5 text-gray-600" />
-                        <div className="flex-1">
-                          <p className="text-sm text-gray-600 font-medium">Email Address</p>
-                          {isEditing ? (
-                            <Input
-                              value={editData.email}
-                              onChange={(e) => setEditData(prev => ({...prev, email: e.target.value}))}
-                              className="mt-1"
-                            />
-                          ) : (
-                            <p className="font-semibold text-gray-900">{editData.email}</p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                      <div className="flex items-start gap-3">
-                        <MapPin className="h-5 w-5 text-gray-600 mt-1" />
-                        <div className="flex-1">
-                          <p className="text-sm text-gray-600 font-medium">Address</p>
-                          {isEditing ? (
-                            <Input
-                              value={editData.address}
-                              onChange={(e) => setEditData(prev => ({...prev, address: e.target.value}))}
-                              className="mt-1"
-                            />
-                          ) : (
-                            <p className="font-semibold text-gray-900">{editData.address}</p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                      <div className="flex items-center gap-3">
-                        <Calendar className="h-5 w-5 text-gray-600" />
-                        <div>
-                          <p className="text-sm text-gray-600 font-medium">Join Date</p>
-                          <p className="font-semibold text-gray-900">{performanceData.joinDate}</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                      <div className="flex items-center gap-3">
-                        <Clock className="h-5 w-5 text-blue-600" />
-                        <div>
-                          <p className="text-sm text-blue-700 font-medium">Experience</p>
-                          <p className="font-semibold text-blue-800">{performanceData.experienceYears} Years</p>
-                        </div>
-                      </div>
-                    </div>
+                <div className="space-y-2">
+                  <Label htmlFor="ic" className="text-sm font-medium text-gray-700">
+                    IC Number
+                  </Label>
+                  <div className="relative">
+                    <CreditCard className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="ic"
+                      value={driverSession.ic}
+                      disabled
+                      className="pl-10 bg-gray-50"
+                    />
                   </div>
                 </div>
 
-                {isEditing && (
-                  <div className="flex gap-4 pt-4 border-t border-gray-200">
-                    <Button onClick={handleSave} className="flex-1 bg-blue-600 hover:bg-blue-700">
+                <div className="space-y-2">
+                  <Label htmlFor="phone" className="text-sm font-medium text-gray-700">
+                    Phone Number
+                  </Label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="phone"
+                      value={editData.phone}
+                      onChange={(e) => setEditData(prev => ({ ...prev, phone: e.target.value }))}
+                      disabled={!isEditing}
+                      className={`pl-10 ${!isEditing ? 'bg-gray-50' : ''}`}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                    Email Address
+                  </Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="email"
+                      type="email"
+                      value={editData.email}
+                      onChange={(e) => setEditData(prev => ({ ...prev, email: e.target.value }))}
+                      disabled={!isEditing}
+                      className={`pl-10 ${!isEditing ? 'bg-gray-50' : ''}`}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="address" className="text-sm font-medium text-gray-700">
+                    Address
+                  </Label>
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="address"
+                      value={editData.address}
+                      onChange={(e) => setEditData(prev => ({ ...prev, address: e.target.value }))}
+                      disabled={!isEditing}
+                      className={`pl-10 ${!isEditing ? 'bg-gray-50' : ''}`}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {isEditing && (
+                <>
+                  <Separator />
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <Button onClick={handleSave} className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 h-11 rounded-xl font-semibold shadow-md active:scale-95 transition-transform">
                       <Save className="h-4 w-4 mr-2" />
                       Save Changes
                     </Button>
-                    <Button onClick={handleCancel} variant="outline" className="flex-1">
+                    <Button onClick={handleCancel} variant="outline" className="flex-1 h-11 rounded-xl font-semibold border-2 border-gray-300">
                       <X className="h-4 w-4 mr-2" />
                       Cancel
                     </Button>
                   </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Emergency Contact */}
+          <Card className="bg-white shadow-xl border-0 overflow-hidden">
+            <div className="bg-gradient-to-r from-red-500 to-rose-600 px-5 py-4">
+              <CardTitle className="flex items-center gap-3 text-white">
+                <div className="p-2 bg-white/20 backdrop-blur-sm rounded-xl">
+                  <AlertCircle className="h-5 w-5 text-white" />
+                </div>
+                <span className="font-bold">Emergency Contact</span>
+              </CardTitle>
+            </div>
+            <CardContent className="pt-4 px-5 space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="emergency-contact" className="text-sm font-medium text-gray-700">
+                    Contact Person
+                  </Label>
+                  <Input
+                    id="emergency-contact"
+                    value={editData.emergencyContact}
+                    onChange={(e) => setEditData(prev => ({ ...prev, emergencyContact: e.target.value }))}
+                    disabled={!isEditing}
+                    className={!isEditing ? 'bg-gray-50' : ''}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="emergency-phone" className="text-sm font-medium text-gray-700">
+                    Phone Number
+                  </Label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="emergency-phone"
+                      value={editData.emergencyPhone}
+                      onChange={(e) => setEditData(prev => ({ ...prev, emergencyPhone: e.target.value }))}
+                      disabled={!isEditing}
+                      className={`pl-10 ${!isEditing ? 'bg-gray-50' : ''}`}
+                    />
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Security Settings */}
+        <div className="space-y-6">
+          <Card className="bg-white shadow-xl border-0 overflow-hidden">
+            <div className="bg-gradient-to-r from-emerald-500 to-teal-600 px-5 py-4">
+              <CardTitle className="flex items-center gap-3 text-white">
+                <div className="p-2 bg-white/20 backdrop-blur-sm rounded-xl">
+                  <Shield className="h-5 w-5 text-white" />
+                </div>
+                <span className="font-bold">Account Security</span>
+              </CardTitle>
+            </div>
+            <CardContent className="pt-4 px-5 space-y-4">
+              <div className="p-4 bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-2xl shadow-sm">
+                <div className="flex items-center gap-3 mb-2">
+                  <Shield className="h-5 w-5 text-green-600" />
+                  <span className="font-semibold text-green-900">Verified Account</span>
+                </div>
+                <p className="text-sm text-green-700">
+                  Your account is verified and secure
+                </p>
+              </div>
+
+              <Separator />
+
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <Lock className="h-4 w-4 text-gray-600" />
+                    <span className="font-medium text-gray-900">Password</span>
+                  </div>
+                  {!isChangingPassword && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setIsChangingPassword(true)}
+                      className="text-blue-600 hover:text-blue-700"
+                    >
+                      <KeyRound className="h-3 w-3 mr-1" />
+                      Change
+                    </Button>
+                  )}
+                </div>
+
+                {!isChangingPassword ? (
+                  <Input
+                    type="password"
+                    value="••••••••"
+                    disabled
+                    className="bg-gray-50"
+                  />
+                ) : (
+                  <div className="space-y-3">
+                    <div className="space-y-2">
+                      <Label htmlFor="current-password" className="text-sm">
+                        Current Password
+                      </Label>
+                      <div className="relative">
+                        <Input
+                          id="current-password"
+                          type={showCurrentPassword ? "text" : "password"}
+                          value={passwordData.currentPassword}
+                          onChange={(e) => setPasswordData(prev => ({ ...prev, currentPassword: e.target.value }))}
+                          placeholder="Enter current password"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                        >
+                          {showCurrentPassword ? (
+                            <EyeOff className="h-4 w-4 text-gray-400" />
+                          ) : (
+                            <Eye className="h-4 w-4 text-gray-400" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="new-password" className="text-sm">
+                        New Password
+                      </Label>
+                      <div className="relative">
+                        <Input
+                          id="new-password"
+                          type={showNewPassword ? "text" : "password"}
+                          value={passwordData.newPassword}
+                          onChange={(e) => setPasswordData(prev => ({ ...prev, newPassword: e.target.value }))}
+                          placeholder="Enter new password"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowNewPassword(!showNewPassword)}
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                        >
+                          {showNewPassword ? (
+                            <EyeOff className="h-4 w-4 text-gray-400" />
+                          ) : (
+                            <Eye className="h-4 w-4 text-gray-400" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="confirm-password" className="text-sm">
+                        Confirm New Password
+                      </Label>
+                      <div className="relative">
+                        <Input
+                          id="confirm-password"
+                          type={showConfirmPassword ? "text" : "password"}
+                          value={passwordData.confirmPassword}
+                          onChange={(e) => setPasswordData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                          placeholder="Confirm new password"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                        >
+                          {showConfirmPassword ? (
+                            <EyeOff className="h-4 w-4 text-gray-400" />
+                          ) : (
+                            <Eye className="h-4 w-4 text-gray-400" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-2 pt-2">
+                      <Button
+                        onClick={handlePasswordChange}
+                        className="w-full bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 h-11 rounded-xl font-semibold shadow-md active:scale-95 transition-transform"
+                      >
+                        <Save className="h-4 w-4 mr-2" />
+                        Update Password
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          setIsChangingPassword(false);
+                          setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
+                        }}
+                        variant="outline"
+                        className="w-full h-11 rounded-xl font-semibold border-2 border-gray-300"
+                      >
+                        <X className="h-4 w-4 mr-2" />
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </CardContent>
+          </Card>
 
-            {/* Emergency Contact */}
-            <Card className="shadow-md border-0 bg-white">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-xl flex items-center gap-3 text-gray-800">
-                  <div className="p-2 bg-red-100 rounded-lg">
-                    <Phone className="h-5 w-5 text-red-600" />
-                  </div>
-                  Emergency Contact
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-4 bg-red-50 rounded-lg border border-red-200">
-                    <p className="text-sm text-red-700 font-medium mb-1">Contact Person</p>
-                    {isEditing ? (
-                      <Input
-                        value={editData.emergencyContact}
-                        onChange={(e) => setEditData(prev => ({...prev, emergencyContact: e.target.value}))}
-                      />
-                    ) : (
-                      <p className="font-semibold text-red-800">{editData.emergencyContact}</p>
-                    )}
-                  </div>
-                  <div className="p-4 bg-red-50 rounded-lg border border-red-200">
-                    <p className="text-sm text-red-700 font-medium mb-1">Phone Number</p>
-                    {isEditing ? (
-                      <Input
-                        value={editData.emergencyPhone}
-                        onChange={(e) => setEditData(prev => ({...prev, emergencyPhone: e.target.value}))}
-                      />
-                    ) : (
-                      <p className="font-semibold text-red-800">{editData.emergencyPhone}</p>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Right Column - Performance & History */}
-          <div className="space-y-8">
-            {/* Performance Statistics */}
-            <Card className="shadow-md border-0 bg-white">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-xl flex items-center gap-3 text-gray-800">
-                  <div className="p-2 bg-yellow-100 rounded-lg">
-                    <Award className="h-5 w-5 text-yellow-600" />
-                  </div>
-                  Performance Stats
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="text-center p-4 bg-blue-50 rounded-lg border border-blue-200">
-                      <p className="text-2xl font-bold text-blue-600 mb-1">{performanceData.totalJobs}</p>
-                      <p className="text-xs text-blue-700 font-medium">Total Jobs</p>
-                    </div>
-                    <div className="text-center p-4 bg-green-50 rounded-lg border border-green-200">
-                      <p className="text-2xl font-bold text-green-600 mb-1">{completionRate}%</p>
-                      <p className="text-xs text-green-700 font-medium">Completion</p>
-                    </div>
-                    <div className="text-center p-4 bg-purple-50 rounded-lg border border-purple-200">
-                      <p className="text-2xl font-bold text-purple-600 mb-1">{onTimeRate}%</p>
-                      <p className="text-xs text-purple-700 font-medium">On Time</p>
-                    </div>
-                    <div className="text-center p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-                      <p className="text-2xl font-bold text-yellow-600 mb-1">{performanceData.customerRating}</p>
-                      <p className="text-xs text-yellow-700 font-medium">Rating</p>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-3 pt-4 border-t border-gray-200">
-                    <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg border border-green-200">
-                      <span className="text-sm text-green-700 font-medium">Total Earnings</span>
-                      <span className="font-bold text-green-600">RM{performanceData.totalEarnings.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg border border-blue-200">
-                      <span className="text-sm text-blue-700 font-medium">This Month</span>
-                      <span className="font-bold text-blue-600">RM{performanceData.thisMonthEarnings.toFixed(2)}</span>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Recent Job History */}
-            <Card className="shadow-md border-0 bg-white">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-xl flex items-center gap-3 text-gray-800">
-                  <div className="p-2 bg-gray-100 rounded-lg">
-                    <TrendingUp className="h-5 w-5 text-gray-600" />
-                  </div>
-                  Recent Jobs
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {jobHistory.map((job) => (
-                  <div key={job.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow bg-gray-50">
-                    <div className="flex items-center justify-between mb-2">
-                      <div>
-                        <p className="font-semibold text-sm text-gray-900">{job.customer}</p>
-                        <p className="text-xs text-gray-600">#{job.id} • {job.date}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-bold text-green-600">RM{job.amount.toFixed(2)}</p>
-                        <div className="flex items-center gap-1 justify-end">
-                          {[...Array(5)].map((_, i) => (
-                            <Star 
-                              key={i} 
-                              className={`h-3 w-3 ${i < job.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'}`}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <Badge variant="outline" className="text-xs">
-                        {job.binType}
-                      </Badge>
-                      <Badge className="bg-green-100 text-green-800 border-green-200 text-xs">
-                        Completed
-                      </Badge>
-                    </div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          </div>
+          {/* Quick Info */}
+          <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200 shadow-lg">
+            <CardHeader>
+              <CardTitle className="text-base">Account Information</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm">
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">Driver ID</span>
+                <span className="font-semibold text-gray-900">{driverSession.driverId}</span>
+              </div>
+              <Separator />
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">Account Status</span>
+                <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">
+                  Active
+                </span>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

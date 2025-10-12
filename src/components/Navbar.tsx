@@ -1,15 +1,12 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Building2 } from "lucide-react";
 import UnifiedLogin from "./UnifiedLogin";
-import SignupModal from "./SignupModal";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
-  const [showSignupModal, setShowSignupModal] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -77,7 +74,7 @@ const Navbar = () => {
                 Login
               </Button>
               <Button
-                onClick={() => setShowSignupModal(true)}
+                onClick={() => setShowLoginModal(true)}
                 className="rounded-full px-5 bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transition-all duration-300"
               >
                 Get Started
@@ -124,7 +121,7 @@ const Navbar = () => {
                   </Button>
                   <Button
                     onClick={() => {
-                      setShowSignupModal(true);
+                      setShowLoginModal(true);
                       setIsOpen(false);
                     }}
                     className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800"
@@ -140,7 +137,6 @@ const Navbar = () => {
 
       {/* Modals */}
       <UnifiedLogin isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} />
-      <SignupModal isOpen={showSignupModal} onClose={() => setShowSignupModal(false)} />
     </>
   );
 };

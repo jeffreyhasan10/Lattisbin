@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { LayoutDashboard, Building2, Users, Package, Truck, UserCheck, FileText, DollarSign, Receipt, BarChart3, CalendarRange, MapPin, RefreshCw, CreditCard, Printer, Settings, Upload, Activity, ArrowRight, TrendingUp, LogOut, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { LayoutDashboard, Building2, Users, Package, Truck, UserCheck, FileText, DollarSign, Receipt, CalendarRange, MapPin, RefreshCw, CreditCard, Printer, Upload, Activity, ArrowRight, LogOut, ChevronLeft, ChevronRight, X, Wallet, FileBarChart, Bell, UserCircle, UsersRound } from "lucide-react";
 import { useOrders } from "@/contexts/OrderContext";
 interface AdminSidebarProps {
   collapsed: boolean;
@@ -42,26 +42,26 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
   }, {
     label: "Core Management",
     items: [{
-      id: "business",
-      label: "Business Registration",
+      id: "companies",
+      label: "Manage Companies",
       icon: Building2,
-      href: "/admin/business"
+      href: "/admin/companies"
     }, {
       id: "customers",
-      label: "Customer Management",
+      label: "Manage Customers",
       icon: Users,
       href: "/admin/customers"
     }, {
       id: "inventory",
-      label: "Inventory Management",
+      label: "Manage Bin Inventory",
       icon: Package,
       href: "/admin/inventory"
     }]
   }, {
     label: "Operations",
-    items: [{
+    items: [    {
       id: "drivers",
-      label: "Driver Management",
+      label: "Manage Drivers",
       icon: UserCheck,
       href: "/admin/drivers",
       badge: activeDrivers > 0 ? {
@@ -92,14 +92,14 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
     // }, 
     {
       id: "fleet",
-      label: "Fleet Management",
+      label: "Manage Lorries",
       icon: Truck,
       href: "/admin/fleet"
     }, {
-      id: "external-lorries",
-      label: "External Lorries",
+      id: "rental-lorries",
+      label: "Rental Lorries",
       icon: MapPin,
-      href: "/admin/external-lorries"
+      href: "/admin/rental-lorries"
     }]
   }, {
     label: "Services",
@@ -109,15 +109,10 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
       icon: Upload,
       href: "/admin/waste"
     }, {
-      id: "bookings",
-      label: "Booking System",
+      id: "bookings-dos",
+      label: "View Bookings & DOs",
       icon: CalendarRange,
-      href: "/admin/bookings"
-    }, {
-      id: "delivery-orders",
-      label: "Delivery Orders",
-      icon: ArrowRight,
-      href: "/admin/delivery-orders",
+      href: "/admin/bookings-dos",
       badge: activeOrders > 0 ? {
         text: activeOrders.toString(),
         variant: "info"
@@ -125,39 +120,33 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
     }]
   }, {
     label: "Financial",
-    items: [{
+    items: [    {
       id: "invoicing",
-      label: "Invoicing System",
+      label: "Manage Invoice",
       icon: Receipt,
       href: "/admin/invoicing"
     }, {
-      id: "commission",
-      label: "Commission Management",
-      icon: DollarSign,
-      href: "/admin/commission"
-    }, {
-      id: "refunds",
-      label: "Refunds & Cancellations",
-      icon: RefreshCw,
-      href: "/admin/refunds"
-    }, {
-      id: "expenses",
-      label: "Expense Management",
-      icon: CreditCard,
-      href: "/admin/expenses"
+      id: "payment-overview",
+      label: "View Payment Overview",
+      icon: Wallet,
+      href: "/admin/payment-overview"
     }]
   }, {
-    label: "Analytics",
+    label: "Reports & Alerts",
     items: [{
       id: "reports",
-      label: "Reports & Analytics",
-      icon: BarChart3,
+      label: "Access Reports",
+      icon: FileBarChart,
       href: "/admin/reports"
     }, {
-      id: "performance-analytics",
-      label: "Performance Analytics",
-      icon: TrendingUp,
-      href: "/admin/performance-analytics"
+      id: "system-alerts",
+      label: "Admin System Alerts",
+      icon: Bell,
+      href: "/admin/system-alerts",
+      badge: {
+        text: "12",
+        variant: "warning"
+      }
     }]
   }, {
     label: "System",
@@ -166,11 +155,19 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
       label: "Printing System",
       icon: Printer,
       href: "/admin/printing"
+    }]
+  }, {
+    label: "Account Management",
+    items: [{
+      id: "profile",
+      label: "Manage Profile",
+      icon: UserCircle,
+      href: "/admin/profile"
     }, {
-      id: "settings",
-      label: "Settings",
-      icon: Settings,
-      href: "/admin/settings"
+      id: "users",
+      label: "Manage Users",
+      icon: UsersRound,
+      href: "/admin/users"
     }]
   }];
   const isActive = (href: string) => {
@@ -267,7 +264,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
               <LayoutDashboard className="w-5 h-5" />
             </div>
             <div>
-              <h1 className="text-lg font-bold">LottisBin</h1>
+              <h1 className="text-lg font-bold">LattisBin</h1>
               <p className="text-xs text-blue-100">Admin Panel</p>
             </div>
           </div>

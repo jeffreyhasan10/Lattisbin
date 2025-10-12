@@ -16,11 +16,8 @@ import {
   BarChart3,
   CalendarRange,
   MapPin,
-  RefreshCw,
-  CreditCard,
   Printer,
   TrendingUp,
-  Activity,
   Clock,
   CheckCircle,
   AlertCircle,
@@ -94,17 +91,17 @@ const AdminDashboard: React.FC = () => {
 
   const moduleCards = [
     {
-      id: "business-register",
-      title: "Business Registration",
+      id: "companies",
+      title: "Manage Companies",
       description: "Complete company profile management with ROC validation and multi-location support",
       icon: Building2,
       color: "bg-blue-500",
       count: "12 Companies",
-      path: "/admin/business"
+      path: "/admin/companies"
     },
     {
-      id: "customer-register",
-      title: "Customer Management", 
+      id: "customers",
+      title: "Manage Customers", 
       description: "Comprehensive customer database with verification, contact hierarchy, and payment tracking",
       icon: Users,
       color: "bg-green-500",
@@ -112,8 +109,8 @@ const AdminDashboard: React.FC = () => {
       path: "/admin/customers"
     },
     {
-      id: "inventory-register",
-      title: "Advanced Inventory",
+      id: "inventory",
+      title: "Manage Bin Inventory",
       description: "Real-time bin tracking with GPS, maintenance scheduling, and utilization analytics",
       icon: Package,
       color: "bg-purple-500",
@@ -121,8 +118,17 @@ const AdminDashboard: React.FC = () => {
       path: "/admin/inventory"
     },
     {
-      id: "fleet-management",
-      title: "Fleet Management",
+      id: "drivers",
+      title: "Manage Drivers",
+      description: "Complete driver profiles with performance metrics and license tracking",
+      icon: UserCheck,
+      color: "bg-indigo-500",
+      count: `${drivers.length} Drivers`,
+      path: "/admin/drivers"
+    },
+    {
+      id: "fleet",
+      title: "Manage Lorries",
       description: "Complete vehicle profiles, insurance tracking, and maintenance alerts",
       icon: Truck,
       color: "bg-orange-500",
@@ -130,16 +136,16 @@ const AdminDashboard: React.FC = () => {
       path: "/admin/fleet"
     },
     {
-      id: "external-lorries",
-      title: "External Lorries",
+      id: "rental-lorries",
+      title: "Rental Lorries",
       description: "Third-party rental management with vendor ratings and availability scheduling",
       icon: MapPin,
       color: "bg-cyan-500",
       count: "15 Partners",
-      path: "/admin/external-lorries"
+      path: "/admin/rental-lorries"
     },
     {
-      id: "waste-management",
+      id: "waste",
       title: "Waste Management",
       description: "Comprehensive classification with photo documentation and compliance tracking",
       icon: Upload,
@@ -148,35 +154,17 @@ const AdminDashboard: React.FC = () => {
       path: "/admin/waste"
     },
     {
-      id: "driver-management",
-      title: "Driver Management",
-      description: "Complete driver profiles with performance metrics and real-time tracking",
-      icon: UserCheck,
-      color: "bg-indigo-500",
-      count: `${drivers.length} Drivers`,
-      path: "/admin/drivers"
-    },
-    {
-      id: "booking-management",
-      title: "Advanced Booking",
-      description: "Multi-channel bookings with geographic scheduling and dynamic pricing",
+      id: "bookings-dos",
+      title: "View Bookings & DOs",
+      description: "Multi-channel bookings with geographic scheduling and delivery order management",
       icon: CalendarRange,
       color: "bg-pink-500",
-      count: "34 Bookings",
-      path: "/admin/bookings"
-    },
-    {
-      id: "delivery-orders",
-      title: "Smart Delivery Orders",
-      description: "Auto-assignment, route optimization, and real-time tracking",
-      icon: FileText,
-      color: "bg-yellow-500",
       count: `${orders.length} Orders`,
-      path: "/admin/orders"
+      path: "/admin/bookings-dos"
     },
     {
       id: "invoicing",
-      title: "Comprehensive Invoicing",
+      title: "Manage Invoice",
       description: "Auto-generation, PDF creation, and multi-currency support",
       icon: Receipt,
       color: "bg-teal-500",
@@ -184,35 +172,17 @@ const AdminDashboard: React.FC = () => {
       path: "/admin/invoicing"
     },
     {
-      id: "commission",
-      title: "Commission Management",
-      description: "Multi-tier structures with performance tracking and automated payments",
+      id: "payment-overview",
+      title: "View Payment Overview",
+      description: "Payment tracking, transaction history, and financial summaries",
       icon: DollarSign,
       color: "bg-emerald-500",
-      count: "RM 12,450",
-      path: "/admin/commission"
-    },
-    {
-      id: "refunds",
-      title: "Refunds & Cancellations",
-      description: "Policy implementation with automated processing and dispute resolution",
-      icon: RefreshCw,
-      color: "bg-rose-500",
-      count: "5 Pending",
-      path: "/admin/refunds"
-    },
-    {
-      id: "expenses",
-      title: "Advanced Expense Management",
-      description: "Multi-category tracking with receipt upload and approval workflows",
-      icon: CreditCard,
-      color: "bg-amber-500",
-      count: "RM 8,900",
-      path: "/admin/expenses"
+      count: `RM ${totalRevenue.toLocaleString('en-MY', { minimumFractionDigits: 2 })}`,
+      path: "/admin/payment-overview"
     },
     {
       id: "reports",
-      title: "Comprehensive Reports",
+      title: "Access Reports",
       description: "Real-time metrics with predictive analytics and custom report builder",
       icon: BarChart3,
       color: "bg-violet-500",
@@ -221,7 +191,7 @@ const AdminDashboard: React.FC = () => {
     },
     {
       id: "printing",
-      title: "Multi-Format Printing",
+      title: "Printing System",
       description: "A4 and thermal printing with barcode generation and custom templates",
       icon: Printer,
       color: "bg-slate-500",

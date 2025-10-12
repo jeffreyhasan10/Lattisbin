@@ -1,10 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { Order, Driver as DriverType, MaintenanceSchedule } from "@/data/dummyData";
-import SmartAssignmentEngine from "@/utils/smartAssignmentEngine";
-import RouteOptimizationEngine from "@/utils/routeOptimizationEngine";
-import DynamicPricingEngine from "@/utils/dynamicPricingEngine";
-import { MaintenanceScheduler } from "@/utils/maintenanceScheduler";
 import mobileIntegrationService from "@/services/mobileIntegrationService";
 
 interface OrderContextType {
@@ -18,9 +14,6 @@ interface OrderContextType {
   updateDriver: (id: string, updates: Partial<DriverType>) => void;
   deleteDriver: (id: string) => void;
   assignOrderToDriver: (orderId: string, driverId: string) => void;
-  optimizeRoutes: (driverId: string) => unknown;
-  calculateDynamicPrice: (order: Order) => number;
-  scheduleMaintenanceAlert: (vehicleId: string) => void;
   scanQRCode: (qrData: string) => Promise<unknown>;
   capturePhoto: (file: File) => Promise<string>;
   syncOfflineData: () => Promise<void>;
@@ -187,30 +180,6 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
-  const optimizeRoutes = (driverId: string): unknown => {
-    const driverOrders = orders.filter(o => 
-      o.status === "assigned" && 
-      drivers.find(d => d.id === driverId)?.name === o.driverName
-    );
-    return RouteOptimizationEngine.calculateRouteMetrics(driverOrders);
-  };
-
-  const calculateDynamicPrice = (order: Order): number => {
-    return DynamicPricingEngine.calculatePrice({
-      basePrice: order.price,
-      distance: 10, // Mock distance
-      demandMultiplier: 1.2,
-      timeOfDay: new Date().getHours(),
-      binType: order.binType,
-      urgency: order.priority === 'high' ? 'urgent' : 'normal'
-    });
-  };
-
-  const scheduleMaintenanceAlert = (vehicleId: string) => {
-    const schedule = MaintenanceScheduler.scheduleNextMaintenance(vehicleId, new Date());
-    setMaintenanceSchedules(prev => [...prev, schedule]);
-  };
-
   const scanQRCode = async (qrData: string): Promise<unknown> => {
     return await mobileIntegrationService.processQRScan(qrData);
   };
@@ -260,9 +229,6 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     updateDriver,
     deleteDriver,
     assignOrderToDriver,
-    optimizeRoutes,
-    calculateDynamicPrice,
-    scheduleMaintenanceAlert,
     scanQRCode,
     capturePhoto,
     syncOfflineData,

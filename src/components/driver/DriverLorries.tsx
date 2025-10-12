@@ -139,7 +139,7 @@ const DriverLorries = () => {
   const currentLorry = lorries.find(l => l.driverAssigned === "Ahmad Rahman");
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 lg:p-6">
+    <div className="p-4 sm:p-5 lg:p-6 max-w-screen-xl mx-auto">
       {/* Breadcrumbs */}
       <div className="bg-white border border-gray-200 rounded-xl mb-4 shadow-sm">
         <div className="px-4 py-3">

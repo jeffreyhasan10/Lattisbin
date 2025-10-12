@@ -2,7 +2,6 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -18,10 +17,7 @@ import {
   User, 
   LogOut, 
   Shield,
-  Activity,
-  Bell,
-  ChevronLeft,
-  ChevronRight
+  ChevronLeft
 } from "lucide-react";
 import LiveNotifications from "./LiveNotifications";
 import { useOrders } from "@/contexts/OrderContext";
@@ -75,26 +71,6 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({
             <p className="text-sm text-gray-500 hidden sm:block">Manage your operations efficiently</p>
           </div>
           
-          {/* Real-time Status Badges */}
-          <div className="hidden md:flex items-center gap-2">
-            <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 border-emerald-200 flex items-center gap-1">
-              <Activity className="h-3 w-3" />
-              <span className="font-medium">{activeDrivers}</span>
-              <span className="hidden lg:inline">Active</span>
-            </Badge>
-            <Badge variant="secondary" className="bg-blue-100 text-blue-700 border-blue-200 flex items-center gap-1">
-              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
-              <span className="font-medium">{activeOrders}</span>
-              <span className="hidden lg:inline">En Route</span>
-            </Badge>
-            {pendingOrders > 0 && (
-              <Badge variant="secondary" className="bg-amber-100 text-amber-700 border-amber-200 flex items-center gap-1">
-                <Bell className="h-3 w-3" />
-                <span className="font-medium">{pendingOrders}</span>
-                <span className="hidden lg:inline">Pending</span>
-              </Badge>
-            )}
-          </div>
         </div>
       </div>
 
