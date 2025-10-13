@@ -23,8 +23,23 @@ import {
   CircleDot,
   Play,
   CheckCircle2,
+  X,
+  Info,
+  CalendarDays,
+  ArrowUpRight,
+  ArrowDownRight,
+  ArrowLeftRight,
+  History,
 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Separator } from "@/components/ui/separator";
 
 // Mock data for task-focused dashboard
 const mockTodayTrips = [
@@ -114,10 +129,117 @@ const mockWeekTrips = [
   { day: "Sun", trips: 2, completed: 0 }
 ];
 
+const mockUpcomingCollections = [
+  {
+    id: "UC-001",
+    date: "2024-10-14",
+    time: "09:00 AM",
+    customer: "Metro Shopping Mall",
+    location: "KLCC, Kuala Lumpur",
+    binType: "XL Bin",
+    quantity: 2,
+    type: "pickup",
+    status: "scheduled"
+  },
+  {
+    id: "UC-002",
+    date: "2024-10-15",
+    time: "11:30 AM",
+    customer: "Green Valley Apartments",
+    location: "Mont Kiara, KL",
+    binType: "Large Bin",
+    quantity: 3,
+    type: "delivery",
+    status: "scheduled"
+  },
+  {
+    id: "UC-003",
+    date: "2024-10-15",
+    time: "02:00 PM",
+    customer: "Tech Hub Office",
+    location: "Cyberjaya",
+    binType: "Medium Bin",
+    quantity: 1,
+    type: "pickup",
+    status: "scheduled"
+  },
+  {
+    id: "UC-004",
+    date: "2024-10-16",
+    time: "10:00 AM",
+    customer: "Sunway Shopping Center",
+    location: "Bandar Sunway",
+    binType: "XL Bin",
+    quantity: 2,
+    type: "both",
+    status: "scheduled"
+  },
+  {
+    id: "UC-005",
+    date: "2024-10-17",
+    time: "08:30 AM",
+    customer: "Damansara Heights Condo",
+    location: "Damansara Heights",
+    binType: "Large Bin",
+    quantity: 4,
+    type: "delivery",
+    status: "scheduled"
+  }
+];
+
+const mockPastCollections = [
+  {
+    id: "PC-001",
+    date: "2024-10-12",
+    time: "10:00 AM",
+    customer: "Plaza Shopping Mall",
+    location: "Petaling Jaya",
+    binType: "Large Bin",
+    quantity: 2,
+    type: "pickup",
+    status: "completed"
+  },
+  {
+    id: "PC-002",
+    date: "2024-10-11",
+    time: "02:30 PM",
+    customer: "Riverside Apartments",
+    location: "Ampang, KL",
+    binType: "Medium Bin",
+    quantity: 3,
+    type: "delivery",
+    status: "completed"
+  },
+  {
+    id: "PC-003",
+    date: "2024-10-10",
+    time: "11:00 AM",
+    customer: "City Tower Office",
+    location: "Bangsar, KL",
+    binType: "XL Bin",
+    quantity: 1,
+    type: "both",
+    status: "completed"
+  },
+  {
+    id: "PC-004",
+    date: "2024-10-09",
+    time: "09:30 AM",
+    customer: "Horizon Mall",
+    location: "Shah Alam",
+    binType: "Large Bin",
+    quantity: 2,
+    type: "pickup",
+    status: "completed"
+  }
+];
+
 const DriverDashboard = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [trips, setTrips] = useState(mockTodayTrips);
   const [collections, setCollections] = useState(mockPendingCollections);
+  const [selectedCollection, setSelectedCollection] = useState<typeof mockPendingCollections[0] | null>(null);
+  const [isCollectionDialogOpen, setIsCollectionDialogOpen] = useState(false);
 
   // Update time every minute
   useEffect(() => {
@@ -204,9 +326,58 @@ const DriverDashboard = () => {
   const handleViewCollection = (collectionId: string) => {
     const collection = collections.find(c => c.id === collectionId);
     if (collection) {
-      toast.info(`Collection Details: ${collection.customer}`, {
-        description: `${collection.quantity}x ${collection.binType} at ${collection.location}`
+      setSelectedCollection(collection);
+      setIsCollectionDialogOpen(true);
+    }
+  };
+
+  const handleNavigateToCollection = () => {
+    if (selectedCollection) {
+      const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedCollection.location)}`;
+      window.open(mapsUrl, '_blank');
+      toast.success(`Opening navigation to ${selectedCollection.customer}`);
+    }
+  };
+
+  const handleStartCollection = () => {
+    if (selectedCollection) {
+      toast.success(`Started collection for ${selectedCollection.customer}`, {
+        description: "Navigate to location to begin"
       });
+      setIsCollectionDialogOpen(false);
+    }
+  };
+
+  const getCollectionTypeIcon = (type: string) => {
+    switch (type) {
+      case "pickup": return <ArrowUpRight className="h-4 w-4" />;
+      case "delivery": return <ArrowDownRight className="h-4 w-4" />;
+      case "both": return <ArrowLeftRight className="h-4 w-4" />;
+      default: return <Package className="h-4 w-4" />;
+    }
+  };
+
+  const getCollectionTypeColor = (type: string) => {
+    switch (type) {
+      case "pickup": return "bg-blue-100 text-blue-700 border-blue-300";
+      case "delivery": return "bg-green-100 text-green-700 border-green-300";
+      case "both": return "bg-purple-100 text-purple-700 border-purple-300";
+      default: return "bg-gray-100 text-gray-700 border-gray-300";
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    if (date.toDateString() === today.toDateString()) {
+      return "Today";
+    } else if (date.toDateString() === tomorrow.toDateString()) {
+      return "Tomorrow";
+    } else {
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     }
   };
 
@@ -300,14 +471,18 @@ const DriverDashboard = () => {
             </div>
             <CardContent className="pt-4 px-4">
               <Tabs defaultValue="today" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 mb-4">
+                <TabsList className="grid w-full grid-cols-3 mb-4">
                   <TabsTrigger value="today" className="text-xs sm:text-sm">
                     <Clock className="h-4 w-4 mr-1.5" />
                     Today
                   </TabsTrigger>
+                  <TabsTrigger value="calendar" className="text-xs sm:text-sm">
+                    <CalendarDays className="h-4 w-4 mr-1.5" />
+                    Calendar
+                  </TabsTrigger>
                   <TabsTrigger value="week" className="text-xs sm:text-sm">
                     <Calendar className="h-4 w-4 mr-1.5" />
-                    This Week
+                    Week
                   </TabsTrigger>
                 </TabsList>
 
@@ -384,6 +559,140 @@ const DriverDashboard = () => {
                       </div>
                     </div>
                   ))}
+                </TabsContent>
+
+                <TabsContent value="calendar" className="space-y-4 mt-0">
+                  {/* Upcoming Collections */}
+                  <div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <CalendarDays className="h-5 w-5 text-blue-600" />
+                      <h3 className="font-bold text-gray-900">Upcoming Bin Collections</h3>
+                      <Badge className="bg-blue-100 text-blue-700 border-0 text-xs">
+                        {mockUpcomingCollections.length}
+                      </Badge>
+                    </div>
+                    <div className="space-y-2.5">
+                      {mockUpcomingCollections.map((collection) => (
+                        <div 
+                          key={collection.id}
+                          className="p-4 bg-gradient-to-br from-blue-50 via-cyan-50/50 to-white rounded-2xl shadow-md hover:shadow-lg active:scale-[0.98] transition-all border-2 border-blue-100"
+                        >
+                          <div className="flex items-start justify-between gap-3 mb-3">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 flex-wrap mb-2">
+                                <Badge className="bg-blue-500 text-white border-0 text-xs font-semibold">
+                                  {formatDate(collection.date)}
+                                </Badge>
+                                <Badge className={`${getCollectionTypeColor(collection.type)} border text-xs font-semibold`}>
+                                  {getCollectionTypeIcon(collection.type)}
+                                  <span className="ml-1 capitalize">{collection.type}</span>
+                                </Badge>
+                              </div>
+                              <h4 className="font-bold text-gray-900 text-sm mb-1">{collection.customer}</h4>
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-2 text-sm text-gray-700">
+                            <div className="flex items-center gap-2">
+                              <MapPin className="h-4 w-4 text-blue-500 flex-shrink-0" />
+                              <span className="truncate font-medium">{collection.location}</span>
+                            </div>
+                            <div className="flex items-center gap-4">
+                              <div className="flex items-center gap-1.5">
+                                <Clock className="h-4 w-4 text-gray-500" />
+                                <span className="text-sm">{collection.time}</span>
+                              </div>
+                              <div className="flex items-center gap-1.5">
+                                <Package className="h-4 w-4 text-gray-500" />
+                                <span className="text-sm">{collection.quantity}x {collection.binType}</span>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="flex gap-2 pt-3 mt-3 border-t border-blue-100">
+                            <Button 
+                              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white h-10 rounded-xl font-semibold text-sm shadow-sm active:scale-95 transition-transform"
+                              onClick={() => {
+                                const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(collection.location)}`;
+                                window.open(mapsUrl, '_blank');
+                                toast.success(`Opening navigation to ${collection.customer}`);
+                              }}
+                            >
+                              <Navigation className="h-4 w-4 mr-2" />
+                              Navigate
+                            </Button>
+                            <Button 
+                              variant="outline"
+                              className="h-10 px-4 rounded-xl font-semibold text-sm border-2 border-blue-200 text-blue-600 hover:bg-blue-50 active:scale-95 transition-transform"
+                              onClick={() => {
+                                toast.info(`Collection scheduled for ${formatDate(collection.date)} at ${collection.time}`);
+                              }}
+                            >
+                              <Info className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <Separator className="my-6" />
+
+                  {/* Past Collections */}
+                  <div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <History className="h-5 w-5 text-gray-600" />
+                      <h3 className="font-bold text-gray-900">Past Bin Collections</h3>
+                      <Badge className="bg-gray-100 text-gray-700 border-0 text-xs">
+                        {mockPastCollections.length}
+                      </Badge>
+                    </div>
+                    <div className="space-y-2.5">
+                      {mockPastCollections.map((collection) => (
+                        <div 
+                          key={collection.id}
+                          className="p-4 bg-gradient-to-br from-gray-50 via-slate-50/50 to-white rounded-2xl shadow-sm hover:shadow-md active:scale-[0.98] transition-all border-2 border-gray-100"
+                        >
+                          <div className="flex items-start justify-between gap-3 mb-3">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 flex-wrap mb-2">
+                                <Badge className="bg-emerald-100 text-emerald-700 border-emerald-300 border text-xs font-semibold">
+                                  <CheckCircle2 className="h-3 w-3 mr-1" />
+                                  Completed
+                                </Badge>
+                                <Badge className={`${getCollectionTypeColor(collection.type)} border text-xs font-semibold`}>
+                                  {getCollectionTypeIcon(collection.type)}
+                                  <span className="ml-1 capitalize">{collection.type}</span>
+                                </Badge>
+                              </div>
+                              <h4 className="font-bold text-gray-900 text-sm mb-1">{collection.customer}</h4>
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-2 text-sm text-gray-600">
+                            <div className="flex items-center gap-2">
+                              <MapPin className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                              <span className="truncate font-medium">{collection.location}</span>
+                            </div>
+                            <div className="flex items-center gap-4">
+                              <div className="flex items-center gap-1.5">
+                                <Calendar className="h-4 w-4 text-gray-500" />
+                                <span className="text-sm">{formatDate(collection.date)}</span>
+                              </div>
+                              <div className="flex items-center gap-1.5">
+                                <Clock className="h-4 w-4 text-gray-500" />
+                                <span className="text-sm">{collection.time}</span>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              <Package className="h-4 w-4 text-gray-500" />
+                              <span className="text-sm">{collection.quantity}x {collection.binType}</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </TabsContent>
 
                 <TabsContent value="week" className="space-y-3 mt-0">
@@ -515,6 +824,109 @@ const DriverDashboard = () => {
           </Card>
         </div>
       </div>
+
+      {/* Collection Details Dialog */}
+      <Dialog open={isCollectionDialogOpen} onOpenChange={setIsCollectionDialogOpen}>
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3 text-xl">
+              <div className="p-2 bg-orange-100 rounded-lg">
+                <Package className="h-6 w-6 text-orange-600" />
+              </div>
+              Collection Details
+            </DialogTitle>
+            <DialogDescription>
+              {selectedCollection?.id}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedCollection && (
+            <div className="space-y-4 py-4">
+              {/* Customer & Priority */}
+              <div className="space-y-3">
+                <div>
+                  <p className="text-sm font-medium text-gray-600 mb-1">Customer</p>
+                  <p className="text-lg font-bold text-gray-900">{selectedCollection.customer}</p>
+                </div>
+                {selectedCollection.priority === 'urgent' && (
+                  <Badge className="bg-gradient-to-r from-red-500 to-pink-600 text-white border-0">
+                    <Zap className="h-3 w-3 mr-1" />
+                    Urgent Priority
+                  </Badge>
+                )}
+              </div>
+
+              <Separator />
+
+              {/* Location */}
+              <div className="p-4 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl border-2 border-blue-200">
+                <div className="flex items-start gap-3 mb-3">
+                  <MapPin className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-600 mb-1">Location</p>
+                    <p className="text-base font-semibold text-gray-900">{selectedCollection.location}</p>
+                  </div>
+                </div>
+                <Button 
+                  onClick={handleNavigateToCollection}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
+                >
+                  <Navigation className="h-4 w-4 mr-2" />
+                  Navigate to Location
+                </Button>
+              </div>
+
+              {/* Bin Information */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-3 bg-orange-50 rounded-lg border border-orange-200">
+                  <p className="text-xs text-gray-600 mb-1">Bin Type</p>
+                  <p className="font-semibold text-gray-900 flex items-center gap-2">
+                    <Package className="h-4 w-4 text-orange-600" />
+                    {selectedCollection.binType}
+                  </p>
+                </div>
+                <div className="p-3 bg-orange-50 rounded-lg border border-orange-200">
+                  <p className="text-xs text-gray-600 mb-1">Quantity</p>
+                  <p className="font-semibold text-gray-900">
+                    {selectedCollection.quantity} {selectedCollection.quantity > 1 ? 'bins' : 'bin'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Scheduled Time */}
+              <div className="p-4 bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl border-2 border-amber-200">
+                <div className="flex items-center gap-3">
+                  <Clock className="h-5 w-5 text-amber-600" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Scheduled Time</p>
+                    <p className="text-base font-bold text-gray-900">{selectedCollection.scheduledTime}</p>
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Action Buttons */}
+              <div className="space-y-3 pt-2">
+                <Button 
+                  onClick={handleStartCollection}
+                  className="w-full bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white h-12 rounded-xl font-semibold shadow-md"
+                >
+                  <Play className="h-5 w-5 mr-2" />
+                  Start Collection
+                </Button>
+                <Button 
+                  variant="outline"
+                  onClick={() => setIsCollectionDialogOpen(false)}
+                  className="w-full h-11 rounded-xl font-semibold"
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
     </div>
   );

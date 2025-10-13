@@ -12,6 +12,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import {
   MapPin,
   Clock,
@@ -26,7 +28,10 @@ import {
   ArrowLeft,
   Calendar,
   Map,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
+import { format } from "date-fns";
 
 interface Trip {
   id: string;
@@ -115,6 +120,9 @@ const MyTrips = () => {
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterPriority, setFilterPriority] = useState("all");
   const [activeTab, setActiveTab] = useState("all");
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
   
   // Load trips from localStorage or use mock data
   const [trips, setTrips] = useState<Trip[]>(() => {
@@ -189,9 +197,21 @@ const MyTrips = () => {
       activeTab === "all" ||
       (activeTab === "today" && trip.status !== "completed") ||
       (activeTab === "completed" && trip.status === "completed");
+    const matchesDate = !selectedDate || trip.scheduledDate === format(selectedDate, "yyyy-MM-dd");
 
-    return matchesSearch && matchesStatus && matchesPriority && matchesTab;
+    return matchesSearch && matchesStatus && matchesPriority && matchesTab && matchesDate;
   });
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredTrips.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedTrips = filteredTrips.slice(startIndex, endIndex);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterStatus, filterPriority, activeTab, selectedDate]);
 
   const handleViewDetails = (tripId: string) => {
     navigate(`/driver/trips/${tripId}`);
@@ -285,7 +305,7 @@ const MyTrips = () => {
         {/* Filters */}
         <Card className="bg-white/90 backdrop-blur-sm shadow-lg mb-6">
           <CardContent className="p-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
@@ -295,6 +315,23 @@ const MyTrips = () => {
                   className="pl-10"
                 />
               </div>
+
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full justify-start text-left font-normal">
+                    <Calendar className="mr-2 h-4 w-4" />
+                    {selectedDate ? format(selectedDate, "PPP") : "Pick a date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <CalendarComponent
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={setSelectedDate}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
 
               <Select value={filterStatus} onValueChange={setFilterStatus}>
                 <SelectTrigger>
@@ -329,6 +366,7 @@ const MyTrips = () => {
                   setSearchTerm("");
                   setFilterStatus("all");
                   setFilterPriority("all");
+                  setSelectedDate(undefined);
                 }}
               >
                 <Filter className="h-4 w-4 mr-2" />
@@ -364,7 +402,8 @@ const MyTrips = () => {
                   <p className="text-gray-500">No trips found</p>
                 </div>
               ) : (
-                filteredTrips.map((trip) => (
+                <>
+                {paginatedTrips.map((trip) => (
                   <div
                     key={trip.id}
                     className="p-4 bg-gradient-to-br from-white via-blue-50/30 to-indigo-50/20 rounded-2xl border border-blue-100 hover:shadow-xl active:scale-[0.98] transition-all"
@@ -444,6 +483,50 @@ const MyTrips = () => {
                     </div>
                   </div>
                 ))
+                }
+                
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-between pt-6 border-t border-gray-200 mt-6">
+                    <div className="text-sm text-gray-600">
+                      Showing {startIndex + 1} to {Math.min(endIndex, filteredTrips.length)} of {filteredTrips.length} trips
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                        disabled={currentPage === 1}
+                        className="h-9"
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                      <div className="flex gap-1">
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                          <Button
+                            key={page}
+                            variant={currentPage === page ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setCurrentPage(page)}
+                            className="h-9 w-9"
+                          >
+                            {page}
+                          </Button>
+                        ))}
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                        disabled={currentPage === totalPages}
+                        className="h-9"
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+                </>
               )}
             </TabsContent>
           </Tabs>

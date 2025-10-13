@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import {
   MapPin,
   Clock,
@@ -27,7 +29,10 @@ import {
   Award,
   FileText,
   Download,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
+import { format } from "date-fns";
 
 interface TripHistoryItem {
   id: string;
@@ -147,6 +152,9 @@ const TripHistory = () => {
   const [filterPayment, setFilterPayment] = useState("all");
   const [filterMonth, setFilterMonth] = useState("all");
   const [activeTab, setActiveTab] = useState("all");
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
   const getPaymentStatusColor = (status: string) => {
     switch (status) {
@@ -173,9 +181,21 @@ const TripHistory = () => {
       (activeTab === "paid" && trip.paymentStatus === "paid") ||
       (activeTab === "pending" &&
         (trip.paymentStatus === "pending" || trip.paymentStatus === "partial"));
+    const matchesDate = !selectedDate || trip.completedDate === format(selectedDate, "yyyy-MM-dd");
 
-    return matchesSearch && matchesPayment && matchesTab;
+    return matchesSearch && matchesPayment && matchesTab && matchesDate;
   });
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredTrips.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedTrips = filteredTrips.slice(startIndex, endIndex);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterPayment, activeTab, selectedDate]);
 
   // Calculate statistics
   const totalTrips = mockTripHistory.length;
@@ -280,7 +300,7 @@ const TripHistory = () => {
         {/* Filters */}
         <Card className="bg-white/90 backdrop-blur-sm shadow-lg mb-6">
           <CardContent className="p-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
@@ -290,6 +310,23 @@ const TripHistory = () => {
                   className="pl-10"
                 />
               </div>
+
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full justify-start text-left font-normal">
+                    <Calendar className="mr-2 h-4 w-4" />
+                    {selectedDate ? format(selectedDate, "PPP") : "Pick a date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <CalendarComponent
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={setSelectedDate}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
 
               <Select value={filterPayment} onValueChange={setFilterPayment}>
                 <SelectTrigger>
@@ -322,6 +359,7 @@ const TripHistory = () => {
                   setSearchTerm("");
                   setFilterPayment("all");
                   setFilterMonth("all");
+                  setSelectedDate(undefined);
                 }}
               >
                 <Filter className="h-4 w-4 mr-2" />
@@ -357,7 +395,8 @@ const TripHistory = () => {
                   <p className="text-gray-500">No trips found</p>
                 </div>
               ) : (
-                filteredTrips.map((trip) => (
+                <>
+                {paginatedTrips.map((trip) => (
                   <div
                     key={trip.id}
                     className="p-4 bg-gradient-to-br from-white via-cyan-50/20 to-blue-50/30 rounded-2xl border border-cyan-100 hover:shadow-xl active:scale-[0.98] transition-all"
@@ -467,6 +506,50 @@ const TripHistory = () => {
                     </div>
                   </div>
                 ))
+                }
+                
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-between pt-6 border-t border-gray-200 mt-6">
+                    <div className="text-sm text-gray-600">
+                      Showing {startIndex + 1} to {Math.min(endIndex, filteredTrips.length)} of {filteredTrips.length} trips
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                        disabled={currentPage === 1}
+                        className="h-9"
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                      <div className="flex gap-1">
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                          <Button
+                            key={page}
+                            variant={currentPage === page ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setCurrentPage(page)}
+                            className="h-9 w-9"
+                          >
+                            {page}
+                          </Button>
+                        ))}
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                        disabled={currentPage === totalPages}
+                        className="h-9"
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+                </>
               )}
             </TabsContent>
           </Tabs>
