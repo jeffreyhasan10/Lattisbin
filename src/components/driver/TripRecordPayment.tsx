@@ -35,6 +35,7 @@ import {
   FileText,
   AlertCircle,
   Printer,
+  Clock,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -87,6 +88,7 @@ const paymentMethods: PaymentMethod[] = [
 const TripRecordPayment = () => {
   const navigate = useNavigate();
   const { tripId } = useParams();
+  const [paymentStatus, setPaymentStatus] = useState<"full" | "partial" | "pending" | "">("");
   const [paymentMethod, setPaymentMethod] = useState<string>("");
   const [amount, setAmount] = useState("");
   const [referenceNumber, setReferenceNumber] = useState("");
@@ -104,6 +106,17 @@ const TripRecordPayment = () => {
   };
 
   const handleConfirmPayment = () => {
+    if (!paymentStatus) {
+      toast.error("Please select a payment status");
+      return;
+    }
+    
+    // For pending payment, skip payment details validation
+    if (paymentStatus === "pending") {
+      setShowConfirmDialog(true);
+      return;
+    }
+    
     if (!paymentMethod) {
       toast.error("Please select a payment method");
       return;
@@ -116,6 +129,13 @@ const TripRecordPayment = () => {
       toast.error("Payment amount cannot exceed outstanding amount");
       return;
     }
+    
+    // Validate partial payment
+    if (paymentStatus === "partial" && parseFloat(amount) >= tripData.outstandingAmount) {
+      toast.error("Partial payment must be less than total amount");
+      return;
+    }
+    
     setShowConfirmDialog(true);
   };
 
@@ -127,13 +147,21 @@ const TripRecordPayment = () => {
       const updatedTrips = trips.map((trip) => {
         if (trip.id === tripId) {
           const hasStatusUpdate = trip.statusUpdated === true;
+          const paymentData: Record<string, unknown> = {
+            paymentStatus: paymentStatus,
+            paymentRecorded: paymentStatus !== "pending",
+          };
+          
+          if (paymentStatus !== "pending") {
+            paymentData.paymentMethod = paymentMethod;
+            paymentData.paymentAmount = parseFloat(amount || "0");
+          }
+          
           return {
             ...trip,
-            paymentRecorded: true,
-            paymentMethod: paymentMethod,
-            paymentAmount: parseFloat(amount),
-            // Mark as completed if status is also updated
-            status: hasStatusUpdate ? "completed" : trip.status,
+            ...paymentData,
+            // Mark as completed if status is updated AND payment is full or pending
+            status: hasStatusUpdate && (paymentStatus === "full" || paymentStatus === "pending") ? "completed" : trip.status,
           };
         }
         return trip;
@@ -141,11 +169,23 @@ const TripRecordPayment = () => {
       localStorage.setItem("driverTrips", JSON.stringify(updatedTrips));
     }
     
-    toast.success("Payment recorded successfully!", {
-      description: "Payment details have been sent to admin for reconciliation",
+    const statusMessages = {
+      full: "Payment recorded successfully!",
+      partial: "Partial payment recorded!",
+      pending: "Payment marked as pending!",
+    };
+    
+    const statusDescriptions = {
+      full: "Payment details have been sent to admin for reconciliation",
+      partial: "Remaining balance will be collected later",
+      pending: "Customer will pay later. Admin has been notified",
+    };
+    
+    toast.success(statusMessages[paymentStatus], {
+      description: statusDescriptions[paymentStatus],
     });
 
-    if (generateReceipt && paymentMethod === "cash") {
+    if (generateReceipt && paymentMethod === "cash" && paymentStatus !== "pending") {
       setTimeout(() => {
         toast.info("Generating receipt...", {
           description: "Receipt will be available for printing shortly",
@@ -242,7 +282,72 @@ const TripRecordPayment = () => {
           </CardContent>
         </Card>
 
-        {/* Payment Method Selection */}
+        {/* Payment Status Selection */}
+        <Card className="bg-white shadow-xl border-0 overflow-hidden">
+          <div className="bg-gradient-to-r from-purple-500 to-pink-600 px-5 py-4">
+            <CardTitle className="flex items-center gap-3 text-white">
+              <div className="p-2 bg-white/20 backdrop-blur-sm rounded-xl">
+                <DollarSign className="h-5 w-5 text-white" />
+              </div>
+              <span className="font-bold">Select Payment Status *</span>
+            </CardTitle>
+          </div>
+          <CardContent className="pt-4 px-5">
+            <RadioGroup value={paymentStatus} onValueChange={(value: "full" | "partial" | "pending") => setPaymentStatus(value)}>
+              <div className="space-y-3">
+                <label className={`flex items-start gap-4 p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                  paymentStatus === "full"
+                    ? "border-green-500 bg-green-50 ring-2 ring-green-200"
+                    : "border-gray-200 bg-white hover:bg-gray-50"
+                }`}>
+                  <RadioGroupItem value="full" id="full" className="mt-1" />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <CheckCircle className="h-5 w-5 text-green-600" />
+                      <span className="font-semibold text-gray-900">Full Payment</span>
+                    </div>
+                    <p className="text-sm text-gray-600">Customer pays the full amount now</p>
+                  </div>
+                </label>
+
+                <label className={`flex items-start gap-4 p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                  paymentStatus === "partial"
+                    ? "border-orange-500 bg-orange-50 ring-2 ring-orange-200"
+                    : "border-gray-200 bg-white hover:bg-gray-50"
+                }`}>
+                  <RadioGroupItem value="partial" id="partial" className="mt-1" />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Wallet className="h-5 w-5 text-orange-600" />
+                      <span className="font-semibold text-gray-900">Partial Payment</span>
+                    </div>
+                    <p className="text-sm text-gray-600">Customer pays part of the amount, remaining balance later</p>
+                  </div>
+                </label>
+
+                <label className={`flex items-start gap-4 p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                  paymentStatus === "pending"
+                    ? "border-yellow-500 bg-yellow-50 ring-2 ring-yellow-200"
+                    : "border-gray-200 bg-white hover:bg-gray-50"
+                }`}>
+                  <RadioGroupItem value="pending" id="pending" className="mt-1" />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Clock className="h-5 w-5 text-yellow-600" />
+                      <span className="font-semibold text-gray-900">Pending Payment</span>
+                    </div>
+                    <p className="text-sm text-gray-600">Customer will pay later (no payment received now)</p>
+                  </div>
+                </label>
+              </div>
+            </RadioGroup>
+          </CardContent>
+        </Card>
+
+        {/* Only show payment method and details if not pending */}
+        {paymentStatus && paymentStatus !== "pending" && (
+          <>
+            {/* Payment Method Selection */}
         <Card className="bg-white shadow-xl border-0 overflow-hidden">
           <div className="bg-gradient-to-r from-emerald-500 to-green-600 px-5 py-4">
             <CardTitle className="flex items-center gap-3 text-white">
@@ -382,6 +487,9 @@ const TripRecordPayment = () => {
           </Card>
         )}
 
+          </>
+        )}
+
         {/* Additional Notes */}
         <Card className="bg-white/90 backdrop-blur-sm shadow-lg">
           <CardHeader>
@@ -416,14 +524,17 @@ const TripRecordPayment = () => {
                 onClick={handleConfirmPayment}
                 className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white"
                 disabled={
-                  !paymentMethod ||
-                  !amount ||
-                  parseFloat(amount) <= 0 ||
-                  (requiresReferenceNumber && !referenceNumber)
+                  !paymentStatus ||
+                  (paymentStatus !== "pending" && (
+                    !paymentMethod ||
+                    !amount ||
+                    parseFloat(amount) <= 0 ||
+                    (requiresReferenceNumber && !referenceNumber)
+                  ))
                 }
               >
                 <CheckCircle className="h-4 w-4 mr-2" />
-                Confirm Payment
+                {paymentStatus === "pending" ? "Mark as Pending" : "Confirm Payment"}
               </Button>
             </div>
           </CardContent>
@@ -436,21 +547,38 @@ const TripRecordPayment = () => {
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
               <CheckCircle className="h-5 w-5 text-emerald-600" />
-              Confirm Payment Record
+              {paymentStatus === "pending" ? "Confirm Pending Payment" : "Confirm Payment Record"}
             </AlertDialogTitle>
             <AlertDialogDescription className="space-y-2">
-              <p>Please verify the payment details before confirming:</p>
+              <p>Please verify the {paymentStatus === "pending" ? "status" : "payment details"} before confirming:</p>
               <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <p className="text-sm font-semibold text-blue-900 mb-2">Payment Summary:</p>
+                <p className="text-sm font-semibold text-blue-900 mb-2">
+                  {paymentStatus === "pending" ? "Status Summary:" : "Payment Summary:"}
+                </p>
                 <ul className="text-sm text-gray-700 space-y-1">
-                  <li>• Method: <strong className="capitalize">{paymentMethod?.replace("-", " ")}</strong></li>
-                  <li>• Amount: <strong className="text-emerald-600">RM {parseFloat(amount || "0").toFixed(2)}</strong></li>
-                  {referenceNumber && <li>• Reference: <strong>{referenceNumber}</strong></li>}
-                  {generateReceipt && <li>• Receipt: <strong>Will be generated</strong></li>}
+                  <li>• Status: <strong className="capitalize">
+                    {paymentStatus === "full" ? "Full Payment" : paymentStatus === "partial" ? "Partial Payment" : "Pending Payment"}
+                  </strong></li>
+                  {paymentStatus !== "pending" && (
+                    <>
+                      <li>• Method: <strong className="capitalize">{paymentMethod?.replace("-", " ")}</strong></li>
+                      <li>• Amount: <strong className="text-emerald-600">RM {parseFloat(amount || "0").toFixed(2)}</strong></li>
+                      {paymentStatus === "partial" && (
+                        <li>• Remaining: <strong className="text-orange-600">
+                          RM {(tripData.outstandingAmount - parseFloat(amount || "0")).toFixed(2)}
+                        </strong></li>
+                      )}
+                      {referenceNumber && <li>• Reference: <strong>{referenceNumber}</strong></li>}
+                      {generateReceipt && <li>• Receipt: <strong>Will be generated</strong></li>}
+                    </>
+                  )}
+                  {notes && <li>• Notes: <strong>Included</strong></li>}
                 </ul>
               </div>
               <p className="text-sm text-gray-600 mt-2">
-                Payment details will be sent to admin for reconciliation and invoice update.
+                {paymentStatus === "pending" 
+                  ? "Customer will pay later. Admin will be notified to follow up on payment collection."
+                  : "Payment details will be sent to admin for reconciliation and invoice update."}
               </p>
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -460,7 +588,7 @@ const TripRecordPayment = () => {
               onClick={handleFinalConfirm}
               className="bg-emerald-600 hover:bg-emerald-700"
             >
-              Confirm Payment
+              {paymentStatus === "pending" ? "Confirm Status" : "Confirm Payment"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

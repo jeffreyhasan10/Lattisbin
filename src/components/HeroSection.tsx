@@ -28,19 +28,7 @@ const HeroSection = () => {
               From recycling to bulk waste, we deliver fast, reliable and sustainable service.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 animate-fade-in animate-delay-300">
-              <Button 
-                className="hero-button bg-simatex-purple text-white hover:bg-simatex-purple-dark"
-                onClick={() => setSignupModalOpen(true)}
-              >
-                Sign Up Now
-              </Button>
-              <Button 
-                variant="outline" 
-                className="hero-button border-simatex-purple text-simatex-purple hover:bg-simatex-purple hover:text-white"
-                onClick={() => setLoginModalOpen(true)}
-              >
-                Log In
-              </Button>
+
               <Button 
                 variant="ghost" 
                 className="hero-button text-gray-700 hover:text-simatex-purple"
@@ -65,36 +53,8 @@ const HeroSection = () => {
                 />
               </div>
               
-              {/* Floating card 1 */}
-              <div className="absolute -left-10 top-1/4 glass-card p-4 rounded-xl shadow-lg max-w-[250px] animate-float">
-                <div className="flex items-center space-x-3">
-                  <div className="bg-simatex-purple/20 p-2 rounded-lg">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M3 6H21M3 12H21M3 18H21" stroke="#7E69AB" strokeWidth="2" strokeLinecap="round" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="font-semibold text-gray-800">Smart Tracking</p>
-                    <p className="text-xs text-gray-500">Real-time bin monitoring</p>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Floating card 2 */}
-              <div className="absolute -right-5 bottom-10 glass-card p-4 rounded-xl shadow-lg max-w-[250px] animate-float animate-delay-500">
-                <div className="flex items-center space-x-3">
-                  <div className="bg-simatex-blue/20 p-2 rounded-lg">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="#1EAEDB" strokeWidth="2" />
-                      <path d="M12 6V12L16 14" stroke="#1EAEDB" strokeWidth="2" strokeLinecap="round" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="font-semibold text-gray-800">24/7 Scheduling</p>
-                    <p className="text-xs text-gray-500">Book anytime, anywhere</p>
-                  </div>
-                </div>
-              </div>
+             
+             
             </div>
           </div>
         </div>

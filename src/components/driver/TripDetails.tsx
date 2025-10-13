@@ -53,6 +53,8 @@ interface TripDetails {
   collectionType: "pickup" | "delivery" | "both";
   notes: string;
   binStatus: "pending" | "picked" | "delivered" | "filled";
+  paymentStatus?: "full" | "partial" | "pending";
+  paymentAmount?: number;
 }
 
 // Mock trip details
@@ -173,6 +175,32 @@ const TripDetails = () => {
     }
   };
 
+  const getPaymentStatusColor = (status: string) => {
+    switch (status) {
+      case "full":
+        return "bg-emerald-100 text-emerald-700 border-emerald-300";
+      case "partial":
+        return "bg-orange-100 text-orange-700 border-orange-300";
+      case "pending":
+        return "bg-yellow-100 text-yellow-700 border-yellow-300";
+      default:
+        return "bg-gray-100 text-gray-700 border-gray-300";
+    }
+  };
+
+  const getPaymentStatusLabel = (status: string) => {
+    switch (status) {
+      case "full":
+        return "Full Payment";
+      case "partial":
+        return "Partial Payment";
+      case "pending":
+        return "Pending Payment";
+      default:
+        return "No Payment";
+    }
+  };
+
   const handleNavigateToPickup = () => {
     const url = `https://www.google.com/maps/dir/?api=1&destination=${trip.pickupCoordinates.lat},${trip.pickupCoordinates.lng}`;
     window.open(url, "_blank");
@@ -252,6 +280,11 @@ const TripDetails = () => {
                 <Badge className={`${getBinStatusColor(trip.binStatus)} border text-sm px-3 py-1`}>
                   Bin: {trip.binStatus}
                 </Badge>
+                {trip.paymentStatus && (
+                  <Badge className={`${getPaymentStatusColor(trip.paymentStatus)} border text-sm px-3 py-1`}>
+                    {getPaymentStatusLabel(trip.paymentStatus)}
+                  </Badge>
+                )}
               </div>
               <Separator />
               <div className="grid grid-cols-2 gap-4 text-sm">
