@@ -40,8 +40,9 @@ const MobileHeader = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("driverSession");
+    localStorage.removeItem("userType");
     toast.success("Logged out successfully!");
-    navigate("/");
+    navigate("/driver/login");
   };
 
   const handleViewProfile = () => {

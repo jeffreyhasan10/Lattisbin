@@ -5,6 +5,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
+import AdminLogin from "./pages/AdminLogin";
+import DriverLogin from "./pages/DriverLogin";
 import AdminLayout from "./components/layout/AdminLayout";
 import AdminDashboard from "./components/admin/AdminDashboard";
 import CompanyManagement from "./components/admin/CompanyManagement";
@@ -61,6 +63,10 @@ function App() {
               <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-indigo-50/20">
                 <Routes>
                 <Route path="/" element={<Index />} />
+                
+                {/* Login Routes */}
+                <Route path="/admin/login" element={<AdminLogin />} />
+                <Route path="/driver/login" element={<DriverLogin />} />
                 
                 {/* Legacy dashboard route - redirect to new admin */}
                 <Route path="/dashboard" element={<Navigate to="/admin/dashboard" replace />} />

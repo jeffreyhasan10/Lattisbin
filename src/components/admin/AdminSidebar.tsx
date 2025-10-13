@@ -187,8 +187,8 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
   };
   // Add logout handler
   const handleLogout = () => {
-    // Clear any admin session if needed here
-    navigate("/");
+    localStorage.removeItem("userType");
+    navigate("/admin/login");
   };
   return <>
       {/* Desktop Sidebar */}

@@ -133,7 +133,10 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({
             <DropdownMenuSeparator />
             <DropdownMenuItem 
               className="text-red-600 hover:bg-red-50 focus:bg-red-50"
-              onClick={() => navigate("/")}
+              onClick={() => {
+                localStorage.removeItem("userType");
+                navigate("/admin/login");
+              }}
             >
               <LogOut className="mr-2 h-4 w-4" />
               <span>Log out</span>

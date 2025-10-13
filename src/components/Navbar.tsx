@@ -1,12 +1,10 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Building2 } from "lucide-react";
-import UnifiedLogin from "./UnifiedLogin";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [showLoginModal, setShowLoginModal] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -34,7 +32,7 @@ const Navbar = () => {
             : "bg-transparent"
         }`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full px-6 sm:px-8 lg:px-12">
           <div className="flex justify-between items-center py-4">
             {/* Logo */}
             <div className="flex items-center space-x-2">
@@ -64,23 +62,6 @@ const Navbar = () => {
               ))}
             </div>
 
-            {/* Desktop CTA Buttons */}
-            <div className="hidden md:flex items-center space-x-4">
-              <Button
-                variant="ghost"
-                onClick={() => setShowLoginModal(true)}
-                className="font-medium text-gray-700 hover:text-blue-700 hover:bg-blue-50"
-              >
-                Login
-              </Button>
-              <Button
-                onClick={() => setShowLoginModal(true)}
-                className="rounded-full px-5 bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transition-all duration-300"
-              >
-                Get Started
-              </Button>
-            </div>
-
             {/* Mobile menu button */}
             <div className="md:hidden">
               <Button
@@ -108,35 +89,11 @@ const Navbar = () => {
                     {item.name}
                   </a>
                 ))}
-                <div className="pt-2 space-y-2">
-                  <Button
-                    variant="ghost"
-                    onClick={() => {
-                      setShowLoginModal(true);
-                      setIsOpen(false);
-                    }}
-                    className="w-full justify-start text-gray-700 hover:text-blue-600 hover:bg-blue-50"
-                  >
-                    Login
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      setShowLoginModal(true);
-                      setIsOpen(false);
-                    }}
-                    className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800"
-                  >
-                    Get Started
-                  </Button>
-                </div>
               </div>
             </div>
           )}
         </div>
       </nav>
-
-      {/* Modals */}
-      <UnifiedLogin isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} />
     </>
   );
 };
