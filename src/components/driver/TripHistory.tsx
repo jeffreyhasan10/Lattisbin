@@ -15,6 +15,16 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
   MapPin,
   Clock,
   Package,
@@ -31,8 +41,13 @@ import {
   Download,
   ChevronLeft,
   ChevronRight,
+  ShoppingCart,
+  UserPlus,
+  Plus,
+  AlertCircle,
 } from "lucide-react";
 import { format } from "date-fns";
+import { toast } from "sonner";
 
 interface TripHistoryItem {
   id: string;
@@ -51,6 +66,27 @@ interface TripHistoryItem {
   paymentMethod?: string;
   duration: string;
   distance: string;
+}
+
+interface AvailableOrder {
+  id: string;
+  doNumber: string;
+  customer: string;
+  customerPhone: string;
+  pickupLocation: string;
+  dropoffLocation: string;
+  scheduledDate: string;
+  scheduledTime: string;
+  binType: string;
+  binSize: string;
+  wasteType: string;
+  priority: "urgent" | "high" | "normal" | "low";
+  estimatedPayment: number;
+  distance: string;
+  estimatedDuration: string;
+  status: "available" | "claimed";
+  claimedBy?: string;
+  claimedAt?: string;
 }
 
 // Mock trip history data
@@ -146,6 +182,64 @@ const mockTripHistory: TripHistoryItem[] = [
   },
 ];
 
+// Mock available orders data
+const mockAvailableOrders: AvailableOrder[] = [
+  {
+    id: "AO-001",
+    doNumber: "DO-2024-5001",
+    customer: "Central Business Plaza",
+    customerPhone: "+60 12-888-9999",
+    pickupLocation: "Warehouse D, Puchong",
+    dropoffLocation: "Central Business Plaza, KLCC",
+    scheduledDate: "2024-10-16",
+    scheduledTime: "09:00 AM",
+    binType: "Waste Bin",
+    binSize: "XL (360L)",
+    wasteType: "Commercial Waste",
+    priority: "urgent",
+    estimatedPayment: 380.00,
+    distance: "22.5 km",
+    estimatedDuration: "55 min",
+    status: "available"
+  },
+  {
+    id: "AO-002",
+    doNumber: "DO-2024-5002",
+    customer: "Orchid Gardens Residence",
+    customerPhone: "+60 12-777-8888",
+    pickupLocation: "Orchid Gardens, Cheras",
+    dropoffLocation: "Waste Processing Center, Semenyih",
+    scheduledDate: "2024-10-16",
+    scheduledTime: "11:00 AM",
+    binType: "Waste Bin",
+    binSize: "Large (240L)",
+    wasteType: "Household Waste",
+    priority: "normal",
+    estimatedPayment: 210.00,
+    distance: "18.3 km",
+    estimatedDuration: "40 min",
+    status: "available"
+  },
+  {
+    id: "AO-003",
+    doNumber: "DO-2024-5003",
+    customer: "TechStart Incubator",
+    customerPhone: "+60 12-666-7777",
+    pickupLocation: "Warehouse E, Cyberjaya",
+    dropoffLocation: "TechStart Incubator, Putrajaya",
+    scheduledDate: "2024-10-16",
+    scheduledTime: "02:30 PM",
+    binType: "Waste Bin",
+    binSize: "Medium (120L)",
+    wasteType: "Electronic Waste",
+    priority: "high",
+    estimatedPayment: 195.00,
+    distance: "14.2 km",
+    estimatedDuration: "35 min",
+    status: "available"
+  },
+];
+
 const TripHistory = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
@@ -155,6 +249,38 @@ const TripHistory = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
+  const [isCreateOrderOpen, setIsCreateOrderOpen] = useState(false);
+
+  // Form state for creating new order
+  const [newOrder, setNewOrder] = useState({
+    customer: "",
+    customerPhone: "",
+    pickupLocation: "",
+    dropoffLocation: "",
+    scheduledDate: "",
+    scheduledTime: "",
+    binSize: "Large (240L)",
+    wasteType: "General Waste",
+    priority: "normal",
+    estimatedPayment: "",
+    distance: "",
+    estimatedDuration: "",
+  });
+
+  // Load available orders from localStorage or use mock data
+  const [availableOrders, setAvailableOrders] = useState<AvailableOrder[]>(() => {
+    const saved = localStorage.getItem("availableOrders");
+    if (saved) {
+      return JSON.parse(saved);
+    }
+    localStorage.setItem("availableOrders", JSON.stringify(mockAvailableOrders));
+    return mockAvailableOrders;
+  });
+
+  // Save to localStorage whenever availableOrders changes
+  useEffect(() => {
+    localStorage.setItem("availableOrders", JSON.stringify(availableOrders));
+  }, [availableOrders]);
 
   const getPaymentStatusColor = (status: string) => {
     switch (status) {
@@ -167,6 +293,142 @@ const TripHistory = () => {
       default:
         return "bg-gray-100 text-gray-700 border-gray-300";
     }
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case "urgent":
+        return "bg-red-100 text-red-700 border-red-300";
+      case "high":
+        return "bg-orange-100 text-orange-700 border-orange-300";
+      case "normal":
+        return "bg-blue-100 text-blue-700 border-blue-300";
+      case "low":
+        return "bg-gray-100 text-gray-700 border-gray-300";
+      default:
+        return "bg-gray-100 text-gray-700 border-gray-300";
+    }
+  };
+
+  const handleClaimOrder = (order: AvailableOrder) => {
+    const driverName = localStorage.getItem("driverName") || "Ahmad (Driver)";
+    const driverId = localStorage.getItem("driverId") || "DRV-001";
+    
+    // Update the order status
+    const updatedOrders = availableOrders.map(o => 
+      o.id === order.id 
+        ? { 
+            ...o, 
+            status: "claimed" as const, 
+            claimedBy: driverName,
+            claimedAt: new Date().toISOString()
+          } 
+        : o
+    );
+    
+    setAvailableOrders(updatedOrders);
+
+    // Add to driver's trips
+    const driverTrips = JSON.parse(localStorage.getItem("driverTrips") || "[]");
+    const newTrip = {
+      id: order.id,
+      doNumber: order.doNumber,
+      customer: order.customer,
+      customerPhone: order.customerPhone,
+      pickupLocation: order.pickupLocation,
+      dropoffLocation: order.dropoffLocation,
+      scheduledDate: order.scheduledDate,
+      scheduledTime: order.scheduledTime,
+      status: "pending",
+      priority: order.priority,
+      binType: order.binType,
+      binSize: order.binSize,
+      wasteType: order.wasteType,
+      lorryAssigned: "To be assigned",
+      estimatedDuration: order.estimatedDuration,
+      distance: order.distance,
+      collectionType: "both"
+    };
+    driverTrips.push(newTrip);
+    localStorage.setItem("driverTrips", JSON.stringify(driverTrips));
+
+    // Store claim notification for admin
+    const claimedOrders = JSON.parse(localStorage.getItem("claimedOrders") || "[]");
+    claimedOrders.push({
+      orderId: order.id,
+      orderNumber: order.doNumber,
+      driverId: driverId,
+      driverName: driverName,
+      customer: order.customer,
+      claimedAt: new Date().toISOString(),
+      scheduledDate: order.scheduledDate,
+      scheduledTime: order.scheduledTime
+    });
+    localStorage.setItem("claimedOrders", JSON.stringify(claimedOrders));
+
+    toast.success(`Order ${order.doNumber} claimed successfully!`, {
+      description: `You have been assigned to ${order.customer}. Check "My Trips" for details.`
+    });
+  };
+
+  const handleCreateOrder = () => {
+    if (!newOrder.customer || !newOrder.pickupLocation || !newOrder.dropoffLocation || 
+        !newOrder.scheduledDate || !newOrder.scheduledTime) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
+    const driverName = localStorage.getItem("driverName") || "Ahmad (Driver)";
+    const orderId = `AO-${Date.now()}`;
+    const doNumber = `DO-2024-${Math.floor(Math.random() * 9000) + 1000}`;
+
+    const order: AvailableOrder = {
+      id: orderId,
+      doNumber: doNumber,
+      customer: newOrder.customer,
+      customerPhone: newOrder.customerPhone,
+      pickupLocation: newOrder.pickupLocation,
+      dropoffLocation: newOrder.dropoffLocation,
+      scheduledDate: newOrder.scheduledDate,
+      scheduledTime: newOrder.scheduledTime,
+      binType: "Waste Bin",
+      binSize: newOrder.binSize,
+      wasteType: newOrder.wasteType,
+      priority: newOrder.priority as "urgent" | "high" | "normal" | "low",
+      estimatedPayment: parseFloat(newOrder.estimatedPayment) || 0,
+      distance: newOrder.distance,
+      estimatedDuration: newOrder.estimatedDuration,
+      status: "claimed",
+      claimedBy: driverName,
+      claimedAt: new Date().toISOString()
+    };
+
+    // Add to available orders
+    setAvailableOrders([...availableOrders, order]);
+
+    // Immediately claim it for the driver
+    handleClaimOrder(order);
+
+    // Reset form and close dialog
+    setNewOrder({
+      customer: "",
+      customerPhone: "",
+      pickupLocation: "",
+      dropoffLocation: "",
+      scheduledDate: "",
+      scheduledTime: "",
+      binSize: "Large (240L)",
+      wasteType: "General Waste",
+      priority: "normal",
+      estimatedPayment: "",
+      distance: "",
+      estimatedDuration: "",
+    });
+    setIsCreateOrderOpen(false);
+
+    toast.success("Order created and claimed successfully!", {
+      description: `${doNumber} has been added to your trips`
+    });
   };
 
   const filteredTrips = mockTripHistory.filter((trip) => {
@@ -252,7 +514,7 @@ const TripHistory = () => {
         </div>
 
         {/* Performance Stats Cards - Colorful */}
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
           <Card className="bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg hover:shadow-xl active:scale-95 transition-all border-0">
             <CardContent className="p-4">
               <div className="text-center text-white">
@@ -292,6 +554,21 @@ const TripHistory = () => {
                 </p>
                 <p className="text-xs font-medium text-orange-100">Pending Balance</p>
                 <p className="text-xs text-orange-100 mt-1">To be collected</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-blue-500 to-cyan-600 shadow-lg hover:shadow-xl active:scale-95 transition-all border-0">
+            <CardContent className="p-4">
+              <div className="text-center text-white">
+                <div className="inline-flex p-3 bg-white/20 backdrop-blur-sm rounded-2xl mb-2">
+                  <ShoppingCart className="h-6 w-6 text-white" />
+                </div>
+                <p className="text-2xl sm:text-3xl font-bold">
+                  {availableOrders.filter(o => o.status === "available").length}
+                </p>
+                <p className="text-xs font-medium text-blue-100">Available Orders</p>
+                <p className="text-xs text-blue-100 mt-1">Ready to claim</p>
               </div>
             </CardContent>
           </Card>
@@ -382,11 +659,285 @@ const TripHistory = () => {
         </div>
         <CardContent className="pt-4 px-4">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-3 mb-6">
+            <TabsList className="grid w-full grid-cols-4 mb-6">
+              <TabsTrigger value="available">
+                <ShoppingCart className="h-4 w-4 mr-1.5" />
+                Available Orders
+              </TabsTrigger>
               <TabsTrigger value="all">All Trips</TabsTrigger>
               <TabsTrigger value="paid">Paid</TabsTrigger>
-              <TabsTrigger value="pending">Pending Payment</TabsTrigger>
+              <TabsTrigger value="pending">Pending</TabsTrigger>
             </TabsList>
+
+            {/* Available Orders Tab */}
+            <TabsContent value="available" className="space-y-4">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Available Orders</h3>
+                <Dialog open={isCreateOrderOpen} onOpenChange={setIsCreateOrderOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Create New Order
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle>Create New Order</DialogTitle>
+                      <DialogDescription>
+                        Create a new order and assign it to yourself
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="customer">Customer Name *</Label>
+                          <Input
+                            id="customer"
+                            value={newOrder.customer}
+                            onChange={(e) => setNewOrder({...newOrder, customer: e.target.value})}
+                            placeholder="Enter customer name"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="phone">Customer Phone</Label>
+                          <Input
+                            id="phone"
+                            value={newOrder.customerPhone}
+                            onChange={(e) => setNewOrder({...newOrder, customerPhone: e.target.value})}
+                            placeholder="+60 12-345-6789"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label htmlFor="pickup">Pickup Location *</Label>
+                        <Input
+                          id="pickup"
+                          value={newOrder.pickupLocation}
+                          onChange={(e) => setNewOrder({...newOrder, pickupLocation: e.target.value})}
+                          placeholder="Enter pickup address"
+                        />
+                      </div>
+
+                      <div>
+                        <Label htmlFor="dropoff">Drop-off Location *</Label>
+                        <Input
+                          id="dropoff"
+                          value={newOrder.dropoffLocation}
+                          onChange={(e) => setNewOrder({...newOrder, dropoffLocation: e.target.value})}
+                          placeholder="Enter drop-off address"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="date">Scheduled Date *</Label>
+                          <Input
+                            id="date"
+                            type="date"
+                            value={newOrder.scheduledDate}
+                            onChange={(e) => setNewOrder({...newOrder, scheduledDate: e.target.value})}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="time">Scheduled Time *</Label>
+                          <Input
+                            id="time"
+                            type="time"
+                            value={newOrder.scheduledTime}
+                            onChange={(e) => setNewOrder({...newOrder, scheduledTime: e.target.value})}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="binSize">Bin Size</Label>
+                          <Select value={newOrder.binSize} onValueChange={(value) => setNewOrder({...newOrder, binSize: value})}>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Small (60L)">Small (60L)</SelectItem>
+                              <SelectItem value="Medium (120L)">Medium (120L)</SelectItem>
+                              <SelectItem value="Large (240L)">Large (240L)</SelectItem>
+                              <SelectItem value="XL (360L)">XL (360L)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label htmlFor="wasteType">Waste Type</Label>
+                          <Select value={newOrder.wasteType} onValueChange={(value) => setNewOrder({...newOrder, wasteType: value})}>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="General Waste">General Waste</SelectItem>
+                              <SelectItem value="Recyclable Waste">Recyclable Waste</SelectItem>
+                              <SelectItem value="Electronic Waste">Electronic Waste</SelectItem>
+                              <SelectItem value="Commercial Waste">Commercial Waste</SelectItem>
+                              <SelectItem value="Household Waste">Household Waste</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-4">
+                        <div>
+                          <Label htmlFor="priority">Priority</Label>
+                          <Select value={newOrder.priority} onValueChange={(value) => setNewOrder({...newOrder, priority: value})}>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="urgent">Urgent</SelectItem>
+                              <SelectItem value="high">High</SelectItem>
+                              <SelectItem value="normal">Normal</SelectItem>
+                              <SelectItem value="low">Low</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label htmlFor="payment">Est. Payment (RM)</Label>
+                          <Input
+                            id="payment"
+                            type="number"
+                            value={newOrder.estimatedPayment}
+                            onChange={(e) => setNewOrder({...newOrder, estimatedPayment: e.target.value})}
+                            placeholder="250.00"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="distance">Distance</Label>
+                          <Input
+                            id="distance"
+                            value={newOrder.distance}
+                            onChange={(e) => setNewOrder({...newOrder, distance: e.target.value})}
+                            placeholder="12.5 km"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label htmlFor="duration">Estimated Duration</Label>
+                        <Input
+                          id="duration"
+                          value={newOrder.estimatedDuration}
+                          onChange={(e) => setNewOrder({...newOrder, estimatedDuration: e.target.value})}
+                          placeholder="45 min"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex gap-3">
+                      <Button variant="outline" onClick={() => setIsCreateOrderOpen(false)} className="flex-1">
+                        Cancel
+                      </Button>
+                      <Button onClick={handleCreateOrder} className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600">
+                        Create & Claim Order
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
+
+              {availableOrders.filter(o => o.status === "available").length === 0 ? (
+                <div className="text-center py-12">
+                  <ShoppingCart className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                  <p className="text-gray-500">No available orders at the moment</p>
+                  <p className="text-sm text-gray-400 mt-2">Check back later for new orders</p>
+                </div>
+              ) : (
+                availableOrders
+                  .filter(order => order.status === "available")
+                  .map((order) => (
+                    <div
+                      key={order.id}
+                      className="p-5 bg-gradient-to-br from-indigo-50 via-purple-50/50 to-white rounded-2xl border-2 border-indigo-200 hover:shadow-xl active:scale-[0.98] transition-all"
+                    >
+                      <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
+                        <div className="flex-1 space-y-3">
+                          <div className="flex items-start gap-3 flex-wrap">
+                            <h3 className="font-bold text-lg text-gray-900">
+                              {order.customer}
+                            </h3>
+                            <Badge className={`${getPriorityColor(order.priority)} border font-semibold`}>
+                              {order.priority === "urgent" && <AlertCircle className="h-3 w-3 mr-1" />}
+                              {order.priority.toUpperCase()}
+                            </Badge>
+                            <Badge className="bg-indigo-100 text-indigo-700 border-indigo-300 border font-semibold">
+                              <ShoppingCart className="h-3 w-3 mr-1" />
+                              Available
+                            </Badge>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-600">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium text-gray-900">DO:</span>
+                              {order.doNumber}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Calendar className="h-4 w-4 text-gray-400" />
+                              {order.scheduledDate} at {order.scheduledTime}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <DollarSign className="h-4 w-4 text-emerald-600" />
+                              <span className="font-semibold text-emerald-700">
+                                RM {order.estimatedPayment.toFixed(2)}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Clock className="h-4 w-4 text-gray-400" />
+                              {order.estimatedDuration} • {order.distance}
+                            </div>
+                          </div>
+
+                          <div className="space-y-2 text-sm">
+                            <div className="flex items-start gap-2">
+                              <MapPin className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                              <div>
+                                <p className="font-medium text-gray-900">Pickup:</p>
+                                <p className="text-gray-600">{order.pickupLocation}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-start gap-2">
+                              <MapPin className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                              <div>
+                                <p className="font-medium text-gray-900">Drop-off:</p>
+                                <p className="text-gray-600">{order.dropoffLocation}</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex flex-wrap gap-4 text-xs text-gray-600">
+                            <span className="flex items-center gap-1">
+                              <Package className="h-3 w-3" />
+                              {order.binSize} - {order.wasteType}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="lg:w-56">
+                          <div className="p-4 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl border-2 border-indigo-200 space-y-3">
+                            <div className="text-center">
+                              <p className="text-sm text-gray-600 mb-1">Estimated Payment</p>
+                              <p className="text-2xl font-bold text-indigo-700">
+                                RM {order.estimatedPayment.toFixed(2)}
+                              </p>
+                            </div>
+                            <Button
+                              onClick={() => handleClaimOrder(order)}
+                              className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white h-12 rounded-xl font-bold shadow-lg active:scale-95 transition-transform"
+                            >
+                              <UserPlus className="h-5 w-5 mr-2" />
+                              Claim This Order
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+              )}
+            </TabsContent>
 
             <TabsContent value={activeTab} className="space-y-4">
               {filteredTrips.length === 0 ? (

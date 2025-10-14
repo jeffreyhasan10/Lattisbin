@@ -634,7 +634,7 @@ const BookingsAndDOs: React.FC = () => {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div>
                       <p className="text-sm text-gray-500">DO Number</p>
                       <p className="font-medium text-blue-700">{record.doNumber}</p>
@@ -723,7 +723,7 @@ const BookingsAndDOs: React.FC = () => {
                   {(record.introducer || record.jobReference || record.ownerManagerSupervisor) && (
                     <div className="mt-4 p-3 bg-gray-50 rounded-lg">
                       <h4 className="font-semibold text-sm mb-2">Additional Information:</h4>
-                      <div className="grid grid-cols-3 gap-4 text-sm">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 text-sm">
                         {record.introducer && (
                           <div>
                             <span className="text-gray-500">Introducer:</span>
@@ -896,24 +896,24 @@ const BookingsAndDOs: React.FC = () => {
 
       {/* DO Details Modal */}
       <Dialog open={showDODetailsModal} onOpenChange={setShowDODetailsModal}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="w-full max-w-[95vw] md:max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Delivery Order Details</DialogTitle>
-            <DialogDescription>Complete information for DO: {selectedRecord?.doNumber}</DialogDescription>
+            <DialogTitle className="text-lg md:text-xl">Delivery Order Details</DialogTitle>
+            <DialogDescription className="text-sm">Complete information for DO: {selectedRecord?.doNumber}</DialogDescription>
           </DialogHeader>
 
           {selectedRecord && (
-            <div className="space-y-6">
+            <div className="space-y-4 md:space-y-6">
               {/* Customer Details */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base flex items-center gap-2">
+                  <CardTitle className="text-sm md:text-base flex items-center gap-2">
                     <User className="h-4 w-4" />
                     Customer Details
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 text-sm">
                     <div>
                       <p className="text-gray-600">Name</p>
                       <p className="font-medium">{selectedRecord.customerName}</p>
@@ -941,13 +941,13 @@ const BookingsAndDOs: React.FC = () => {
               {/* Bin & DO Details */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base flex items-center gap-2">
+                  <CardTitle className="text-sm md:text-base flex items-center gap-2">
                     <Package className="h-4 w-4" />
                     Bin & DO Details
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 text-sm">
                     <div>
                       <p className="text-gray-600">DO Number</p>
                       <p className="font-medium">{selectedRecord.doNumber}</p>
@@ -981,13 +981,13 @@ const BookingsAndDOs: React.FC = () => {
               {/* Schedule & Assignment */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base flex items-center gap-2">
+                  <CardTitle className="text-sm md:text-base flex items-center gap-2">
                     <Clock className="h-4 w-4" />
                     Schedule & Assignment
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 text-sm">
                     <div>
                       <p className="text-gray-600">Scheduled Date/Time</p>
                       <p className="font-medium">{selectedRecord.scheduledDate} at {selectedRecord.scheduledTime}</p>
@@ -1021,13 +1021,13 @@ const BookingsAndDOs: React.FC = () => {
               {/* Payment & Invoice */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base flex items-center gap-2">
+                  <CardTitle className="text-sm md:text-base flex items-center gap-2">
                     <DollarSign className="h-4 w-4" />
                     Payment & Invoice
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 text-sm">
                     <div>
                       <p className="text-gray-600">Amount</p>
                       <p className="font-medium text-lg">RM {selectedRecord.amount}</p>
@@ -1063,11 +1063,11 @@ const BookingsAndDOs: React.FC = () => {
               {/* Status & Notes */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Status & Notes</CardTitle>
+                  <CardTitle className="text-sm md:text-base">Status & Notes</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    <div className="flex items-center gap-4">
+                    <div className="flex flex-wrap items-center gap-2 md:gap-4">
                       <span className="text-sm text-gray-600">Status:</span>
                       {getStatusBadge(selectedRecord.status)}
                       {getPriorityBadge(selectedRecord.priority)}
@@ -1075,10 +1075,10 @@ const BookingsAndDOs: React.FC = () => {
                     {selectedRecord.notes && (
                       <div>
                         <p className="text-sm text-gray-600 mb-1">Notes:</p>
-                        <p className="text-sm bg-gray-50 p-3 rounded">{selectedRecord.notes}</p>
+                        <p className="text-sm bg-gray-50 p-3 rounded break-words">{selectedRecord.notes}</p>
                       </div>
                     )}
-                    <div className="grid grid-cols-3 gap-4 text-sm pt-2">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 text-sm pt-2">
                       {selectedRecord.introducer && (
                         <div>
                           <p className="text-gray-600">Introducer</p>
@@ -1104,15 +1104,15 @@ const BookingsAndDOs: React.FC = () => {
             </div>
           )}
 
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setShowDODetailsModal(false)}>
+          <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => setShowDODetailsModal(false)} className="w-full sm:w-auto">
               Close
             </Button>
             {selectedRecord?.invoiceStatus === "pending" && (
               <Button onClick={() => {
                 setShowDODetailsModal(false);
                 handleOpenConvertInvoiceModal(selectedRecord);
-              }}>
+              }} className="w-full sm:w-auto">
                 <Receipt className="h-4 w-4 mr-2" />
                 Convert to Invoice
               </Button>
@@ -1121,12 +1121,12 @@ const BookingsAndDOs: React.FC = () => {
               <Button variant="outline" onClick={() => {
                 setShowDODetailsModal(false);
                 handleViewInvoice(selectedRecord.invoiceId!);
-              }}>
+              }} className="w-full sm:w-auto">
                 <Receipt className="h-4 w-4 mr-2" />
                 View Invoice
               </Button>
             )}
-            <Button>
+            <Button className="w-full sm:w-auto">
               <Edit className="h-4 w-4 mr-2" />
               Edit DO
             </Button>
@@ -1136,17 +1136,17 @@ const BookingsAndDOs: React.FC = () => {
 
       {/* Refund Modal */}
       <Dialog open={showRefundModal} onOpenChange={setShowRefundModal}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="w-full max-w-[95vw] md:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Process Refund</DialogTitle>
-            <DialogDescription>Enter refund details for DO: {selectedRecord?.doNumber}</DialogDescription>
+            <DialogTitle className="text-lg md:text-xl">Process Refund</DialogTitle>
+            <DialogDescription className="text-sm">Enter refund details for DO: {selectedRecord?.doNumber}</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
             {selectedRecord && (
-              <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="p-3 md:p-4 bg-blue-50 rounded-lg border border-blue-200">
                 <h4 className="font-semibold text-sm mb-2">Booking Information</h4>
-                <div className="grid grid-cols-2 gap-2 text-sm">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                   <div>
                     <span className="text-gray-600">Customer:</span>
                     <span className="ml-2 font-medium">{selectedRecord.customerName}</span>
@@ -1238,13 +1238,14 @@ const BookingsAndDOs: React.FC = () => {
             </div>
           </div>
 
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setShowRefundModal(false)}>
+          <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => setShowRefundModal(false)} className="w-full sm:w-auto">
               Cancel
             </Button>
             <Button 
               variant="destructive"
               onClick={handleProcessRefund}
+              className="w-full sm:w-auto"
             >
               <RefreshCw className="h-4 w-4 mr-2" />
               Process Refund
@@ -1255,16 +1256,16 @@ const BookingsAndDOs: React.FC = () => {
 
       {/* Cancel Booking Modal */}
       <Dialog open={showCancelModal} onOpenChange={setShowCancelModal}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="w-full max-w-[95vw] md:max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Cancel Booking / Delivery Order</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-lg md:text-xl">Cancel Booking / Delivery Order</DialogTitle>
+            <DialogDescription className="text-sm">
               Please provide a reason for cancellation: {selectedRecord?.doNumber}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
-            <div className="p-4 bg-red-50 rounded-lg border border-red-200">
+            <div className="p-3 md:p-4 bg-red-50 rounded-lg border border-red-200">
               <div className="flex items-start gap-2">
                 <AlertCircle className="h-5 w-5 text-red-600 mt-0.5" />
                 <div>
@@ -1307,7 +1308,7 @@ const BookingsAndDOs: React.FC = () => {
             {selectedRecord && (
               <div className="space-y-2 p-3 bg-gray-50 rounded-lg text-sm">
                 <p className="font-semibold">Booking Details:</p>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <div>
                     <span className="text-gray-600">Customer:</span>
                     <span className="ml-2 font-medium">{selectedRecord.customerName}</span>
@@ -1334,13 +1335,14 @@ const BookingsAndDOs: React.FC = () => {
             )}
           </div>
 
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setShowCancelModal(false)}>
+          <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => setShowCancelModal(false)} className="w-full sm:w-auto">
               Keep Booking
             </Button>
             <Button 
               variant="destructive"
               onClick={handleConfirmCancellation}
+              className="w-full sm:w-auto"
             >
               <X className="h-4 w-4 mr-2" />
               Confirm Cancellation
@@ -1351,19 +1353,19 @@ const BookingsAndDOs: React.FC = () => {
 
       {/* Convert to Invoice Confirmation Modal */}
       <Dialog open={showConvertInvoiceModal} onOpenChange={setShowConvertInvoiceModal}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="w-full max-w-[95vw] md:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Convert to Invoice</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-lg md:text-xl">Convert to Invoice</DialogTitle>
+            <DialogDescription className="text-sm">
               Generate invoice for DO: {selectedRecord?.doNumber}
             </DialogDescription>
           </DialogHeader>
 
           {selectedRecord && (
             <div className="space-y-4">
-              <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+              <div className="p-3 md:p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
                 <h4 className="font-semibold text-sm mb-3">Delivery Order Details</h4>
-                <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                   <div>
                     <span className="text-gray-600">DO Number:</span>
                     <span className="ml-2 font-medium">{selectedRecord.doNumber}</span>
@@ -1432,11 +1434,11 @@ const BookingsAndDOs: React.FC = () => {
             </div>
           )}
 
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setShowConvertInvoiceModal(false)}>
+          <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => setShowConvertInvoiceModal(false)} className="w-full sm:w-auto">
               Cancel
             </Button>
-            <Button onClick={handleConfirmConvertToInvoice}>
+            <Button onClick={handleConfirmConvertToInvoice} className="w-full sm:w-auto">
               <Receipt className="h-4 w-4 mr-2" />
               Generate Invoice
             </Button>
@@ -1446,19 +1448,19 @@ const BookingsAndDOs: React.FC = () => {
 
       {/* Invoice Details Modal */}
       <Dialog open={showInvoiceDetailsModal} onOpenChange={setShowInvoiceDetailsModal}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="w-full max-w-[95vw] md:max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Invoice Details</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-lg md:text-xl">Invoice Details</DialogTitle>
+            <DialogDescription className="text-sm">
               Invoice ID: {selectedInvoice?.id}
             </DialogDescription>
           </DialogHeader>
 
           {selectedInvoice && (
-            <div className="space-y-6">
+            <div className="space-y-4 md:space-y-6">
               {/* Invoice Header */}
-              <div className="p-6 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg">
-                <div className="flex justify-between items-start">
+              <div className="p-4 md:p-6 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg">
+                <div className="flex flex-col sm:flex-row justify-between items-start gap-3">
                   <div>
                     <h3 className="text-2xl font-bold">INVOICE</h3>
                     <p className="text-blue-100 mt-1">{selectedInvoice.id}</p>
@@ -1471,10 +1473,10 @@ const BookingsAndDOs: React.FC = () => {
               </div>
 
               {/* Invoice Details */}
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-base">Bill To</CardTitle>
+                    <CardTitle className="text-sm md:text-base">Bill To</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2 text-sm">
@@ -1486,7 +1488,7 @@ const BookingsAndDOs: React.FC = () => {
 
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-base">Invoice Information</CardTitle>
+                    <CardTitle className="text-sm md:text-base">Invoice Information</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2 text-sm">
@@ -1518,10 +1520,10 @@ const BookingsAndDOs: React.FC = () => {
               {/* Invoice Items */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Invoice Items</CardTitle>
+                  <CardTitle className="text-sm md:text-base">Invoice Items</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <table className="w-full">
+                <CardContent className="overflow-x-auto">
+                  <table className="w-full min-w-[300px]">
                     <thead>
                       <tr className="border-b">
                         <th className="text-left py-2 text-sm font-semibold">Description</th>
@@ -1555,16 +1557,16 @@ const BookingsAndDOs: React.FC = () => {
             </div>
           )}
 
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setShowInvoiceDetailsModal(false)}>
+          <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => setShowInvoiceDetailsModal(false)} className="w-full sm:w-auto">
               Close
             </Button>
-            <Button variant="outline">
+            <Button variant="outline" className="w-full sm:w-auto">
               <Download className="h-4 w-4 mr-2" />
               Download PDF
             </Button>
             {selectedInvoice?.status === "pending" && (
-              <Button>
+              <Button className="w-full sm:w-auto">
                 <CheckCircle className="h-4 w-4 mr-2" />
                 Mark as Paid
               </Button>
