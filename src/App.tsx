@@ -47,7 +47,9 @@ import ConfirmCollection from "./components/driver/ConfirmCollection";
 import TripRecordPayment from "./components/driver/TripRecordPayment";
 import DriverLorries from "./components/driver/DriverLorries";
 import DriverProfile from "./components/driver/DriverProfile";
+import ViewReceipt from "./components/driver/ViewReceipt";
 import PaymentOverview from "./components/admin/PaymentOverview";
+import CollectionReminderSystem from "./components/admin/CollectionReminderSystem";
 import { OrderProvider } from "./contexts/OrderContext";
 import { PaymentProvider } from "./contexts/PaymentContext";
 
@@ -95,6 +97,7 @@ function App() {
                   <Route path="invoicing/payment/:id" element={<RecordPayment />} />
                   <Route path="invoicing/receipt/:id" element={<ReceiptConfirmation />} />
                   <Route path="payment-overview" element={<PaymentOverview />} />
+                  <Route path="collection-reminders" element={<CollectionReminderSystem />} />
                   <Route path="reports" element={<ReportsSummary />} />
                   <Route path="reports/customer" element={<CustomerReports />} />
                   <Route path="reports/bin" element={<BinReports />} />
@@ -116,6 +119,7 @@ function App() {
                   <Route path="trips/:tripId" element={<TripDetails />} />
                   <Route path="trips/:tripId/confirm-collection" element={<ConfirmCollection />} />
                   <Route path="trips/:tripId/record-payment" element={<TripRecordPayment />} />
+                  <Route path="receipt/:receiptId" element={<ViewReceipt />} />
                   <Route path="lorries" element={<DriverLorries />} />
                   <Route path="profile" element={<DriverProfile />} />
                 </Route>

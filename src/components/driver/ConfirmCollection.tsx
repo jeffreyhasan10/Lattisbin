@@ -32,6 +32,7 @@ import {
   Upload,
   FileText,
   Truck,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -67,21 +68,39 @@ const binStatuses: BinStatus[] = [
   },
 ];
 
+const MIN_PHOTOS = 3;
+
 const ConfirmCollection = () => {
   const navigate = useNavigate();
   const { tripId } = useParams();
   const [selectedStatus, setSelectedStatus] = useState<string>("");
   const [binCondition, setBinCondition] = useState<string>("");
   const [notes, setNotes] = useState("");
-  const [wastePhoto, setWastePhoto] = useState<File | null>(null);
+  const [wastePhotos, setWastePhotos] = useState<File[]>([]);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setWastePhoto(file);
-      toast.success("Photo uploaded successfully");
+    const files = event.target.files;
+    if (files) {
+      const newPhotos = Array.from(files);
+      const updatedPhotos = [...wastePhotos, ...newPhotos];
+      
+      if (updatedPhotos.length > 10) {
+        toast.error("Maximum 10 photos allowed");
+        return;
+      }
+      
+      setWastePhotos(updatedPhotos);
+      toast.success(`${newPhotos.length} photo(s) uploaded successfully`);
+      
+      // Reset input to allow selecting the same files again
+      event.target.value = '';
     }
+  };
+
+  const handleRemovePhoto = (index: number) => {
+    setWastePhotos(wastePhotos.filter((_, i) => i !== index));
+    toast.success("Photo removed");
   };
 
   const handleConfirmAction = () => {
@@ -91,6 +110,10 @@ const ConfirmCollection = () => {
     }
     if (!binCondition) {
       toast.error("Please select bin condition");
+      return;
+    }
+    if (wastePhotos.length < MIN_PHOTOS) {
+      toast.error(`Minimum ${MIN_PHOTOS} photos required for waste documentation`);
       return;
     }
     setShowConfirmDialog(true);
@@ -279,44 +302,75 @@ const ConfirmCollection = () => {
           </CardContent>
         </Card>
 
-        {/* Upload Waste Photo */}
+        {/* Upload Waste Photos */}
         <Card className="bg-white/90 backdrop-blur-sm shadow-lg">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Camera className="h-5 w-5 text-blue-600" />
-              Upload Waste/Bin Photo
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Camera className="h-5 w-5 text-blue-600" />
+                Upload Waste/Bin Photos
+              </div>
+              <Badge className={wastePhotos.length >= MIN_PHOTOS ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"}>
+                {wastePhotos.length} / {MIN_PHOTOS} minimum
+              </Badge>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* Photo Preview Grid */}
+            {wastePhotos.length > 0 && (
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {wastePhotos.map((photo, index) => (
+                  <div key={index} className="relative group">
+                    <img
+                      src={URL.createObjectURL(photo)}
+                      alt={`Waste photo ${index + 1}`}
+                      className="w-full h-32 object-cover rounded-lg border-2 border-gray-200"
+                    />
+                    <button
+                      onClick={() => handleRemovePhoto(index)}
+                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                      type="button"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                    <div className="absolute bottom-1 left-1 bg-black/60 text-white text-xs px-2 py-1 rounded">
+                      Photo {index + 1}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Upload Area */}
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
               <input
                 type="file"
                 id="photo-upload"
                 accept="image/*"
                 capture="environment"
+                multiple
                 className="hidden"
                 onChange={handlePhotoUpload}
               />
               <label htmlFor="photo-upload" className="cursor-pointer">
                 <div className="flex flex-col items-center gap-2">
-                  {wastePhoto ? (
-                    <>
-                      <CheckCircle className="h-12 w-12 text-green-600" />
-                      <p className="font-medium text-green-700">{wastePhoto.name}</p>
-                      <p className="text-sm text-gray-600">Click to change photo</p>
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="h-12 w-12 text-gray-400" />
-                      <p className="font-medium text-gray-700">Click to upload photo</p>
-                      <p className="text-sm text-gray-500">or use camera to take a photo</p>
-                    </>
+                  <Upload className="h-12 w-12 text-gray-400" />
+                  <p className="font-medium text-gray-700">
+                    {wastePhotos.length === 0 
+                      ? "Click to upload photos" 
+                      : "Click to add more photos"}
+                  </p>
+                  <p className="text-sm text-gray-500">or use camera to take photos</p>
+                  {wastePhotos.length < MIN_PHOTOS && (
+                    <p className="text-xs text-orange-600 font-semibold mt-2">
+                      ⚠️ {MIN_PHOTOS - wastePhotos.length} more photo(s) required
+                    </p>
                   )}
                 </div>
               </label>
             </div>
             <p className="text-xs text-gray-500 text-center">
-              Photo will be attached to the delivery order for documentation
+              Minimum {MIN_PHOTOS} photos required for waste documentation (max 10 photos)
             </p>
           </CardContent>
         </Card>
@@ -382,7 +436,7 @@ const ConfirmCollection = () => {
                 <ul className="text-sm text-gray-700 space-y-1">
                   <li>• Status: <strong className="capitalize">{selectedStatus?.replace("-", " ")}</strong></li>
                   <li>• Condition: <strong className="capitalize">{binCondition}</strong></li>
-                  {wastePhoto && <li>• Photo: <strong>Attached</strong></li>}
+                  <li>• Photos: <strong>{wastePhotos.length} photo(s) attached</strong></li>
                   {notes && <li>• Notes: <strong>Included</strong></li>}
                 </ul>
               </div>

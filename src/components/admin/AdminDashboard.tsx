@@ -21,7 +21,8 @@ import {
   Clock,
   CheckCircle,
   AlertCircle,
-  Eye
+  Eye,
+  Bell
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useOrders } from "@/contexts/OrderContext";
@@ -179,6 +180,15 @@ const AdminDashboard: React.FC = () => {
       color: "bg-emerald-500",
       count: `RM ${totalRevenue.toLocaleString('en-MY', { minimumFractionDigits: 2 })}`,
       path: "/admin/payment-overview"
+    },
+    {
+      id: "collection-reminders",
+      title: "Collection Reminders",
+      description: "Schedule and track bin collection reminders with automated notifications",
+      icon: Bell,
+      color: "bg-amber-500",
+      count: "Active Alerts",
+      path: "/admin/collection-reminders"
     },
     {
       id: "reports",

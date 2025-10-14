@@ -776,13 +776,15 @@ const DriverDashboard = () => {
                       {collection.scheduledTime}
                     </p>
                   </div>
-                  <Button 
-                    className="w-full mt-3 bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white h-11 rounded-xl font-semibold shadow-md active:scale-95 transition-transform"
-                    onClick={() => handleViewCollection(collection.id)}
-                  >
-                    <ClipboardCheck className="h-4 w-4 mr-2" />
-                    View Details
-                  </Button>
+                  <div className="flex gap-2 mt-3">
+                    <Button 
+                      className="flex-1 bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white h-11 rounded-xl font-semibold shadow-md active:scale-95 transition-transform"
+                      onClick={() => handleViewCollection(collection.id)}
+                    >
+                      <ClipboardCheck className="h-4 w-4 mr-2" />
+                      View Details
+                    </Button>
+                  </div>
                 </div>
               ))}
             </CardContent>

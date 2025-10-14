@@ -939,7 +939,8 @@ const TripHistory = () => {
               )}
             </TabsContent>
 
-            <TabsContent value={activeTab} className="space-y-4">
+            {/* All Trips Tab */}
+            <TabsContent value="all" className="space-y-4">
               {filteredTrips.length === 0 ? (
                 <div className="text-center py-12">
                   <Package className="h-12 w-12 text-gray-400 mx-auto mb-3" />
@@ -1060,6 +1061,334 @@ const TripHistory = () => {
                 }
                 
                 {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-between pt-6 border-t border-gray-200 mt-6">
+                    <div className="text-sm text-gray-600">
+                      Showing {startIndex + 1} to {Math.min(endIndex, filteredTrips.length)} of {filteredTrips.length} trips
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                        disabled={currentPage === 1}
+                        className="h-9"
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                      <div className="flex gap-1">
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                          <Button
+                            key={page}
+                            variant={currentPage === page ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setCurrentPage(page)}
+                            className="h-9 w-9"
+                          >
+                            {page}
+                          </Button>
+                        ))}
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                        disabled={currentPage === totalPages}
+                        className="h-9"
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+                </>
+              )}
+            </TabsContent>
+
+            {/* Paid Trips Tab */}
+            <TabsContent value="paid" className="space-y-4">
+              {filteredTrips.length === 0 ? (
+                <div className="text-center py-12">
+                  <Package className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                  <p className="text-gray-500">No paid trips found</p>
+                </div>
+              ) : (
+                <>
+                {paginatedTrips.map((trip) => (
+                  <div
+                    key={trip.id}
+                    className="p-4 bg-gradient-to-br from-white via-cyan-50/20 to-blue-50/30 rounded-2xl border border-cyan-100 hover:shadow-xl active:scale-[0.98] transition-all"
+                  >
+                    <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
+                      <div className="flex-1 space-y-3">
+                        <div className="flex items-start gap-3 flex-wrap">
+                          <h3 className="font-semibold text-lg text-gray-900">
+                            {trip.customer}
+                          </h3>
+                          <Badge
+                            className={`${getPaymentStatusColor(
+                              trip.paymentStatus
+                            )} border`}
+                          >
+                            {trip.paymentStatus === "paid"
+                              ? "Paid"
+                              : trip.paymentStatus === "pending"
+                              ? "Payment Pending"
+                              : "Partial Payment"}
+                          </Badge>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-600">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-gray-900">DO:</span>
+                            {trip.doNumber}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-gray-400" />
+                            {trip.completedDate} at {trip.completedTime}
+                          </div>
+                        </div>
+
+                        <div className="space-y-2 text-sm">
+                          <div className="flex items-start gap-2">
+                            <MapPin className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                            <div>
+                              <p className="font-medium text-gray-900">Pickup:</p>
+                              <p className="text-gray-600">{trip.pickupLocation}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-start gap-2">
+                            <MapPin className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                            <div>
+                              <p className="font-medium text-gray-900">Drop-off:</p>
+                              <p className="text-gray-600">{trip.dropoffLocation}</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-wrap gap-4 text-xs text-gray-600">
+                          <span className="flex items-center gap-1">
+                            <Package className="h-3 w-3" />
+                            {trip.binSize}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            {trip.duration}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            {trip.distance}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="lg:w-64 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-600">Total Amount:</span>
+                            <span className="font-semibold text-gray-900">
+                              RM {trip.paymentAmount.toFixed(2)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-600">Paid:</span>
+                            <span className="font-semibold text-emerald-600">
+                              RM {trip.paidAmount.toFixed(2)}
+                            </span>
+                          </div>
+                          {trip.paymentAmount > trip.paidAmount && (
+                            <div className="flex justify-between items-center pt-2 border-t border-gray-300">
+                              <span className="text-sm font-medium text-orange-700">
+                                Balance:
+                              </span>
+                              <span className="font-bold text-orange-600">
+                                RM {(trip.paymentAmount - trip.paidAmount).toFixed(2)}
+                              </span>
+                            </div>
+                          )}
+                          {trip.paymentMethod && (
+                            <div className="pt-2 border-t border-gray-300">
+                              <p className="text-xs text-gray-600">
+                                Method: <span className="font-medium">{trip.paymentMethod}</span>
+                              </p>
+                            </div>
+                          )}
+                          {trip.paymentStatus === "paid" && (
+                            <div className="flex items-center justify-center gap-2 pt-2 text-emerald-600">
+                              <CheckCircle className="h-4 w-4" />
+                              <span className="text-xs font-semibold">Fully Paid</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+                }
+                
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-between pt-6 border-t border-gray-200 mt-6">
+                    <div className="text-sm text-gray-600">
+                      Showing {startIndex + 1} to {Math.min(endIndex, filteredTrips.length)} of {filteredTrips.length} trips
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                        disabled={currentPage === 1}
+                        className="h-9"
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                      <div className="flex gap-1">
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                          <Button
+                            key={page}
+                            variant={currentPage === page ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setCurrentPage(page)}
+                            className="h-9 w-9"
+                          >
+                            {page}
+                          </Button>
+                        ))}
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                        disabled={currentPage === totalPages}
+                        className="h-9"
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+                </>
+              )}
+            </TabsContent>
+
+            {/* Pending Trips Tab */}
+            <TabsContent value="pending" className="space-y-4">
+              {filteredTrips.length === 0 ? (
+                <div className="text-center py-12">
+                  <Package className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                  <p className="text-gray-500">No pending trips found</p>
+                </div>
+              ) : (
+                <>
+                {paginatedTrips.map((trip) => (
+                  <div
+                    key={trip.id}
+                    className="p-4 bg-gradient-to-br from-white via-cyan-50/20 to-blue-50/30 rounded-2xl border border-cyan-100 hover:shadow-xl active:scale-[0.98] transition-all"
+                  >
+                    <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
+                      <div className="flex-1 space-y-3">
+                        <div className="flex items-start gap-3 flex-wrap">
+                          <h3 className="font-semibold text-lg text-gray-900">
+                            {trip.customer}
+                          </h3>
+                          <Badge
+                            className={`${getPaymentStatusColor(
+                              trip.paymentStatus
+                            )} border`}
+                          >
+                            {trip.paymentStatus === "paid"
+                              ? "Paid"
+                              : trip.paymentStatus === "pending"
+                              ? "Payment Pending"
+                              : "Partial Payment"}
+                          </Badge>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-600">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-gray-900">DO:</span>
+                            {trip.doNumber}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-gray-400" />
+                            {trip.completedDate} at {trip.completedTime}
+                          </div>
+                        </div>
+
+                        <div className="space-y-2 text-sm">
+                          <div className="flex items-start gap-2">
+                            <MapPin className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                            <div>
+                              <p className="font-medium text-gray-900">Pickup:</p>
+                              <p className="text-gray-600">{trip.pickupLocation}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-start gap-2">
+                            <MapPin className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                            <div>
+                              <p className="font-medium text-gray-900">Drop-off:</p>
+                              <p className="text-gray-600">{trip.dropoffLocation}</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-wrap gap-4 text-xs text-gray-600">
+                          <span className="flex items-center gap-1">
+                            <Package className="h-3 w-3" />
+                            {trip.binSize}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            {trip.duration}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            {trip.distance}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="lg:w-64 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-600">Total Amount:</span>
+                            <span className="font-semibold text-gray-900">
+                              RM {trip.paymentAmount.toFixed(2)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-600">Paid:</span>
+                            <span className="font-semibold text-emerald-600">
+                              RM {trip.paidAmount.toFixed(2)}
+                            </span>
+                          </div>
+                          {trip.paymentAmount > trip.paidAmount && (
+                            <div className="flex justify-between items-center pt-2 border-t border-gray-300">
+                              <span className="text-sm font-medium text-orange-700">
+                                Balance:
+                              </span>
+                              <span className="font-bold text-orange-600">
+                                RM {(trip.paymentAmount - trip.paidAmount).toFixed(2)}
+                              </span>
+                            </div>
+                          )}
+                          {trip.paymentMethod && (
+                            <div className="pt-2 border-t border-gray-300">
+                              <p className="text-xs text-gray-600">
+                                Method: <span className="font-medium">{trip.paymentMethod}</span>
+                              </p>
+                            </div>
+                          )}
+                          {trip.paymentStatus === "paid" && (
+                            <div className="flex items-center justify-center gap-2 pt-2 text-emerald-600">
+                              <CheckCircle className="h-4 w-4" />
+                              <span className="text-xs font-semibold">Fully Paid</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+                }
+                
                 {totalPages > 1 && (
                   <div className="flex items-center justify-between pt-6 border-t border-gray-200 mt-6">
                     <div className="text-sm text-gray-600">

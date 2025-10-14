@@ -185,18 +185,39 @@ const TripRecordPayment = () => {
       description: statusDescriptions[paymentStatus],
     });
 
-    if (generateReceipt && paymentMethod === "cash" && paymentStatus !== "pending") {
+    // Generate receipt for cash payments or if receipt option is selected
+    if ((generateReceipt && paymentMethod === "cash" && paymentStatus !== "pending") || 
+        (paymentStatus === "full" && paymentMethod === "cash")) {
+      
+      // Generate receipt number
+      const receiptNumber = `RCPT-2025-${String(Math.floor(Math.random() * 100000)).padStart(5, "0")}`;
+      
+      // Navigate to receipt page with data
       setTimeout(() => {
-        toast.info("Generating receipt...", {
-          description: "Receipt will be available for printing shortly",
+        navigate(`/driver/receipt/${receiptNumber}`, {
+          state: {
+            receiptData: {
+              receiptNumber,
+              doNumber: tripData.doNumber,
+              tripId: tripData.id || tripId,
+              customerName: tripData.customer,
+              location: "Customer Location", // You can add actual location
+              paymentMethod: paymentMethod.charAt(0).toUpperCase() + paymentMethod.slice(1),
+              amount: parseFloat(amount || "0"),
+              paymentDate: new Date().toLocaleDateString("en-MY"),
+              paymentTime: new Date().toLocaleTimeString("en-MY", { hour: "2-digit", minute: "2-digit" }),
+              driverName: "Ahmad Rahman", // You can get from context/auth
+              notes: notes || undefined,
+            }
+          }
         });
-      }, 1000);
+      }, 1500);
+    } else {
+      // Navigate back to trip details if no receipt
+      setTimeout(() => {
+        navigate(`/driver/trips/${tripId}`);
+      }, 2000);
     }
-
-    // Navigate back to trip details
-    setTimeout(() => {
-      navigate(`/driver/trips/${tripId}`);
-    }, 2000);
   };
 
   const handleCancel = () => {
