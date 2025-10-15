@@ -46,11 +46,21 @@ const BIN_SIZES = [
 
 const CUSTOM_SIZES = [
   "2ft (H) x 12ft (L) x 6ft (W)",
+  "2ft (H) x 20ft (L) x 8ft (W)",
   "4ft (H) x 12ft (L) x 6ft (W)",
   "4ft (H) x 14ft (L) x 6ft (W)",
   "5ft (H) x 12ft (L) x 6ft (W)",
+  "5ft (H) x 23ft (L) x 8ft (W)",
+  "6ft (H) x 12ft (L) x 6ft (W)",
   "6ft (H) x 24ft (L) x 8ft (W)",
-  "6.5ft (H) x 14.5ft (L) x 6ft (W)"
+  "6ft (H) x 23ft (L) x 8ft (W)",
+  "6.5ft (H) x 14.5ft (L) x 6ft (W)",
+  "6ft (H) x 12ft (L) x 7ft (W)",
+  "4ft (H) x 12ft (L) x 6ft (W) (Cust)",
+  "2ft (H) x 12ft (L) x 6ft (W) (Cust)",
+  "5ft (H) x 12ft (L) x 6ft (W) (Cust)",
+  "2ft (H) x 20ft (L) x 8ft (W) (Cust)",
+  "4ft (H) x 16ft (L) x 8ft (W) (Cust)"
 ];
 
 const SN_PREFIXES = ["ASR", "LASR", "PWD"];
@@ -255,65 +265,65 @@ const BinInventoryManagement: React.FC = () => {
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Manage Bin Inventory</h1>
-          <p className="text-gray-600 mt-1">Track and manage all bins in your inventory</p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+        <div className="flex-1">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">Manage Bin Inventory</h1>
+          <p className="text-sm sm:text-base text-gray-600 mt-1">Track and manage all bins in your inventory</p>
         </div>
-        <Button onClick={handleAddNew} className="bg-blue-600 hover:bg-blue-700">
+        <Button onClick={handleAddNew} className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto shadow-lg">
           <Plus className="w-4 h-4 mr-2" />
           Add New Bin
         </Button>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Total Bins</CardTitle>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+        <Card className="hover:shadow-md transition-shadow">
+          <CardHeader className="pb-2 p-3 sm:p-4">
+            <CardTitle className="text-xs sm:text-sm font-medium text-gray-600">Total Bins</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-3 sm:p-4 pt-0">
             <div className="flex items-center justify-between">
-              <span className="text-3xl font-bold text-gray-900">{stats.total}</span>
-              <Package className="w-8 h-8 text-blue-500" />
+              <span className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">{stats.total}</span>
+              <Package className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-blue-500" />
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Available</CardTitle>
+        <Card className="hover:shadow-md transition-shadow">
+          <CardHeader className="pb-2 p-3 sm:p-4">
+            <CardTitle className="text-xs sm:text-sm font-medium text-gray-600">Available</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-3 sm:p-4 pt-0">
             <div className="flex items-center justify-between">
-              <span className="text-3xl font-bold text-green-600">{stats.available}</span>
-              <Activity className="w-8 h-8 text-green-500" />
+              <span className="text-xl sm:text-2xl lg:text-3xl font-bold text-green-600">{stats.available}</span>
+              <Activity className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-green-500" />
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Out for Collection</CardTitle>
+        <Card className="hover:shadow-md transition-shadow">
+          <CardHeader className="pb-2 p-3 sm:p-4">
+            <CardTitle className="text-xs sm:text-sm font-medium text-gray-600 truncate">Out for Collection</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-3 sm:p-4 pt-0">
             <div className="flex items-center justify-between">
-              <span className="text-3xl font-bold text-blue-600">{stats.outForCollection}</span>
-              <MapPin className="w-8 h-8 text-blue-500" />
+              <span className="text-xl sm:text-2xl lg:text-3xl font-bold text-blue-600">{stats.outForCollection}</span>
+              <MapPin className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-blue-500" />
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Collected</CardTitle>
+        <Card className="hover:shadow-md transition-shadow">
+          <CardHeader className="pb-2 p-3 sm:p-4">
+            <CardTitle className="text-xs sm:text-sm font-medium text-gray-600">Collected</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-3 sm:p-4 pt-0">
             <div className="flex items-center justify-between">
-              <span className="text-3xl font-bold text-orange-600">{stats.collected}</span>
-              <Package className="w-8 h-8 text-orange-500" />
+              <span className="text-xl sm:text-2xl lg:text-3xl font-bold text-orange-600">{stats.collected}</span>
+              <Package className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-orange-500" />
             </div>
           </CardContent>
         </Card>
@@ -321,14 +331,14 @@ const BinInventoryManagement: React.FC = () => {
 
       {/* Filters */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="w-5 h-5" />
+        <CardHeader className="p-3 sm:p-6">
+          <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+            <Filter className="w-4 h-4 sm:w-5 sm:h-5" />
             Filters
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <CardContent className="p-3 sm:p-6 pt-0">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input

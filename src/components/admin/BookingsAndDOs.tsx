@@ -13,6 +13,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Separator } from "@/components/ui/separator";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { CalendarRange, Plus, FileText, Filter, Search, Package, Truck, DollarSign, User, MapPin, Clock, CheckCircle, AlertCircle, Edit, Download, Receipt, RefreshCw, Bell, ArrowRight, ArrowLeft, Save, X, UserPlus, Phone, Mail, Building2, ChevronLeft, ChevronRight } from "lucide-react";
+import { useOrders } from "@/contexts/OrderContext";
 
 interface Customer {
   id: string;
@@ -83,6 +84,7 @@ interface Invoice {
 
 const BookingsAndDOs: React.FC = () => {
   const navigate = useNavigate();
+  const { getCollectionReminderByDO } = useOrders();
   
   // State for records and customers
   const [customers, setCustomers] = useState<Customer[]>([
@@ -110,90 +112,98 @@ const BookingsAndDOs: React.FC = () => {
     }
   ]);
 
-  const [records, setRecords] = useState<BookingDO[]>([
-    {
-      id: "REC001",
-      type: "booking",
-      doNumber: "DO-0001",
-      doBookNumber: "DOBOOK-0001",
-      customerName: "ABC Construction Sdn Bhd",
-      customerId: "CUST001",
-      customerType: "Corporate",
-      contactPerson: "Ahmad Rahman",
-      phone: "+60123456789",
-      email: "ahmad@abc-construction.com",
-      binSerialNumber: "BIN-SN-001",
-      binSize: "6ft(H) × 24ft(L) × 8ft(W)",
-      binWeight: 500,
-      location: "Jalan Ampang, Kuala Lumpur",
-      area: "Ampang",
-      state: "Kuala Lumpur",
-      scheduledDate: "2024-06-15",
-      scheduledTime: "09:00",
-      collectionDate: "2024-06-20",
-      collectionTime: "14:00",
-      collectionSource: "warehouse",
-      status: "assigned",
-      priority: "medium",
-      assignedDriver: "John Doe",
-      assignedLorry: "VEH001",
-      paymentMode: "Cash",
-      paymentStatus: "pending",
-      invoiceStatus: "pending",
-      introducer: "Agent Smith",
-      jobReference: "JOB001",
-      ownerManagerSupervisor: "Manager A",
-      amount: 850,
-      commissionAmount: 85,
-      commissionPaid: false,
-      notes: "Access via back lane, contact security first",
-      issuedBy: "Admin User",
-      createdAt: "2024-06-14T10:00:00",
-      updatedAt: "2024-06-14T10:00:00"
-    },
-    {
-      id: "REC002",
-      type: "delivery-order",
-      doNumber: "DO-0002",
-      doBookNumber: "DOBOOK-0002",
-      customerName: "Sarah Lim",
-      customerId: "CUST002",
-      customerType: "Individual",
-      contactPerson: "Sarah Lim",
-      phone: "+60198765432",
-      email: "sarah.lim@gmail.com",
-      binSerialNumber: "BIN-SN-002",
-      binSize: "4ft(H) × 12ft(L) × 6ft(W)",
-      binWeight: 250,
-      location: "Taman Desa, Kuala Lumpur",
-      area: "Taman Desa",
-      state: "Kuala Lumpur",
-      scheduledDate: "2024-06-16",
-      scheduledTime: "14:00",
-      collectionDate: "2024-06-22",
-      collectionTime: "10:00",
-      collectionSource: "customer",
-      status: "in-progress",
-      priority: "high",
-      assignedDriver: "Ali Hassan",
-      assignedLorry: "VEH002",
-      paymentMode: "Online",
-      paymentStatus: "received",
-      invoiceStatus: "issued",
-      invoiceId: "INV-0001",
-      invoiceAmount: 420,
-      introducer: "Agent Jones",
-      jobReference: "JOB002",
-      ownerManagerSupervisor: "Supervisor B",
-      amount: 420,
-      commissionAmount: 42,
-      commissionPaid: false,
-      notes: "Recurring monthly booking",
-      issuedBy: "Admin User",
-      createdAt: "2024-06-15T10:00:00",
-      updatedAt: "2024-06-15T12:00:00"
-    }
-  ]);
+  // Load bookings from localStorage and merge with default data
+  const loadBookings = () => {
+    const defaultBookings: BookingDO[] = [
+      {
+        id: "REC001",
+        type: "booking",
+        doNumber: "DO-0001",
+        doBookNumber: "DOBOOK-0001",
+        customerName: "ABC Construction Sdn Bhd",
+        customerId: "CUST001",
+        customerType: "Corporate",
+        contactPerson: "Ahmad Rahman",
+        phone: "+60123456789",
+        email: "ahmad@abc-construction.com",
+        binSerialNumber: "BIN-SN-001",
+        binSize: "6ft(H) × 24ft(L) × 8ft(W)",
+        binWeight: 500,
+        location: "Jalan Ampang, Kuala Lumpur",
+        area: "Ampang",
+        state: "Kuala Lumpur",
+        scheduledDate: "2024-06-15",
+        scheduledTime: "09:00",
+        collectionDate: "2024-06-20",
+        collectionTime: "14:00",
+        collectionSource: "warehouse",
+        status: "assigned",
+        priority: "medium",
+        assignedDriver: "John Doe",
+        assignedLorry: "VEH001",
+        paymentMode: "Cash",
+        paymentStatus: "pending",
+        invoiceStatus: "pending",
+        introducer: "Agent Smith",
+        jobReference: "JOB001",
+        ownerManagerSupervisor: "Manager A",
+        amount: 850,
+        commissionAmount: 85,
+        commissionPaid: false,
+        notes: "Access via back lane, contact security first",
+        issuedBy: "Admin User",
+        createdAt: "2024-06-14T10:00:00",
+        updatedAt: "2024-06-14T10:00:00"
+      },
+      {
+        id: "REC002",
+        type: "delivery-order",
+        doNumber: "DO-0002",
+        doBookNumber: "DOBOOK-0002",
+        customerName: "Sarah Lim",
+        customerId: "CUST002",
+        customerType: "Individual",
+        contactPerson: "Sarah Lim",
+        phone: "+60198765432",
+        email: "sarah.lim@gmail.com",
+        binSerialNumber: "BIN-SN-002",
+        binSize: "4ft(H) × 12ft(L) × 6ft(W)",
+        binWeight: 250,
+        location: "Taman Desa, Kuala Lumpur",
+        area: "Taman Desa",
+        state: "Kuala Lumpur",
+        scheduledDate: "2024-06-16",
+        scheduledTime: "14:00",
+        collectionDate: "2024-06-22",
+        collectionTime: "10:00",
+        collectionSource: "customer",
+        status: "in-progress",
+        priority: "high",
+        assignedDriver: "Ali Hassan",
+        assignedLorry: "VEH002",
+        paymentMode: "Online",
+        paymentStatus: "received",
+        invoiceStatus: "issued",
+        invoiceId: "INV-0001",
+        invoiceAmount: 420,
+        introducer: "Agent Jones",
+        jobReference: "JOB002",
+        ownerManagerSupervisor: "Supervisor B",
+        amount: 420,
+        commissionAmount: 42,
+        commissionPaid: false,
+        notes: "Recurring monthly booking",
+        issuedBy: "Admin User",
+        createdAt: "2024-06-15T10:00:00",
+        updatedAt: "2024-06-15T12:00:00"
+      }
+    ];
+
+    const savedBookings = JSON.parse(localStorage.getItem('lattisbin_bookings') || '[]');
+    return [...defaultBookings, ...savedBookings];
+  };
+
+  const [records, setRecords] = useState<BookingDO[]>(loadBookings());
 
   const [invoices, setInvoices] = useState<Invoice[]>([
     {
@@ -243,11 +253,21 @@ const BookingsAndDOs: React.FC = () => {
   // Bin size options with pricing
   const binSizeOptions = [
     { id: "2x12x6", name: "2ft(H) × 12ft(L) × 6ft(W)", price: 200 },
-    { id: "4x12x6", name: "4ft(H) × 12ft(L) × 6ft(W)", price: 280 },
-    { id: "4x14x6", name: "4ft(H) × 14ft(L) × 6ft(W)", price: 320 },
-    { id: "5x12x6", name: "5ft(H) × 12ft(L) × 6ft(W)", price: 350 },
+    { id: "2x20x8", name: "2ft(H) × 20ft(L) × 8ft(W)", price: 280 },
+    { id: "4x12x6", name: "4ft(H) × 12ft(L) × 6ft(W)", price: 320 },
+    { id: "4x14x6", name: "4ft(H) × 14ft(L) × 6ft(W)", price: 350 },
+    { id: "5x12x6", name: "5ft(H) × 12ft(L) × 6ft(W)", price: 380 },
+    { id: "5x23x8", name: "5ft(H) × 23ft(L) × 8ft(W)", price: 650 },
+    { id: "6x12x6", name: "6ft(H) × 12ft(L) × 6ft(W)", price: 420 },
     { id: "6x24x8", name: "6ft(H) × 24ft(L) × 8ft(W)", price: 750 },
-    { id: "6.5x14.5x6", name: "6.5ft(H) × 14.5ft(L) × 6ft(W)", price: 450 }
+    { id: "6x23x8", name: "6ft(H) × 23ft(L) × 8ft(W)", price: 720 },
+    { id: "6.5x14.5x6", name: "6.5ft(H) × 14.5ft(L) × 6ft(W)", price: 450 },
+    { id: "6x12x7", name: "6ft(H) × 12ft(L) × 7ft(W)", price: 440 },
+    { id: "4x12x6_cust", name: "4ft(H) × 12ft(L) × 6ft(W) (Cust)", price: 340 },
+    { id: "2x12x6_cust", name: "2ft(H) × 12ft(L) × 6ft(W) (Cust)", price: 220 },
+    { id: "5x12x6_cust", name: "5ft(H) × 12ft(L) × 6ft(W) (Cust)", price: 400 },
+    { id: "2x20x8_cust", name: "2ft(H) × 20ft(L) × 8ft(W) (Cust)", price: 300 },
+    { id: "4x16x8_cust", name: "4ft(H) × 16ft(L) × 8ft(W) (Cust)", price: 480 }
   ];
 
   // Helper functions
@@ -312,6 +332,101 @@ const BookingsAndDOs: React.FC = () => {
   React.useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, filterStatus, filterArea, activeTab]);
+
+  // Reload bookings when component mounts or when returning from create page
+  React.useEffect(() => {
+    const reloadBookings = () => {
+      const defaultBookings: BookingDO[] = [
+        {
+          id: "REC001",
+          type: "booking",
+          doNumber: "DO-0001",
+          doBookNumber: "DOBOOK-0001",
+          customerName: "ABC Construction Sdn Bhd",
+          customerId: "CUST001",
+          customerType: "Corporate",
+          contactPerson: "Ahmad Rahman",
+          phone: "+60123456789",
+          email: "ahmad@abc-construction.com",
+          binSerialNumber: "BIN-SN-001",
+          binSize: "6ft(H) × 24ft(L) × 8ft(W)",
+          binWeight: 500,
+          location: "Jalan Ampang, Kuala Lumpur",
+          area: "Ampang",
+          state: "Kuala Lumpur",
+          scheduledDate: "2024-06-15",
+          scheduledTime: "09:00",
+          collectionDate: "2024-06-20",
+          collectionTime: "14:00",
+          collectionSource: "warehouse",
+          status: "assigned",
+          priority: "medium",
+          assignedDriver: "John Doe",
+          assignedLorry: "VEH001",
+          paymentMode: "Cash",
+          paymentStatus: "pending",
+          invoiceStatus: "pending",
+          introducer: "Agent Smith",
+          jobReference: "JOB001",
+          ownerManagerSupervisor: "Manager A",
+          amount: 850,
+          commissionAmount: 85,
+          commissionPaid: false,
+          notes: "Access via back lane, contact security first",
+          issuedBy: "Admin User",
+          createdAt: "2024-06-14T10:00:00",
+          updatedAt: "2024-06-14T10:00:00"
+        },
+        {
+          id: "REC002",
+          type: "delivery-order",
+          doNumber: "DO-0002",
+          doBookNumber: "DOBOOK-0002",
+          customerName: "Sarah Lim",
+          customerId: "CUST002",
+          customerType: "Individual",
+          contactPerson: "Sarah Lim",
+          phone: "+60198765432",
+          email: "sarah.lim@gmail.com",
+          binSerialNumber: "BIN-SN-002",
+          binSize: "4ft(H) × 12ft(L) × 6ft(W)",
+          binWeight: 250,
+          location: "Taman Desa, Kuala Lumpur",
+          area: "Taman Desa",
+          state: "Kuala Lumpur",
+          scheduledDate: "2024-06-16",
+          scheduledTime: "14:00",
+          collectionDate: "2024-06-22",
+          collectionTime: "10:00",
+          collectionSource: "customer",
+          status: "in-progress",
+          priority: "high",
+          assignedDriver: "Ali Hassan",
+          assignedLorry: "VEH002",
+          paymentMode: "Online",
+          paymentStatus: "received",
+          invoiceStatus: "issued",
+          invoiceId: "INV-0001",
+          invoiceAmount: 420,
+          introducer: "Agent Jones",
+          jobReference: "JOB002",
+          ownerManagerSupervisor: "Supervisor B",
+          amount: 420,
+          commissionAmount: 42,
+          commissionPaid: false,
+          notes: "Recurring monthly booking",
+          issuedBy: "Admin User",
+          createdAt: "2024-06-15T10:00:00",
+          updatedAt: "2024-06-15T12:00:00"
+        }
+      ];
+
+      const savedBookings = JSON.parse(localStorage.getItem('lattisbin_bookings') || '[]');
+      return [...defaultBookings, ...savedBookings];
+    };
+    
+    setRecords(reloadBookings());
+  }, []);
 
   // Statistics
   const stats = {
@@ -441,69 +556,81 @@ const BookingsAndDOs: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <CalendarRange className="h-6 w-6 text-blue-600" />
-            View Bookings & Delivery Orders
+          <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 flex items-center gap-2">
+            <CalendarRange className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
+            <span className="truncate">View Bookings & DOs</span>
           </h2>
-          <p className="text-gray-600 mt-1">
+          <p className="text-sm sm:text-base text-gray-600 mt-1 hidden sm:block">
             Unified interface for managing bin bookings and delivery orders
           </p>
         </div>
-        <Button onClick={startCreateBooking} className="bg-blue-600 hover:bg-blue-700 text-white">
+        <Button 
+          onClick={startCreateBooking} 
+          className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto shadow-lg"
+        >
           <Plus className="h-4 w-4 mr-2" />
-          Create New Booking
+          <span className="hidden xs:inline">Create New Booking</span>
+          <span className="xs:hidden">New Booking</span>
         </Button>
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <CalendarRange className="h-5 w-5 text-blue-600" />
-              <div>
-                <p className="text-sm text-gray-600">Total Bookings</p>
-                <p className="text-2xl font-bold">{stats.totalBookings}</p>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+        <Card className="hover:shadow-md transition-shadow">
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+              <div className="bg-blue-100 p-2 rounded-lg w-fit">
+                <CalendarRange className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
+              </div>
+              <div className="flex-1">
+                <p className="text-xs sm:text-sm text-gray-600">Total Bookings</p>
+                <p className="text-xl sm:text-2xl font-bold">{stats.totalBookings}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <FileText className="h-5 w-5 text-green-600" />
-              <div>
-                <p className="text-sm text-gray-600">Delivery Orders</p>
-                <p className="text-2xl font-bold">{stats.totalDOs}</p>
+        <Card className="hover:shadow-md transition-shadow">
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+              <div className="bg-green-100 p-2 rounded-lg w-fit">
+                <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
+              </div>
+              <div className="flex-1">
+                <p className="text-xs sm:text-sm text-gray-600">Delivery Orders</p>
+                <p className="text-xl sm:text-2xl font-bold">{stats.totalDOs}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <AlertCircle className="h-5 w-5 text-orange-600" />
-              <div>
-                <p className="text-sm text-gray-600">Pending Invoices</p>
-                <p className="text-2xl font-bold text-orange-600">{stats.pendingInvoices}</p>
+        <Card className="hover:shadow-md transition-shadow">
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+              <div className="bg-orange-100 p-2 rounded-lg w-fit">
+                <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-orange-600" />
+              </div>
+              <div className="flex-1">
+                <p className="text-xs sm:text-sm text-gray-600 truncate">Pending Invoices</p>
+                <p className="text-xl sm:text-2xl font-bold text-orange-600">{stats.pendingInvoices}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <DollarSign className="h-5 w-5 text-red-600" />
-              <div>
-                <p className="text-sm text-gray-600">Pending Payments</p>
-                <p className="text-2xl font-bold text-red-600">{stats.pendingPayments}</p>
+        <Card className="hover:shadow-md transition-shadow">
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+              <div className="bg-red-100 p-2 rounded-lg w-fit">
+                <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-red-600" />
+              </div>
+              <div className="flex-1">
+                <p className="text-xs sm:text-sm text-gray-600 truncate">Pending Payments</p>
+                <p className="text-xl sm:text-2xl font-bold text-red-600">{stats.pendingPayments}</p>
               </div>
             </div>
           </CardContent>
@@ -512,13 +639,13 @@ const BookingsAndDOs: React.FC = () => {
 
       {/* Filters and Search */}
       <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-wrap items-center gap-4">
+        <CardContent className="p-3 sm:p-4">
+          <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3 sm:gap-4">
             <div className="flex-1 min-w-[200px]">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
-                  placeholder="Search by customer name or DO number..."
+                  placeholder="Search by customer or DO number..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10"
@@ -527,7 +654,7 @@ const BookingsAndDOs: React.FC = () => {
             </div>
 
             <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue placeholder="Filter by Status" />
               </SelectTrigger>
               <SelectContent>
@@ -541,7 +668,7 @@ const BookingsAndDOs: React.FC = () => {
             </Select>
 
             <Select value={filterArea} onValueChange={setFilterArea}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue placeholder="Filter by Area" />
               </SelectTrigger>
               <SelectContent>
@@ -552,9 +679,10 @@ const BookingsAndDOs: React.FC = () => {
               </SelectContent>
             </Select>
 
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" className="w-full sm:w-auto">
               <Filter className="h-4 w-4 mr-2" />
-              Date Range
+              <span className="hidden sm:inline">Date Range</span>
+              <span className="sm:hidden">Filter Date</span>
             </Button>
           </div>
         </CardContent>
@@ -562,26 +690,35 @@ const BookingsAndDOs: React.FC = () => {
 
       {/* Tabs for All / Bookings / DOs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="all">All Records ({records.length})</TabsTrigger>
-          <TabsTrigger value="bookings">Bookings Only ({stats.totalBookings})</TabsTrigger>
-          <TabsTrigger value="delivery-orders">Delivery Orders Only ({stats.totalDOs})</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3 h-auto">
+          <TabsTrigger value="all" className="text-xs sm:text-sm">
+            <span className="hidden sm:inline">All Records ({records.length})</span>
+            <span className="sm:hidden">All ({records.length})</span>
+          </TabsTrigger>
+          <TabsTrigger value="bookings" className="text-xs sm:text-sm">
+            <span className="hidden sm:inline">Bookings Only ({stats.totalBookings})</span>
+            <span className="sm:hidden">Bookings ({stats.totalBookings})</span>
+          </TabsTrigger>
+          <TabsTrigger value="delivery-orders" className="text-xs sm:text-sm">
+            <span className="hidden sm:inline">Delivery Orders Only ({stats.totalDOs})</span>
+            <span className="sm:hidden">DOs ({stats.totalDOs})</span>
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value={activeTab} className="space-y-4 mt-6">
           {/* Pagination Info and Items Per Page */}
           {filteredRecords.length > 0 && (
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-gray-600">
-                Showing {startIndex + 1} to {Math.min(endIndex, filteredRecords.length)} of {filteredRecords.length} records
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <p className="text-xs sm:text-sm text-gray-600">
+                Showing {startIndex + 1}-{Math.min(endIndex, filteredRecords.length)} of {filteredRecords.length}
               </p>
               <div className="flex items-center gap-2">
-                <Label className="text-sm text-gray-600">Show:</Label>
+                <Label className="text-xs sm:text-sm text-gray-600">Show:</Label>
                 <Select value={itemsPerPage.toString()} onValueChange={(value) => {
                   setItemsPerPage(Number(value));
                   setCurrentPage(1);
                 }}>
-                  <SelectTrigger className="w-[100px]">
+                  <SelectTrigger className="w-[80px] sm:w-[100px]">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -603,33 +740,37 @@ const BookingsAndDOs: React.FC = () => {
             </Card>
           ) : (
             paginatedRecords.map((record) => (
-              <Card key={record.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-lg ${record.type === "booking" ? "bg-blue-100" : "bg-green-100"}`}>
-                        {record.type === "booking" ? (
-                          <CalendarRange className="h-5 w-5 text-blue-600" />
-                        ) : (
-                          <FileText className="h-5 w-5 text-green-600" />
-                        )}
+              <Card key={record.id} className="hover:shadow-xl transition-all duration-300">
+                <CardHeader className="p-3 sm:p-6">
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-start sm:items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                        <div className={`p-1.5 sm:p-2 rounded-lg flex-shrink-0 ${record.type === "booking" ? "bg-blue-100" : "bg-green-100"}`}>
+                          {record.type === "booking" ? (
+                            <CalendarRange className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
+                          ) : (
+                            <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <CardTitle className="text-sm sm:text-base flex flex-wrap items-center gap-1.5 sm:gap-2">
+                            <span className="truncate">{record.customerName}</span>
+                            <Badge variant="outline" className="text-xs flex-shrink-0">
+                              {record.customerType}
+                            </Badge>
+                          </CardTitle>
+                          <p className="text-xs sm:text-sm text-gray-600 truncate">{record.contactPerson} • {record.phone}</p>
+                        </div>
                       </div>
-                      <div>
-                        <CardTitle className="flex items-center gap-2">
-                          {record.customerName}
-                          <Badge variant="outline" className="text-xs">
-                            {record.customerType}
-                          </Badge>
-                          <Badge className={record.type === "booking" ? "bg-blue-100 text-blue-800" : "bg-green-100 text-green-800"}>
-                            {record.type === "booking" ? "Booking" : "Delivery Order"}
-                          </Badge>
-                        </CardTitle>
-                        <p className="text-sm text-gray-600">{record.contactPerson} • {record.phone}</p>
+                      <div className="flex flex-col sm:flex-row items-end sm:items-center gap-1.5 sm:gap-2 flex-shrink-0">
+                        {getPriorityBadge(record.priority)}
+                        {getStatusBadge(record.status)}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      {getPriorityBadge(record.priority)}
-                      {getStatusBadge(record.status)}
+                    <div className="flex flex-wrap gap-2">
+                      <Badge className={`text-xs ${record.type === "booking" ? "bg-blue-100 text-blue-800" : "bg-green-100 text-green-800"}`}>
+                        {record.type === "booking" ? "Booking" : "Delivery Order"}
+                      </Badge>
                     </div>
                   </div>
                 </CardHeader>
@@ -717,6 +858,29 @@ const BookingsAndDOs: React.FC = () => {
                         )}
                       </div>
                     )}
+
+                    <div>
+                      <p className="text-sm text-gray-500">Collection Reminder</p>
+                      {(() => {
+                        const reminder = getCollectionReminderByDO(record.doNumber);
+                        if (reminder) {
+                          return (
+                            <div className="flex items-center gap-1 mt-1">
+                              <Bell className="h-3 w-3 text-blue-600" />
+                              <Badge className="bg-blue-100 text-blue-800 text-xs">
+                                {reminder.status === "scheduled" && "Scheduled"}
+                                {reminder.status === "sent" && "Sent"}
+                                {reminder.status === "completed" && "Completed"}
+                                {reminder.status === "overdue" && "Overdue"}
+                              </Badge>
+                            </div>
+                          );
+                        }
+                        return (
+                          <p className="text-xs text-gray-500 mt-1">Not scheduled</p>
+                        );
+                      })()}
+                    </div>
                   </div>
 
                   {/* Additional Details */}
@@ -754,6 +918,29 @@ const BookingsAndDOs: React.FC = () => {
 
                   {/* Action Buttons */}
                   <div className="flex flex-wrap justify-end gap-2 mt-4">
+                    {!getCollectionReminderByDO(record.doNumber) && record.status === "completed" && (
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        className="bg-blue-50 border-blue-300 hover:bg-blue-100"
+                        onClick={() => navigate(`/admin/collection-reminders`)}
+                      >
+                        <Bell className="h-3 w-3 mr-1" />
+                        Schedule Collection
+                      </Button>
+                    )}
+                    
+                    {getCollectionReminderByDO(record.doNumber) && (
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => navigate(`/admin/collection-reminders`)}
+                      >
+                        <Bell className="h-3 w-3 mr-1" />
+                        View Collection
+                      </Button>
+                    )}
+
                     <Button 
                       size="sm" 
                       variant="outline"
@@ -799,7 +986,7 @@ const BookingsAndDOs: React.FC = () => {
                       </Button>
                     )}
 
-                    {record.commissionAmount && !record.commissionPaid && record.paymentStatus === "received" && (
+                    {record.commissionAmount > 0 && !record.commissionPaid && record.paymentStatus === "received" && (
                       <Button 
                         size="sm" 
                         variant="outline"

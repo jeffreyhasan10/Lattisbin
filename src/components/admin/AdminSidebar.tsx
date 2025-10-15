@@ -117,6 +117,11 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
         text: activeOrders.toString(),
         variant: "info"
       } : null
+    }, {
+      id: "collection-reminders",
+      label: "Collection Reminders",
+      icon: Bell,
+      href: "/admin/collection-reminders"
     }]
   }, {
     label: "Financial",

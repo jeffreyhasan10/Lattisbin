@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   ArrowLeft,
   CalendarRange,
@@ -36,6 +37,9 @@ import {
   Bell,
   Save,
 } from "lucide-react";
+import { useOrders } from "@/contexts/OrderContext";
+import { toast } from "sonner";
+import BookingSuccessModal from "./BookingSuccessModal";
 
 interface Customer {
   id: string;
@@ -94,9 +98,18 @@ interface NewCustomerForm {
 
 const CreateBooking: React.FC = () => {
   const navigate = useNavigate();
+  const { addCollectionReminder } = useOrders();
   const [activeTab, setActiveTab] = useState("customer");
   const [searchTerm, setSearchTerm] = useState("");
   const [showAddCustomerModal, setShowAddCustomerModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [createdBookingInfo, setCreatedBookingInfo] = useState({ doNumber: "", hasReminder: false });
+
+  // Collection reminder settings
+  const [scheduleCollection, setScheduleCollection] = useState(false);
+  const [collectionType, setCollectionType] = useState<"same_day" | "term_based">("term_based");
+  const [collectionDaysAfter, setCollectionDaysAfter] = useState(7);
+  const [collectionPriority, setCollectionPriority] = useState<"low" | "medium" | "high" | "urgent">("medium");
 
   const [formData, setFormData] = useState<BookingForm>({
     customerId: "",
@@ -181,11 +194,21 @@ const CreateBooking: React.FC = () => {
   // Bin size options with pricing
   const binSizeOptions = [
     { id: "2x12x6", name: "2ft(H) × 12ft(L) × 6ft(W)", price: 200 },
-    { id: "4x12x6", name: "4ft(H) × 12ft(L) × 6ft(W)", price: 280 },
-    { id: "4x14x6", name: "4ft(H) × 14ft(L) × 6ft(W)", price: 320 },
-    { id: "5x12x6", name: "5ft(H) × 12ft(L) × 6ft(W)", price: 350 },
+    { id: "2x20x8", name: "2ft(H) × 20ft(L) × 8ft(W)", price: 280 },
+    { id: "4x12x6", name: "4ft(H) × 12ft(L) × 6ft(W)", price: 320 },
+    { id: "4x14x6", name: "4ft(H) × 14ft(L) × 6ft(W)", price: 350 },
+    { id: "5x12x6", name: "5ft(H) × 12ft(L) × 6ft(W)", price: 380 },
+    { id: "5x23x8", name: "5ft(H) × 23ft(L) × 8ft(W)", price: 650 },
+    { id: "6x12x6", name: "6ft(H) × 12ft(L) × 6ft(W)", price: 420 },
     { id: "6x24x8", name: "6ft(H) × 24ft(L) × 8ft(W)", price: 750 },
-    { id: "6.5x14.5x6", name: "6.5ft(H) × 14.5ft(L) × 6ft(W)", price: 450 }
+    { id: "6x23x8", name: "6ft(H) × 23ft(L) × 8ft(W)", price: 720 },
+    { id: "6.5x14.5x6", name: "6.5ft(H) × 14.5ft(L) × 6ft(W)", price: 450 },
+    { id: "6x12x7", name: "6ft(H) × 12ft(L) × 7ft(W)", price: 440 },
+    { id: "4x12x6_cust", name: "4ft(H) × 12ft(L) × 6ft(W) (Cust)", price: 340 },
+    { id: "2x12x6_cust", name: "2ft(H) × 12ft(L) × 6ft(W) (Cust)", price: 220 },
+    { id: "5x12x6_cust", name: "5ft(H) × 12ft(L) × 6ft(W) (Cust)", price: 400 },
+    { id: "2x20x8_cust", name: "2ft(H) × 20ft(L) × 8ft(W) (Cust)", price: 300 },
+    { id: "4x16x8_cust", name: "4ft(H) × 16ft(L) × 8ft(W) (Cust)", price: 480 }
   ];
 
   const filteredCustomers = customers.filter(customer =>
@@ -255,31 +278,116 @@ const CreateBooking: React.FC = () => {
   const handleCreateBooking = () => {
     // Validation
     if (!formData.customerId) {
-      alert("Please select a customer.");
+      toast.error("Please select a customer.");
       return;
     }
 
     if (!formData.binSize || !formData.scheduledDate || !formData.scheduledTime) {
-      alert("Please fill in all required booking fields.");
+      toast.error("Please fill in all required booking fields.");
       return;
     }
 
     if (!formData.collectionDate || !formData.collectionTime) {
-      alert("Please set collection date and time.");
+      toast.error("Please set collection date and time.");
       return;
     }
 
     if (formData.doGenerationMode === "manual" && !formData.manualDONumber.trim()) {
-      alert("Please enter DO Number for manual mode.");
+      toast.error("Please enter DO Number for manual mode.");
       return;
     }
 
-    // Here you would typically send the data to your backend
-    console.log("Creating booking with data:", formData);
-    alert("Booking created successfully!");
-    
-    // Navigate back to bookings list
-    navigate("/admin/bookings-dos");
+    // Generate DO number
+    const doNumber = formData.doGenerationMode === "manual" 
+      ? formData.manualDONumber 
+      : `DO-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}`;
+
+    const binSerialNumber = formData.doGenerationMode === "manual" && formData.manualBinSerialNumber
+      ? formData.manualBinSerialNumber
+      : `BIN-SN-${String(Math.floor(Math.random() * 1000)).padStart(3, '0')}`;
+
+    // Save booking to localStorage (simulating backend)
+    const existingBookings = JSON.parse(localStorage.getItem('lattisbin_bookings') || '[]');
+    const newBooking = {
+      id: `REC${String(existingBookings.length + 1).padStart(3, '0')}`,
+      type: "booking",
+      doNumber: doNumber,
+      doBookNumber: formData.doGenerationMode === "manual" ? formData.manualDOBookNumber : `DOBOOK-${String(existingBookings.length + 1).padStart(4, '0')}`,
+      customerName: formData.customerName,
+      customerId: formData.customerId,
+      customerType: formData.customerType,
+      contactPerson: formData.contactPerson,
+      phone: formData.phone,
+      email: formData.email,
+      binSerialNumber: binSerialNumber,
+      binSize: formData.binSize,
+      binWeight: formData.binWeight,
+      location: formData.location,
+      area: formData.area,
+      state: formData.state,
+      scheduledDate: formData.scheduledDate,
+      scheduledTime: formData.scheduledTime,
+      collectionDate: formData.collectionDate,
+      collectionTime: formData.collectionTime,
+      collectionSource: formData.collectionSource,
+      status: "pending",
+      priority: formData.priority,
+      assignedDriver: formData.assignedDriver,
+      assignedLorry: formData.assignedLorry,
+      paymentMode: formData.paymentMode,
+      paymentStatus: "pending",
+      invoiceStatus: "pending",
+      introducer: formData.introducer,
+      jobReference: formData.jobReference,
+      ownerManagerSupervisor: formData.ownerManagerSupervisor,
+      amount: formData.amount,
+      commissionAmount: formData.introducer ? formData.amount * 0.1 : 0,
+      commissionPaid: false,
+      notes: formData.notes,
+      issuedBy: "Admin User",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    existingBookings.push(newBooking);
+    localStorage.setItem('lattisbin_bookings', JSON.stringify(existingBookings));
+
+    // Create collection reminder if enabled
+    let hasReminder = false;
+    if (scheduleCollection) {
+      const collectionDate = collectionType === "same_day" 
+        ? formData.scheduledDate 
+        : new Date(new Date(formData.scheduledDate).getTime() + collectionDaysAfter * 24 * 60 * 60 * 1000)
+            .toISOString().split('T')[0];
+
+      const collectionTime = collectionType === "same_day"
+        ? formData.collectionTime || "16:00"
+        : "09:00";
+
+      addCollectionReminder({
+        doNumber: doNumber,
+        doId: newBooking.id,
+        customerName: formData.customerName,
+        location: `${formData.location}, ${formData.area}, ${formData.state}`,
+        binSerialNumber: binSerialNumber,
+        binSize: formData.binSize,
+        deliveryDate: formData.scheduledDate,
+        reminderType: collectionType,
+        scheduledDate: collectionDate,
+        scheduledTime: collectionTime,
+        status: "scheduled",
+        priority: collectionPriority,
+        assignedDriver: formData.assignedDriver || undefined,
+        notes: collectionType === "same_day" 
+          ? "Same day collection - deliver and collect on same day"
+          : `Term-based collection - collect ${collectionDaysAfter} days after delivery`,
+      });
+      hasReminder = true;
+    }
+
+    // Show success modal
+    setCreatedBookingInfo({ doNumber, hasReminder });
+    setShowSuccessModal(true);
   };
 
   const handleBackToList = () => {
@@ -296,56 +404,65 @@ const CreateBooking: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleBackToList}
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Bookings & DOs
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-              <CalendarRange className="h-6 w-6 text-blue-600" />
-              Create New Booking
-            </h2>
-            <p className="text-gray-600 mt-1">
-              Create new bin bookings with customer selection, service details, and scheduling
-            </p>
-          </div>
+      <div className="flex flex-col gap-3 sm:gap-4">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleBackToList}
+          className="flex items-center gap-2 w-fit"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          <span className="hidden xs:inline">Back to Bookings & DOs</span>
+          <span className="xs:hidden">Back</span>
+        </Button>
+        <div>
+          <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 flex items-center gap-2">
+            <CalendarRange className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
+            <span>Create New Booking</span>
+          </h2>
+          <p className="text-sm sm:text-base text-gray-600 mt-1 hidden sm:block">
+            Create new bin bookings with customer selection, service details, and scheduling
+          </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Main Form */}
         <div className="lg:col-span-2">
           <Card>
-            <CardHeader>
-              <CardTitle>Booking Creation</CardTitle>
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="text-base sm:text-lg">Booking Creation</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4 sm:p-6 pt-0">
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="customer">Select Customer</TabsTrigger>
-                  <TabsTrigger value="details">Booking Details</TabsTrigger>
-                  <TabsTrigger value="schedule">Schedule & Confirm</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-3 h-auto">
+                  <TabsTrigger value="customer" className="text-xs sm:text-sm px-2 sm:px-4">
+                    <span className="hidden sm:inline">Select Customer</span>
+                    <span className="sm:hidden">Customer</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="details" className="text-xs sm:text-sm px-2 sm:px-4">
+                    <span className="hidden sm:inline">Booking Details</span>
+                    <span className="sm:hidden">Details</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="schedule" className="text-xs sm:text-sm px-2 sm:px-4">
+                    <span className="hidden sm:inline">Schedule & Confirm</span>
+                    <span className="sm:hidden">Schedule</span>
+                  </TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="customer" className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <h3 className="font-semibold">Select Customer</h3>
+                <TabsContent value="customer" className="space-y-4 mt-4">
+                  <div className="flex flex-col xs:flex-row xs:justify-between xs:items-center gap-2">
+                    <h3 className="font-semibold text-sm sm:text-base">Select Customer</h3>
                     <Button 
                       variant="outline" 
                       size="sm"
                       onClick={() => setShowAddCustomerModal(true)}
+                      className="w-full xs:w-auto"
                     >
                       <UserPlus className="h-4 w-4 mr-2" />
-                      Add New Customer
+                      <span>Add New Customer</span>
                     </Button>
                   </div>
                   
@@ -707,6 +824,99 @@ const CreateBooking: React.FC = () => {
                       </div>
                     </div>
 
+                    {/* Collection Reminder Section */}
+                    <div className="border-t pt-4 space-y-4">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="scheduleCollection" 
+                          checked={scheduleCollection}
+                          onCheckedChange={(checked) => setScheduleCollection(checked as boolean)}
+                        />
+                        <Label 
+                          htmlFor="scheduleCollection" 
+                          className="text-base font-semibold cursor-pointer flex items-center gap-2"
+                        >
+                          <Bell className="h-5 w-5 text-blue-600" />
+                          Schedule Collection Reminder
+                        </Label>
+                      </div>
+
+                      {scheduleCollection && (
+                        <div className="ml-6 space-y-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                          <p className="text-sm text-gray-600">
+                            Automatically schedule a reminder to collect the bin back from customer
+                          </p>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <Label>Collection Type *</Label>
+                              <RadioGroup 
+                                value={collectionType} 
+                                onValueChange={(value: "same_day" | "term_based") => setCollectionType(value)}
+                              >
+                                <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="same_day" id="same_day" />
+                                  <Label htmlFor="same_day" className="cursor-pointer">
+                                    Same Day (Deliver & collect same day)
+                                  </Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="term_based" id="term_based" />
+                                  <Label htmlFor="term_based" className="cursor-pointer">
+                                    Term Based (Collect after X days)
+                                  </Label>
+                                </div>
+                              </RadioGroup>
+                            </div>
+
+                            {collectionType === "term_based" && (
+                              <div className="space-y-2">
+                                <Label>Collect After (Days) *</Label>
+                                <Input 
+                                  type="number" 
+                                  value={collectionDaysAfter}
+                                  onChange={(e) => setCollectionDaysAfter(Number(e.target.value))}
+                                  min={1}
+                                  max={90}
+                                />
+                                <p className="text-xs text-gray-500">
+                                  Collection scheduled: {new Date(new Date(formData.scheduledDate || Date.now()).getTime() + collectionDaysAfter * 24 * 60 * 60 * 1000).toLocaleDateString()}
+                                </p>
+                              </div>
+                            )}
+
+                            <div className="space-y-2">
+                              <Label>Collection Priority *</Label>
+                              <Select 
+                                value={collectionPriority}
+                                onValueChange={(value: "low" | "medium" | "high" | "urgent") => setCollectionPriority(value)}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="low">Low</SelectItem>
+                                  <SelectItem value="medium">Medium</SelectItem>
+                                  <SelectItem value="high">High</SelectItem>
+                                  <SelectItem value="urgent">Urgent</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+
+                          <div className="flex items-start gap-2 p-3 bg-green-50 rounded border border-green-200">
+                            <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                            <div className="text-sm text-gray-700">
+                              <p className="font-medium">Collection reminder will be created automatically</p>
+                              <p className="text-xs mt-1">
+                                Driver will be notified when it's time to collect the bin
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
                     <div className="p-4 bg-blue-50 rounded-lg">
                       <div className="flex items-start gap-2">
                         <Bell className="h-5 w-5 text-blue-600 mt-0.5" />
@@ -964,6 +1174,14 @@ const CreateBooking: React.FC = () => {
           </Card>
         </div>
       )}
+
+      {/* Success Modal */}
+      <BookingSuccessModal
+        isOpen={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        doNumber={createdBookingInfo.doNumber}
+        hasReminder={createdBookingInfo.hasReminder}
+      />
     </div>
   );
 };

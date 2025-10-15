@@ -38,80 +38,16 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import { toast } from "sonner";
-
-interface CollectionReminder {
-  id: string;
-  doNumber: string;
-  customerName: string;
-  location: string;
-  binSerialNumber: string;
-  binSize: string;
-  deliveryDate: string;
-  reminderType: "same_day" | "term_based";
-  scheduledDate: string;
-  scheduledTime: string;
-  status: "scheduled" | "sent" | "overdue" | "completed" | "cancelled";
-  priority: "low" | "medium" | "high" | "urgent";
-  assignedDriver?: string;
-  notes?: string;
-  createdAt: string;
-}
-
-const mockReminders: CollectionReminder[] = [
-  {
-    id: "REM-001",
-    doNumber: "DO-2024-1234",
-    customerName: "Tech Plaza Mall",
-    location: "Cyberjaya, Selangor",
-    binSerialNumber: "ASR-100",
-    binSize: "20 Yard (11ft x 6ft x 8ft)",
-    deliveryDate: "2024-10-10",
-    reminderType: "term_based",
-    scheduledDate: "2024-10-17",
-    scheduledTime: "09:00",
-    status: "overdue",
-    priority: "urgent",
-    assignedDriver: "Ahmad Rahman",
-    notes: "Customer requested morning pickup",
-    createdAt: "2024-10-10T14:30:00Z",
-  },
-  {
-    id: "REM-002",
-    doNumber: "DO-2024-1235",
-    customerName: "Green Valley Resort",
-    location: "Mont Kiara, KL",
-    binSerialNumber: "ASR-150",
-    binSize: "15 Yard (11ft x 4.5ft x 8ft)",
-    deliveryDate: "2024-10-14",
-    reminderType: "same_day",
-    scheduledDate: "2024-10-14",
-    scheduledTime: "16:00",
-    status: "scheduled",
-    priority: "high",
-    assignedDriver: "Ahmad Rahman",
-    createdAt: "2024-10-14T08:00:00Z",
-  },
-  {
-    id: "REM-003",
-    doNumber: "DO-2024-1236",
-    customerName: "Sunrise Apartments",
-    location: "Petaling Jaya",
-    binSerialNumber: "LSR-200",
-    binSize: "10 Yard (10ft x 4ft x 7ft)",
-    deliveryDate: "2024-10-12",
-    reminderType: "term_based",
-    scheduledDate: "2024-10-19",
-    scheduledTime: "10:30",
-    status: "scheduled",
-    priority: "medium",
-    assignedDriver: "Azman Ali",
-    createdAt: "2024-10-12T11:20:00Z",
-  },
-];
+import { useOrders, CollectionReminder } from "@/contexts/OrderContext";
 
 const CollectionReminderSystem: React.FC = () => {
   const navigate = useNavigate();
-  const [reminders, setReminders] = useState<CollectionReminder[]>(mockReminders);
+  const { 
+    collectionReminders, 
+    addCollectionReminder, 
+    updateCollectionReminder, 
+    deleteCollectionReminder 
+  } = useOrders();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
@@ -123,6 +59,7 @@ const CollectionReminderSystem: React.FC = () => {
   // Form states for create/edit
   const [formData, setFormData] = useState({
     doNumber: "",
+    doId: "",
     customerName: "",
     location: "",
     binSerialNumber: "",
@@ -138,7 +75,7 @@ const CollectionReminderSystem: React.FC = () => {
 
   // Filter and search reminders
   const filteredReminders = useMemo(() => {
-    return reminders.filter((reminder) => {
+    return collectionReminders.filter((reminder) => {
       const matchesSearch =
         reminder.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         reminder.doNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -151,18 +88,18 @@ const CollectionReminderSystem: React.FC = () => {
 
       return matchesSearch && matchesStatus && matchesPriority && matchesType;
     });
-  }, [reminders, searchTerm, statusFilter, priorityFilter, typeFilter]);
+  }, [collectionReminders, searchTerm, statusFilter, priorityFilter, typeFilter]);
 
   // Calculate statistics
   const stats = useMemo(() => {
     return {
-      total: reminders.length,
-      scheduled: reminders.filter((r) => r.status === "scheduled").length,
-      overdue: reminders.filter((r) => r.status === "overdue").length,
-      completed: reminders.filter((r) => r.status === "completed").length,
-      urgent: reminders.filter((r) => r.priority === "urgent").length,
+      total: collectionReminders.length,
+      scheduled: collectionReminders.filter((r) => r.status === "scheduled").length,
+      overdue: collectionReminders.filter((r) => r.status === "overdue").length,
+      completed: collectionReminders.filter((r) => r.status === "completed").length,
+      urgent: collectionReminders.filter((r) => r.priority === "urgent").length,
     };
-  }, [reminders]);
+  }, [collectionReminders]);
 
   const getStatusBadge = (status: string) => {
     const variants = {
@@ -191,14 +128,11 @@ const CollectionReminderSystem: React.FC = () => {
       return;
     }
 
-    const newReminder: CollectionReminder = {
-      id: `REM-${String(reminders.length + 1).padStart(3, "0")}`,
+    addCollectionReminder({
       ...formData,
       status: "scheduled",
-      createdAt: new Date().toISOString(),
-    };
-
-    setReminders([...reminders, newReminder]);
+    });
+    
     setShowCreateModal(false);
     resetForm();
     toast.success("Collection reminder created successfully!", {
@@ -209,13 +143,8 @@ const CollectionReminderSystem: React.FC = () => {
   const handleEditReminder = () => {
     if (!selectedReminder) return;
 
-    setReminders(
-      reminders.map((r) =>
-        r.id === selectedReminder.id
-          ? { ...r, ...formData, status: r.status }
-          : r
-      )
-    );
+    updateCollectionReminder(selectedReminder.id, formData);
+    
     setShowEditModal(false);
     setSelectedReminder(null);
     resetForm();
@@ -224,28 +153,20 @@ const CollectionReminderSystem: React.FC = () => {
 
   const handleDeleteReminder = (id: string) => {
     if (confirm("Are you sure you want to delete this reminder?")) {
-      setReminders(reminders.filter((r) => r.id !== id));
+      deleteCollectionReminder(id);
       toast.success("Reminder deleted successfully!");
     }
   };
 
   const handleSendReminder = (reminder: CollectionReminder) => {
-    setReminders(
-      reminders.map((r) =>
-        r.id === reminder.id ? { ...r, status: "sent" as const } : r
-      )
-    );
+    updateCollectionReminder(reminder.id, { status: "sent" });
     toast.success("Reminder sent!", {
       description: `Notification sent to ${reminder.assignedDriver}`,
     });
   };
 
   const handleMarkCompleted = (id: string) => {
-    setReminders(
-      reminders.map((r) =>
-        r.id === id ? { ...r, status: "completed" as const } : r
-      )
-    );
+    updateCollectionReminder(id, { status: "completed" });
     toast.success("Collection marked as completed!");
   };
 
@@ -253,6 +174,7 @@ const CollectionReminderSystem: React.FC = () => {
     setSelectedReminder(reminder);
     setFormData({
       doNumber: reminder.doNumber,
+      doId: reminder.doId,
       customerName: reminder.customerName,
       location: reminder.location,
       binSerialNumber: reminder.binSerialNumber,
@@ -271,6 +193,7 @@ const CollectionReminderSystem: React.FC = () => {
   const resetForm = () => {
     setFormData({
       doNumber: "",
+      doId: "",
       customerName: "",
       location: "",
       binSerialNumber: "",

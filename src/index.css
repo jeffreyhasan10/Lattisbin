@@ -272,6 +272,37 @@
   .dashboard-tab.active {
     @apply bg-primary text-white;
   }
+
+  /* Responsive Table Wrapper */
+  .table-responsive {
+    @apply w-full overflow-x-auto -mx-4 sm:mx-0;
+  }
+
+  .table-responsive::-webkit-scrollbar {
+    height: 8px;
+  }
+
+  .table-responsive::-webkit-scrollbar-track {
+    @apply bg-gray-100 rounded;
+  }
+
+  .table-responsive::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 rounded;
+  }
+
+  .table-responsive::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-400;
+  }
+
+  /* Mobile-optimized card */
+  .mobile-card {
+    @apply bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4 hover:shadow-md transition-shadow;
+  }
+
+  /* Responsive stat card */
+  .stat-card-responsive {
+    @apply p-3 sm:p-4 lg:p-5 rounded-xl bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300;
+  }
 }
 
 @layer utilities {
